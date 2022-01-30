@@ -116,8 +116,8 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 case 'q':
                 {
                     printf("TestGameMain: Posting RESET_GAME to GameMain\r\n");
-                    PostEvent.EventType = RESET_GAME;
-                    PostGameMain(PostEvent);
+                    //PostEvent.EventType = RESET_GAME;
+                    //PostDriveTrain(PostEvent);
                 } break;
                 default:
                   ;

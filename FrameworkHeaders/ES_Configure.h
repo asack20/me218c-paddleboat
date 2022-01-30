@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "TestHarnessService0.h"
+#define SERV_0_HEADER "../DriveTrain/DriveTrain.h"
 // the name of the Init function
-#define SERV_0_INIT InitTestHarnessService0
+#define SERV_0_INIT InitDriveTrain
 // the name of the run function
-#define SERV_0_RUN RunTestHarnessService0
+#define SERV_0_RUN RunDriveTrain
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,11 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "TestHarnessService1.h"
+#define SERV_1_HEADER "../TestHarnesses/KeyboardService.h"
 // the name of the Init function
-#define SERV_1_INIT InitTestHarnessService1
+#define SERV_1_INIT InitKeyboardService
 // the name of the run function
-#define SERV_1_RUN RunTestHarnessService1
+#define SERV_1_RUN RunKeyboardService
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
@@ -253,15 +253,24 @@
 // Universal events occupy the lowest entries, followed by user-defined events
 typedef enum
 {
-  ES_NO_EVENT = 0,
-  ES_ERROR,                 /* used to indicate an error from the service */
-  ES_INIT,                  /* used to transition from initial pseudo-state */
-  ES_TIMEOUT,               /* signals that the timer has expired */
-  ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
-  /* User-defined events start here */
-  ES_NEW_KEY,               /* signals a new key received from terminal */
-  ES_LOCK,
-  ES_UNLOCK
+    ES_NO_EVENT = 0,
+    ES_ERROR,                 /* used to indicate an error from the service */
+    ES_INIT,                  /* used to transition from initial pseudo-state */
+    ES_TIMEOUT,               /* signals that the timer has expired */
+    ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
+    /* User-defined events start here */
+    ES_NEW_KEY,               /* signals a new key received from terminal */
+    /* DriveTrain Events */
+    DRIVE_COMMAND_COMPLETE,
+    DRIVE_STOP_MOTORS,
+    DRIVE_ROTATE_CW90,
+    DRIVE_ROTATE_CW45,
+    DRIVE_ROTATE_CCW90,
+    DRIVE_ROTATE_CCW45,
+    DRIVE_FORWARD_HALF,
+    DRIVE_FORWARD_FULL,
+    DRIVE_BACKWARD_HALF,
+    DRIVE_BACKWARD_FULL
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -305,7 +314,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC PostDriveTrain
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -320,7 +329,7 @@ typedef enum
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC PostTestHarnessService0
+#define TIMER15_RESP_FUNC TIMER_UNUSED
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -329,7 +338,7 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define SERVICE0_TIMER 15
+#define DRIVETRAIN_TIMER 0
 
 
 #endif /* ES_CONFIGURE_H */
