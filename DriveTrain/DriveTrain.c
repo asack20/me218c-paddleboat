@@ -33,7 +33,8 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 #define PWM_TIMER 3
-#define PWM_PERIOD 999 // Base frequency of 5kHz with prescale of 4
+#define PWM_PERIOD 1999 // Base frequency of 10kHz with prescale of 4
+#define DUTY_CYCLE_TO_OCRS 20// multiplier
 
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A
@@ -44,6 +45,7 @@
 #define L_ENABLE_LAT LATAbits.LATA2 // Pin 9
 #define L_DIRA_REG RPB4R // Pin 11
 #define OC1_PERIPHERAL_CODE 0b0101
+#define L_OCRS OC1RS
 
 // Right motor ports and pins
 #define R_DIRB_PORT _Port_B
@@ -54,7 +56,7 @@
 #define R_ENABLE_LAT LATBbits.LATB10 // Pin 21
 #define R_DIRA_REG RPB8R // Pin 17
 #define OC2_PERIPHERAL_CODE 0b0101
-
+#define R_OCRS OC2RS
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -213,6 +215,94 @@ DriveTrainState_t QueryDriveTrain(void)
     return CurrentState;
 }
 
+/****************************************************************************
+ * Function
+ *      DriveTrain_SetMotorDutyCycle     
+ *      
+ * Parameters
+ *      DriveTrain_Motor_t WhichMotor - Left or Right Motor
+ *      DriveTrain_Direction_t WhichDirection - Direction to move motor in
+ *          Forward is relative to robot base (CW for right motor, CCW for left)
+ *      uint8_t DutyCycle - (valid range 0-100 inclusive) PWM duty cycle to set 
+ * Return
+ *      void
+ * Description
+ *      Set specified motor to move at set PWM duty cycle in specified direction
+****************************************************************************/
+void DriveTrain_SetMotorDutyCycle(DriveTrain_Motor_t WhichMotor, DriveTrain_Direction_t WhichDirection, uint8_t DutyCycle)
+{
+    if (_Left_Motor == WhichMotor)
+    {
+        //Set OCRS register for WhichMotor to DUTY_CYCLE_TO_OCRS * Duty Cycle
+        L_OCRS = DUTY_CYCLE_TO_OCRS * DutyCycle;
+        //Set WhichMotor's DIRB LAT to WhichDirection to set direction correctly
+        L_DIRB_LAT = WhichDirection;
+        //Set WhichMotor's ENABLE LAT to 1 to make sure it's enabled
+        L_ENABLE_LAT = 1;
+    }
+    else if (_Right_Motor == WhichMotor)
+    {
+        //Set OCRS register for WhichMotor to DUTY_CYCLE_TO_OCRS * Duty Cycle
+        R_OCRS = DUTY_CYCLE_TO_OCRS * DutyCycle;
+        // Need to invert direction for right motor because it spins other way
+        R_DIRB_LAT = !WhichDirection;
+        //Set WhichMotor's ENABLE LAT to 1 to make sure it's enabled
+        R_ENABLE_LAT = 1;
+    }
+	//If current state is not Active Moving
+    if (DriveActiveMovingState != CurrentState)
+    {
+        CurrentState = DriveIdleMovingState;
+    }
+}
+	
+/****************************************************************************
+ * Function
+ *      DriveTrain_StopMotors   
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Stop both motors
+****************************************************************************/
+void DriveTrain_StopMotors(void)
+{
+    // Set both motors to duty cycle of 0 and disable hbridge for added safety
+    //Call SetMotorDutyCycle with duty cycle of 0
+    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 0);
+	DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 0);	
+	L_ENABLE_LAT = 0;
+    R_ENABLE_LAT = 0;
+
+	//Set state to DriveStoppedState
+    CurrentState = DriveStoppedState;
+	//Clear any active timer
+    ES_Timer_StopTimer(DRIVETRAIN_TIMER);
+}
+	
+
+/****************************************************************************
+ * Function
+ *      DriveTrain_StopAfterDelay   
+ *      
+ * Parameters
+ *      uint16_t DelayMS - Time in ms to delay for
+ * Return
+ *      void
+ * Description
+ *      Sets timer for correct amount of time which generates timout to stop
+ *		motors after it expires
+****************************************************************************/
+void DriveTrain_StopAfterDelay(uint16_t DelayMS)
+{
+    // Set Timer for DelayMS time
+    ES_Timer_InitTimer(DRIVETRAIN_TIMER, DelayMS);
+	// Set State to DriveActiveMovingState       
+    CurrentState = DriveActiveMovingState;
+}
+	
 /***************************************************************************
  private functions
  ***************************************************************************/
@@ -304,3 +394,4 @@ static void InitRightMotor(void)
     R_DIRB_LAT = 0;
     R_ENABLE_LAT = 0;
 }
+

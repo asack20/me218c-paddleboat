@@ -56,5 +56,32 @@ DriveTrainState_t QueryDriveTrain(void);
 ****************************************************************************/
 void DriveTrain_SetMotorDutyCycle(DriveTrain_Motor_t WhichMotor, DriveTrain_Direction_t WhichDirection, uint8_t DutyCycle);
 
+/****************************************************************************
+ * Function
+ *      DriveTrain_StopMotors   
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Stop both motors
+****************************************************************************/
+void DriveTrain_StopMotors(void);
+
+/****************************************************************************
+ * Function
+ *      DriveTrain_StopAfterDelay   
+ *      
+ * Parameters
+ *      uint16_t DelayMS - Time in ms to delay for
+ * Return
+ *      void
+ * Description
+ *      Sets timer for correct amount of time which generates timout to stop
+ *		motors after it expires
+****************************************************************************/
+void DriveTrain_StopAfterDelay(uint16_t DelayMS);
+
 #endif /* DriveTrain_H */
 
