@@ -104,10 +104,6 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
     {
         case ES_NEW_KEY:
         {
-            /*
-            printf("\n\rES_NEW_KEY received with -> %c <- in KeyboardService\r\n",
-            (char)ThisEvent.EventParam);
-            */
             switch (ThisEvent.EventParam)
             {
                 case '?':
@@ -168,8 +164,22 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     PostEvent.EventType = DRIVE_BACKWARD_FULL ;
                     PostDriveTrain(PostEvent);
                 } break;
+                case 'p':
+                {
+                    printf("KeyboardService: posting DRIVE_ROTATE_CWINF to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_ROTATE_CWINF ;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case '[':
+                {
+                    printf("KeyboardService: posting DRIVE_ROTATE_CCWINF to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
+                    PostDriveTrain(PostEvent);
+                } break;
                 default:
-                  ;
+                {
+                    printf("KeyboardService: No Event bound to %c. Press '?' to see list of valid keys.\r\n", (char) ThisEvent.EventParam);
+                } break;
             }
         }
         break;       
@@ -206,6 +216,8 @@ void PrintInstructions(void)
     printf( "Press 'u' to post DRIVE_FORWARD_FULL (CG: 0x09)\n\r");
     printf( "Press 'i' to post DRIVE_BACKWARD_HALF (CG: 0x10)\n\r");
     printf( "Press 'o' to post DRIVE_BACKWARD_FULL (CG: 0x11)\n\r");
+    printf( "Press 'p' to post DRIVE_ROTATE_CWINF \n\r");
+    printf( "Press '[' to post DRIVE_ROTATE_CCWINF \n\r");
     printf( "---------------------------------------------------------\r\n\n");
 }
 
