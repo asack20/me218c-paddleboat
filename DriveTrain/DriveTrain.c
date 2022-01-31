@@ -32,9 +32,17 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
+// PWM configuration
 #define PWM_TIMER 3
 #define PWM_PERIOD 1999 // Base frequency of 10kHz with prescale of 4
 #define DUTY_CYCLE_TO_OCRS 20// multiplier
+
+// Command Tuning
+#define FULL_DUTY_CYCLE 100 // Duty cycle for 100% speed
+#define HALF_DUTY_CYCLE 50 // Duty cycle for 50% speed
+#define ROT_DUTY_CYCLE 100 // Duty cycle used for rotating
+#define ROT_90_TIME 3000 // time in ms required to rotate 90 degrees
+#define ROT_45_TIME 1500 // time in ms required to rotate 45 degrees
 
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A
@@ -79,6 +87,7 @@ static void InitRightMotor(void);
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static DriveTrainState_t CurrentState;
+static bool MotorsActive; // true if motors are moving in any way. False if stopped
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -180,38 +189,37 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
     ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
     
     ES_Event_t PostEvent;
-    PostEvent.EventType = ES_INIT;
     
     switch (ThisEvent.EventType)
     {
         case DRIVE_STOP_MOTORS:
         {
             DriveTrain_StopMotors();
-            CurrentState = DriveStoppedState;
+            CurrentState = DriveReadyState;
         } break;
         case DRIVE_FORWARD_HALF:
         {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 50);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 50);
-            CurrentState = DriveIdleMovingState;
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
+            CurrentState = DriveReadyState;
         } break;
         case DRIVE_FORWARD_FULL:
         {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 100);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 100);
-            CurrentState = DriveIdleMovingState;
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
+            CurrentState = DriveReadyState;
         } break;
         case DRIVE_BACKWARD_HALF:
         {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, 50);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, 50);
-            CurrentState = DriveIdleMovingState;
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
+            CurrentState = DriveReadyState;
         } break;
         case DRIVE_BACKWARD_FULL:
         {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, 100);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, 100);
-            CurrentState = DriveIdleMovingState;
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
+            CurrentState = DriveReadyState;
         } break;
         default:
             ;
@@ -311,11 +319,8 @@ void DriveTrain_SetMotorDutyCycle(DriveTrain_Motor_t WhichMotor, DriveTrain_Dire
         //Set WhichMotor's ENABLE LAT to 1 to make sure it's enabled
         R_ENABLE_LAT = 1;
     }
-	//If current state is not Active Moving
-    if (DriveActiveMovingState != CurrentState)
-    {
-        CurrentState = DriveIdleMovingState;
-    }
+	//Motors are now moving
+    MotorsActive = true;
 }
 	
 /****************************************************************************
@@ -338,8 +343,9 @@ void DriveTrain_StopMotors(void)
 	L_ENABLE_LAT = 0;
     R_ENABLE_LAT = 0;
 
-	//Set state to DriveStoppedState
-    CurrentState = DriveStoppedState;
+	//Update States
+    CurrentState = DriveReadyState;
+    MotorsActive = false;
 	//Clear any active timer
     ES_Timer_StopTimer(DRIVETRAIN_TIMER);
 }
@@ -361,8 +367,8 @@ void DriveTrain_StopAfterDelay(uint16_t DelayMS)
 {
     // Set Timer for DelayMS time
     ES_Timer_InitTimer(DRIVETRAIN_TIMER, DelayMS);
-	// Set State to DriveActiveMovingState       
-    CurrentState = DriveActiveMovingState;
+	// Update Current state    
+    CurrentState = DriveBusyState;
 }
 	
 /***************************************************************************

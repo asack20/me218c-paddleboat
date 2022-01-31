@@ -30,7 +30,7 @@ typedef enum
 // State definitions for use with the query function
 typedef enum
 {
-    DriveInitState, DriveStoppedState, DriveIdleMovingState, DriveActiveMovingState
+    DriveInitState, DriveReadyState, DriveBusyState
 }DriveTrainState_t;
 
 // Public Function Prototypes

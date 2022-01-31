@@ -270,7 +270,9 @@ typedef enum
     DRIVE_FORWARD_HALF,
     DRIVE_FORWARD_FULL,
     DRIVE_BACKWARD_HALF,
-    DRIVE_BACKWARD_FULL
+    DRIVE_BACKWARD_FULL,
+    DRIVE_ROTATE_CWINF,
+    DRIVE_ROTATE_CCWINF
 }ES_EventType_t;
 
 /****************************************************************************/
