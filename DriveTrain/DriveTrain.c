@@ -39,7 +39,7 @@
 
 // Command Tuning
 #define FULL_DUTY_CYCLE 100 // Duty cycle for 100% speed
-#define HALF_DUTY_CYCLE 50 // Duty cycle for 50% speed
+#define HALF_DUTY_CYCLE 70 // Duty cycle for 50% speed
 #define ROT_DUTY_CYCLE 100 // Duty cycle used for rotating
 #define ROT_90_TIME 3000 // time in ms required to rotate 90 degrees
 #define ROT_45_TIME 1500 // time in ms required to rotate 45 degrees
@@ -468,6 +468,14 @@ static void InitPWMTimer(void)
  */
 static void InitLeftMotor(void)
 {
+    L_ENABLE_LAT = 0;
+    PortSetup_ConfigureDigitalOutputs(L_DIRB_PORT, L_DIRB_PIN);
+    PortSetup_ConfigureDigitalOutputs(L_ENABLE_PORT, L_ENABLE_PIN);
+    
+    // Set DIRB Lo for forward and ENABLE lo to ensure motor isn't running
+    L_DIRB_LAT = 0;
+    L_ENABLE_LAT = 0;
+    
     //Turn OC1 off 
     OC1CONbits.ON = 0;
     //Disable SIDLE 
@@ -485,12 +493,6 @@ static void InitLeftMotor(void)
     
     // Configure Pins
     L_DIRA_REG = OC1_PERIPHERAL_CODE;
-    PortSetup_ConfigureDigitalOutputs(L_DIRB_PORT, L_DIRB_PIN);
-    PortSetup_ConfigureDigitalOutputs(L_ENABLE_PORT, L_ENABLE_PIN);
-    
-    // Set DIRB Lo for forward and ENABLE lo to ensure motor isn't running
-    L_DIRB_LAT = 0;
-    L_ENABLE_LAT = 0;
 }
 
 /*
@@ -500,6 +502,15 @@ static void InitLeftMotor(void)
  */
 static void InitRightMotor(void)
 {
+    R_ENABLE_LAT = 0;
+    
+    PortSetup_ConfigureDigitalOutputs(R_DIRB_PORT, R_DIRB_PIN);
+    PortSetup_ConfigureDigitalOutputs(R_ENABLE_PORT, R_ENABLE_PIN);
+    
+    // Set DIRB Lo for forward and ENABLE lo to ensure motor isn't running
+    R_DIRB_LAT = 0;
+    R_ENABLE_LAT = 0;
+    
     //Turn OC2 off 
     OC2CONbits.ON = 0;
     //Disable SIDLE 
@@ -517,11 +528,6 @@ static void InitRightMotor(void)
     
     // Configure Pins
     R_DIRA_REG = OC2_PERIPHERAL_CODE;
-    PortSetup_ConfigureDigitalOutputs(R_DIRB_PORT, R_DIRB_PIN);
-    PortSetup_ConfigureDigitalOutputs(R_ENABLE_PORT, R_ENABLE_PIN);
     
-    // Set DIRB Lo for forward and ENABLE lo to ensure motor isn't running
-    R_DIRB_LAT = 0;
-    R_ENABLE_LAT = 0;
 }
 
