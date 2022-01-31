@@ -182,13 +182,65 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
     ES_Event_t PostEvent;
     PostEvent.EventType = ES_INIT;
     
+    switch (ThisEvent.EventType)
+    {
+        case DRIVE_STOP_MOTORS:
+        {
+            DriveTrain_StopMotors();
+            CurrentState = DriveStoppedState;
+        } break;
+        case DRIVE_FORWARD_HALF:
+        {
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 50);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 50);
+            CurrentState = DriveIdleMovingState;
+        } break;
+        case DRIVE_FORWARD_FULL:
+        {
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 100);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 100);
+            CurrentState = DriveIdleMovingState;
+        } break;
+        case DRIVE_BACKWARD_HALF:
+        {
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, 50);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, 50);
+            CurrentState = DriveIdleMovingState;
+        } break;
+        case DRIVE_BACKWARD_FULL:
+        {
+            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, 100);
+            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, 100);
+            CurrentState = DriveIdleMovingState;
+        } break;
+        default:
+            ;
+    }
+    
+    /*
     switch (CurrentState)
     {
-        
+        case DriveInitState:
+        {
+            if (ThisEvent.EventType == ES_INIT)
+            {
+                CurrentState = DriveStoppedState;
+            }
+        } break;
+        case DriveStoppedState:
+        {
+            switch (ThisEvent.EventType)
+            {
+                case DRIVE_ROTATE_CW_90:
+                {
+                    
+                }
+            }
+        }
         default:
           ;
     }                                   // end switch on Current State
-    
+    */
     return ReturnEvent;
 }
 
@@ -232,20 +284,30 @@ DriveTrainState_t QueryDriveTrain(void)
 void DriveTrain_SetMotorDutyCycle(DriveTrain_Motor_t WhichMotor, DriveTrain_Direction_t WhichDirection, uint8_t DutyCycle)
 {
     if (_Left_Motor == WhichMotor)
-    {
-        //Set OCRS register for WhichMotor to DUTY_CYCLE_TO_OCRS * Duty Cycle
-        L_OCRS = DUTY_CYCLE_TO_OCRS * DutyCycle;
+    {  
         //Set WhichMotor's DIRB LAT to WhichDirection to set direction correctly
         L_DIRB_LAT = WhichDirection;
+        // invert duty cycle for backwards
+        if (_Backward_Dir == WhichDirection)
+        {
+            DutyCycle = 100 - DutyCycle;
+        }
+        //Set OCRS register for WhichMotor to DUTY_CYCLE_TO_OCRS * Duty Cycle
+        L_OCRS = DUTY_CYCLE_TO_OCRS * DutyCycle;
         //Set WhichMotor's ENABLE LAT to 1 to make sure it's enabled
         L_ENABLE_LAT = 1;
     }
     else if (_Right_Motor == WhichMotor)
     {
+        //Set WhichMotor's DIRB LAT to WhichDirection to set direction correctly
+        R_DIRB_LAT = WhichDirection;
+        // invert duty cycle for backwards
+        if (_Backward_Dir == WhichDirection)
+        {
+            DutyCycle = 100 - DutyCycle;
+        }
         //Set OCRS register for WhichMotor to DUTY_CYCLE_TO_OCRS * Duty Cycle
         R_OCRS = DUTY_CYCLE_TO_OCRS * DutyCycle;
-        // Need to invert direction for right motor because it spins other way
-        R_DIRB_LAT = !WhichDirection;
         //Set WhichMotor's ENABLE LAT to 1 to make sure it's enabled
         R_ENABLE_LAT = 1;
     }
@@ -347,7 +409,7 @@ static void InitLeftMotor(void)
     //Use timer 3 
     OC1CONbits.OCTSEL = 1;
     //Set to PWM mode, fault disabled 
-    OC2CONbits.OCM = 0b110;
+    OC1CONbits.OCM = 0b110;
     
     //Write initial duty cycle of 0
     OC1R = 0;

@@ -19,6 +19,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "KeyboardService.h"
+#include "../DriveTrain/DriveTrain.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -115,9 +116,57 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 'q':
                 {
-                    printf("TestGameMain: Posting RESET_GAME to GameMain\r\n");
-                    //PostEvent.EventType = RESET_GAME;
-                    //PostDriveTrain(PostEvent);
+                    printf("KeyboardService: posting DRIVE_STOP_MOTORS (CG: 0x00) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_STOP_MOTORS;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'w':
+                {
+                    printf("KeyboardService: posting DRIVE_ROTATE_CW90 (CG: 0x02) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_ROTATE_CW90;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'e':
+                {
+                    printf("KeyboardService: posting DRIVE_ROTATE_CW45 (CG: 0x03) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_ROTATE_CW45;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'r':
+                {
+                    printf("KeyboardService: posting DRIVE_ROTATE_CCW90 (CG: 0x04) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_ROTATE_CCW90;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 't':
+                {
+                    printf("KeyboardService: posting DRIVE_ROTATE_CCW45 (CG: 0x05) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_ROTATE_CCW45;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'y':
+                {
+                    printf("KeyboardService: posting DRIVE_FORWARD_HALF (CG: 0x08) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_FORWARD_HALF;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'u':
+                {
+                    printf("KeyboardService: posting DRIVE_FORWARD_FULL (CG: 0x09) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_FORWARD_FULL;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'i':
+                {
+                    printf("KeyboardService: posting DRIVE_BACKWARD_HALF (CG: 0x10) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_BACKWARD_HALF;
+                    PostDriveTrain(PostEvent);
+                } break;
+                case 'o':
+                {
+                    printf("KeyboardService: posting DRIVE_BACKWARD_FULL (CG: 0x11) to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_BACKWARD_FULL ;
+                    PostDriveTrain(PostEvent);
                 } break;
                 default:
                   ;
@@ -146,8 +195,18 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
 ****************************************************************************/
 void PrintInstructions(void)
 {
+    printf( "\n\n---------------------------------------------------------\r\n");
     printf( "Press '?' to print Key Press meanings again\n\r");
-    printf( "Press 'q' to post RESET_GAME\n\r");
+    printf( "Press 'q' to post DRIVE_STOP_MOTORS (CG: 0x00)\n\r");
+    printf( "Press 'w' to post DRIVE_ROTATE_CW90 (CG: 0x02)\n\r");
+    printf( "Press 'e' to post DRIVE_ROTATE_CW45 (CG: 0x03)\n\r");
+    printf( "Press 'r' to post DRIVE_ROTATE_CCW90 (CG: 0x04)\n\r");
+    printf( "Press 't' to post DRIVE_ROTATE_CCW45 (CG: 0x05)\n\r");
+    printf( "Press 'y' to post DRIVE_FORWARD_HALF (CG: 0x08)\n\r");
+    printf( "Press 'u' to post DRIVE_FORWARD_FULL (CG: 0x09)\n\r");
+    printf( "Press 'i' to post DRIVE_BACKWARD_HALF (CG: 0x10)\n\r");
+    printf( "Press 'o' to post DRIVE_BACKWARD_FULL (CG: 0x11)\n\r");
+    printf( "---------------------------------------------------------\r\n\n");
 }
 
 /*------------------------------- Footnotes -------------------------------*/
