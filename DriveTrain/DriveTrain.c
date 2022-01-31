@@ -190,65 +190,127 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
     
     ES_Event_t PostEvent;
     
-    switch (ThisEvent.EventType)
-    {
-        case DRIVE_STOP_MOTORS:
-        {
-            DriveTrain_StopMotors();
-            CurrentState = DriveReadyState;
-        } break;
-        case DRIVE_FORWARD_HALF:
-        {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
-            CurrentState = DriveReadyState;
-        } break;
-        case DRIVE_FORWARD_FULL:
-        {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
-            CurrentState = DriveReadyState;
-        } break;
-        case DRIVE_BACKWARD_HALF:
-        {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
-            CurrentState = DriveReadyState;
-        } break;
-        case DRIVE_BACKWARD_FULL:
-        {
-            DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
-            DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
-            CurrentState = DriveReadyState;
-        } break;
-        default:
-            ;
-    }
-    
-    /*
     switch (CurrentState)
     {
         case DriveInitState:
         {
             if (ThisEvent.EventType == ES_INIT)
             {
-                CurrentState = DriveStoppedState;
+                DriveTrain_StopMotors(); // make sure motors are off
+                CurrentState = DriveReadyState;
             }
         } break;
-        case DriveStoppedState:
+        case DriveReadyState:
         {
             switch (ThisEvent.EventType)
             {
-                case DRIVE_ROTATE_CW_90:
+                case DRIVE_STOP_MOTORS:
                 {
-                    
-                }
+                    DriveTrain_StopMotors();
+                    CurrentState = DriveReadyState;
+                } break;
+               
+                case DRIVE_ROTATE_CW90:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_StopAfterDelay(ROT_90_TIME);
+                    CurrentState = DriveBusyState;
+                } break;
+                
+                case DRIVE_ROTATE_CW45:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_StopAfterDelay(ROT_45_TIME);
+                    CurrentState = DriveBusyState;
+                } break;
+
+                case DRIVE_ROTATE_CCW90:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_StopAfterDelay(ROT_90_TIME);
+                    CurrentState = DriveBusyState;
+                } break;
+                
+                case DRIVE_ROTATE_CCW45:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_StopAfterDelay(ROT_45_TIME);
+                    CurrentState = DriveBusyState;                   
+                } break;
+                
+                case DRIVE_FORWARD_HALF:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
+                    CurrentState = DriveReadyState;
+                } break; 
+                case DRIVE_FORWARD_FULL:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
+                    CurrentState = DriveReadyState;
+                } break;
+                
+                case DRIVE_BACKWARD_HALF:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
+                    CurrentState = DriveReadyState;
+                } break;
+                
+                case DRIVE_BACKWARD_FULL:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
+                    CurrentState = DriveReadyState;
+                } break;
+                
+                case DRIVE_ROTATE_CWINF:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    CurrentState = DriveReadyState;
+                } break;
+                
+                case DRIVE_ROTATE_CCWINF:
+                {
+                    DriveTrain_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    DriveTrain_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    CurrentState = DriveReadyState;
+                } break;
+                default:
+                {
+                    printf("DriveTrain: Received unknown event #%u\r\n", ThisEvent.EventType);
+                } break;
             }
-        }
+        } break;
+        case DriveBusyState:
+        {
+            if (DRIVE_STOP_MOTORS == ThisEvent.EventType)
+            {
+                DriveTrain_StopMotors();
+                CurrentState = DriveReadyState;
+            }
+            else if (ES_TIMEOUT == ThisEvent.EventType)
+            {
+                DriveTrain_StopMotors();
+                CurrentState = DriveReadyState;
+                // Post DRIVE_COMMAND_COMPLETE to distrolist
+            }
+            else
+            {
+                // add event to deferral queue
+                printf("DriveTrain: Currently busy. Unable to accept new command \r\n");
+            }
+        } break;
         default:
           ;
     }                                   // end switch on Current State
-    */
+    
     return ReturnEvent;
 }
 
