@@ -25,9 +25,18 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
+#include <sys/attribs.h>
 #include "Find_Beacon.h"
+#include "PIC32_AD_Lib.h"
+#include "PIC32PortHAL.h"
+#include "terminal.h"
+#include "dbprintf.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+
+#define PULSEMAX
+
+#define PULSEMIN
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -41,6 +50,15 @@ static Find_BeaconState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+
+static volatile uint32_t LastRiseTime;
+//	This records the last rising edge time
+
+static volatile uint32_t RolloverCounter = 0;
+//	This is the rollover counter for keeping track of time after timer 2 overflows
+
+static bool FirstMeasurementFlag = 1;
+//	This flag is high until a first measurement has been taken
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -188,6 +206,68 @@ Find_BeaconState_t QueryFind_Beacon(void)
   return CurrentState;
 }
 
+
+void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2IntHandler(void) {
+// Disable global interrupts (__builtin_disable_interrupts() or EnterCritical()) 
+    EnterCritical();
+// If Timer 2?s rollover interrupt is active (IFS0bits.T2IF is 1) 
+    if (IFS0bits.T2IF) {
+    // Increment RolloverCounter 
+        RolloverCounter++;
+    // Clear the rollover interrupt (IFS0CLR = _IFS0_T2IF_MASK) 
+        IFS0CLR = _IFS0_T2IF_MASK;
+    }
+// Enable global interrupts again (__builtin_enable_interrupts() or ExitCritical()) 
+    ExitCritical();
+
+}
+
+void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
+    
+//	Read input capture 1 buffer into local variable uint32_t CapturedTime
+    uint32_t CapturedTime = IC1BUF;
+//	Clear the pending capture interrupt (IFS0CLR = _IFS0_IC1IF_MASK)
+    IFS0CLR = _IFS0_IC1IF_MASK;
+//	
+//	If Timer 2?s rollover interrupt is active (IFS0bits.T2IF is 1) and the CapturedTime is after rollover (<0x8000):
+     if ((IFS0bits.T2IF == 1) && (CapturedTime<0x8000)) {
+//		Increment RolloverCounter
+            RolloverCounter++;
+//		Clear the rollover interrupt (IFS0CLR = _IFS0_T2IF_MASK)
+            IFS0CLR = _IFS0_T2IF_MASK;
+     }
+//	Set CapturedTime += (RolloverCounter << 16) 	(aka lower 16 bits are from the buffer and upper 16 bits are 
+//  from the rollover buffer)
+    CapturedTime += (RolloverCounter << 16);
+//
+//	If FirstMeasurementFlag is true, this is the first measurement, so collect it, disable the flag, and get out:
+    if (FirstMeasurementFlag) {
+//		Save CapturedTime into LastRiseTime
+        LastRiseTime = CapturedTime;
+//		Disable the flag (set FirstMeasurementFlag to false)
+        FirstMeasurementFlag = 0;
+    }
+//	Else, this is not the first measurement, so we can measure a pulse period and report a duration:
+    else {
+        
+        //Calculate the last pulsePeriod as CapturedTime ? LastRiseTime (pulsePeriod is a volatile uint32_t module 
+//level variable)
+        uint32_t pulsePeriod = CapturedTime - LastRiseTime;
+        
+        // If the pulse is in an acceptable range
+        if ((pulsePeriod < PULSEMAX) && (pulsePeriod > PULSEMIN)) {
+        
+            ES_Event_t ThisEvent;
+            ThisEvent.EventType = BEACON_FOUND;
+    //Post EncoderPulse event to service
+            PostFind_Beacon(ThisEvent);
+        }
+        
+//Save CapturedTime into LastRiseTime
+        LastRiseTime = CapturedTime;
+    }
+}
+
 /***************************************************************************
  private functions
  ***************************************************************************/
@@ -238,6 +318,16 @@ static bool SetupIC1(void) {
   IFS0CLR = _IFS0_IC1IF_MASK;
     //	Set the input capture?s interrupt priority level to 7 (IPC1bits.IC1IP = 7)
   IPC1bits.IC1IP = 7;
-    //	Set the local interrupt enable for the input capture module (IEC0SET = _IEC0_IC1IE_MASK)
+  
+  DisableIC1Interrupts();
+}
+
+static void EnableIC1Interrupts(void) {
+  //	Set the local interrupt enable for the input capture module (IEC0SET = _IEC0_IC1IE_MASK)
   IEC0SET = _IEC0_IC1IE_MASK;
+}
+
+static void DisableIC1Interrupts(void) {
+  //    Clear the local interrupt enable for the input capture module
+    IEC0CLR = _IEC0_IC1IE_MASK;
 }
