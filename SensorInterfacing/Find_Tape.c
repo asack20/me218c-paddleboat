@@ -25,7 +25,12 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "Find_Tape.h"
+#include <sys/attribs.h>
+#include "../SensorInterfacing/Find_Tape.h"
+#include "../ProjectHeaders/PIC32_AD_Lib.h"
+#include "../HALs/PIC32PortHAL.h"
+#include "terminal.h"
+#include "dbprintf.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -34,6 +39,9 @@
    relevant to the behavior of this state machine
 */
 
+static bool SetupADC(void);
+static bool TakeNewReading(uint32_t *);
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -41,6 +49,10 @@ static Find_TapeState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+
+static uint32_t LastADCValue[1];
+static bool EventCheckerActive = 0;
+static bool TapeFound = false;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -68,6 +80,9 @@ bool InitFind_Tape(uint8_t Priority)
   MyPriority = Priority;
   // put us into the Initial PseudoState
   CurrentState = Waiting2;
+  
+  SetupADC();
+  
   // post the initial transition event
 //  ThisEvent.EventType = ES_INIT;
 //  if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -129,19 +144,65 @@ ES_Event_t RunFind_Tape(ES_Event_t ThisEvent)
   {
     case Waiting2:
     {
-      
+        switch (ThisEvent.EventType)
+        {
+            case FIND_TAPE:
+            {
+                //Begin driving forward
+                
+                //Activate event checker
+                EventCheckerActive = true;
+                TapeFound = false;
+                
+                CurrentState = Searching2;
+            }
+            break;
+            
+            default:
+                ;
+        }
     }
     break;
 
     case Searching2:
     {
-      
+      switch (ThisEvent.EventType) {
+          case TAPE_FOUND:
+          {
+              //Stop moving
+              
+              DB_printf("Tape found\n");
+              
+              CurrentState = Waiting2;
+          }
+          break;
+          
+          case GIVE_UP:
+          {
+              //Stop moving
+              
+              DB_printf("Tape was not found\n");
+              
+              EventCheckerActive = false;
+              
+              CurrentState = Waiting2;
+          }
+          
+          default:
+              ;
+      }
     }
     break;
     // repeat state pattern as required for other states
     default:
       ;
   }                                   // end switch on Current State
+  
+  //Take a new reading if it's time to.
+  if ((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == TAPE_DETECT_ADC_TIMER)) {
+      TakeNewReading(LastADCValue);
+  }
+  
   return ReturnEvent;
 }
 
@@ -170,6 +231,17 @@ Find_TapeState_t QueryFind_Tape(void)
 
 //Include the event checking function for detecting tape
 bool Check4Tape(void) {
+    if (EventCheckerActive) {
+        if (LastADCValue[0]<512) {
+            TapeFound = true;
+            ES_Event_t NewEvent;
+            NewEvent.EventType = TAPE_FOUND;
+            PostFind_Tape(NewEvent);
+            EventCheckerActive = false;
+            return true;
+        }
+    }
+    
     return false;
 }
 
@@ -177,3 +249,22 @@ bool Check4Tape(void) {
  private functions
  ***************************************************************************/
 
+static bool SetupADC(void) {
+    PortSetup_ConfigureAnalogInputs(_Port_B,_Pin_13);
+    //	Set up ADC on input AN0 using the command ADC_ConfigAutoScan(1<<11,1)
+    ADC_ConfigAutoScan(1<<11,1);
+    
+    ES_Timer_InitTimer(TAPE_DETECT_ADC_TIMER,100);
+    
+    ADC_MultiRead(LastADCValue);
+    
+    return true;
+}
+
+static bool TakeNewReading(uint32_t * StoragePointer) {
+    ADC_MultiRead(StoragePointer);
+    
+    ES_Timer_InitTimer(TAPE_DETECT_ADC_TIMER,100);
+    
+    return true;
+}

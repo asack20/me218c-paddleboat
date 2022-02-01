@@ -334,7 +334,7 @@ typedef enum
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
-#define TIMER13_RESP_FUNC TIMER_UNUSED
+#define TIMER13_RESP_FUNC PostFind_Tape
 #define TIMER14_RESP_FUNC TIMER_UNUSED
 #define TIMER15_RESP_FUNC TIMER_UNUSED
 
@@ -346,6 +346,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define DRIVETRAIN_TIMER 0
+#define TAPE_DETECT_ADC_TIMER 13
 
 
 #endif /* ES_CONFIGURE_H */

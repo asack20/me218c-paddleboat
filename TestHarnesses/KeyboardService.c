@@ -21,6 +21,7 @@
 #include "KeyboardService.h"
 #include "../DriveTrain/DriveTrain.h"
 #include "../SensorInterfacing/Find_Beacon.h"
+#include "../SensorInterfacing/Find_Tape.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -185,9 +186,16 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 'g':
                 {
-                    printf("KeyboardService: posting GIVE_UP to Find_Beacon\n\r");
+                    printf("KeyboardService: posting GIVE_UP to Find_Beacon and Find_Tape\n\r");
                     PostEvent.EventType = GIVE_UP;
                     PostFind_Beacon(PostEvent);
+                    PostFind_Tape(PostEvent);
+                } break;
+                case 'n':
+                {
+                    printf("KeyboardService: posting FIND_TAPE to Find_Tape\n\r");
+                    PostEvent.EventType = FIND_TAPE;
+                    PostFind_Tape(PostEvent);
                 } break;
                 default:
                 {
