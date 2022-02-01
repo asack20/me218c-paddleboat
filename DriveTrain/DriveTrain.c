@@ -40,9 +40,9 @@
 // Command Tuning
 #define FULL_DUTY_CYCLE 100 // Duty cycle for 100% speed
 #define HALF_DUTY_CYCLE 70 // Duty cycle for 50% speed
-#define ROT_DUTY_CYCLE 100 // Duty cycle used for rotating
-#define ROT_90_TIME 3000 // time in ms required to rotate 90 degrees
-#define ROT_45_TIME 1500 // time in ms required to rotate 45 degrees
+#define ROT_DUTY_CYCLE 70 // Duty cycle used for rotating
+#define ROT_90_TIME 2000 // time in ms required to rotate 90 degrees
+#define ROT_45_TIME 1000 // time in ms required to rotate 45 degrees
 
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A

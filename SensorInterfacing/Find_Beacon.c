@@ -29,6 +29,7 @@
 #include "../SensorInterfacing/Find_Beacon.h"
 #include "../ProjectHeaders/PIC32_AD_Lib.h"
 #include "../HALs/PIC32PortHAL.h"
+#include "../DriveTrain/DriveTrain.h"
 #include "terminal.h"
 #include "dbprintf.h"
 
@@ -170,7 +171,9 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-
+  
+  ES_Event_t PostEvent;
+  
   switch (CurrentState)
   {
     case Waiting1:
@@ -180,6 +183,8 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case FIND_BEACON:
             {
                 //begin rotation
+                PostEvent.EventType = DRIVE_ROTATE_CWINF;
+                PostDriveTrain(PostEvent);
                 
                 //enable IC1 interrupts
                 EnableIC1Interrupts();
@@ -203,7 +208,8 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case BEACON_FOUND:
             {
                 //stop rotation
-                
+                PostEvent.EventType = DRIVE_STOP_MOTORS;
+                PostDriveTrain(PostEvent);
                 //send success message
                 DB_printf("Beacon found\n");
                 
@@ -217,7 +223,8 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case GIVE_UP:
             {
                 //stop rotation
-                
+                PostEvent.EventType = DRIVE_STOP_MOTORS;
+                PostDriveTrain(PostEvent);
                 //send failure message
                 DB_printf("Did not find beacon\n");
                 

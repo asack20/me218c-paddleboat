@@ -29,6 +29,7 @@
 #include "../SensorInterfacing/Find_Tape.h"
 #include "../ProjectHeaders/PIC32_AD_Lib.h"
 #include "../HALs/PIC32PortHAL.h"
+#include "../DriveTrain/DriveTrain.h"
 #include "terminal.h"
 #include "dbprintf.h"
 
@@ -139,7 +140,8 @@ ES_Event_t RunFind_Tape(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-
+  ES_Event_t PostEvent;
+  
   switch (CurrentState)
   {
     case Waiting2:
@@ -149,7 +151,8 @@ ES_Event_t RunFind_Tape(ES_Event_t ThisEvent)
             case FIND_TAPE:
             {
                 //Begin driving forward
-                
+                PostEvent.EventType = DRIVE_FORWARD_FULL;
+                PostDriveTrain(PostEvent);
                 //Activate event checker
                 EventCheckerActive = true;
                 TapeFound = false;
@@ -170,7 +173,8 @@ ES_Event_t RunFind_Tape(ES_Event_t ThisEvent)
           case TAPE_FOUND:
           {
               //Stop moving
-              
+              PostEvent.EventType = DRIVE_STOP_MOTORS;
+              PostDriveTrain(PostEvent);
               DB_printf("Tape found\n");
               
               CurrentState = Waiting2;
@@ -180,7 +184,8 @@ ES_Event_t RunFind_Tape(ES_Event_t ThisEvent)
           case GIVE_UP:
           {
               //Stop moving
-              
+              PostEvent.EventType = DRIVE_STOP_MOTORS;
+              PostDriveTrain(PostEvent);
               DB_printf("Tape was not found\n");
               
               EventCheckerActive = false;
