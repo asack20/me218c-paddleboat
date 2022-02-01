@@ -67,7 +67,7 @@ bool InitFind_Tape(uint8_t Priority)
 
   MyPriority = Priority;
   // put us into the Initial PseudoState
-  CurrentState = Waiting;
+  CurrentState = Waiting2;
   // post the initial transition event
 //  ThisEvent.EventType = ES_INIT;
 //  if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -127,13 +127,13 @@ ES_Event_t RunFind_Tape(ES_Event_t ThisEvent)
 
   switch (CurrentState)
   {
-    case Waiting:
+    case Waiting2:
     {
       
     }
     break;
 
-    case Searching:
+    case Searching2:
     {
       
     }
@@ -170,7 +170,7 @@ Find_TapeState_t QueryFind_Tape(void)
 
 //Include the event checking function for detecting tape
 bool Check4Tape(void) {
-    
+    return false;
 }
 
 /***************************************************************************

@@ -16,7 +16,7 @@
 // State definitions for use with the query function
 typedef enum
 {
-    Waiting, Searching
+    Waiting1, Searching1
 }Find_BeaconState_t;
 
 // Public Function Prototypes

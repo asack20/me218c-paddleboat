@@ -289,7 +289,7 @@ typedef enum
 #define DIST_LIST0 PostKeyboardService
 #endif
 #if NUM_DIST_LISTS > 1
-#define DIST_LIST1 PostTestHarnessService1, PostTestHarnessService1
+#define DIST_LIST1 PostFind_Tape
 #endif
 #if NUM_DIST_LISTS > 2
 #define DIST_LIST2 PostTemplateFSM

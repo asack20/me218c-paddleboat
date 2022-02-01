@@ -26,22 +26,27 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include <sys/attribs.h>
-#include "Find_Beacon.h"
-#include "PIC32_AD_Lib.h"
-#include "PIC32PortHAL.h"
+#include "../SensorInterfacing/Find_Beacon.h"
+#include "../ProjectHeaders/PIC32_AD_Lib.h"
+#include "../HALs/PIC32PortHAL.h"
 #include "terminal.h"
 #include "dbprintf.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
-#define PULSEMAX
+#define PULSEMAX 3500 // 5 million divided by desired min frequency (1 kHz in this case)
 
-#define PULSEMIN
+#define PULSEMIN 3400 // 5 million divided by desired min frequency (2 kHz in this case)
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
+
+static bool SetupTimer2(void);
+static bool SetupIC1(void);
+static void EnableIC1Interrupts(void);
+static void DisableIC1Interrupts(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -59,6 +64,8 @@ static volatile uint32_t RolloverCounter = 0;
 
 static bool FirstMeasurementFlag = 1;
 //	This flag is high until a first measurement has been taken
+
+static volatile bool Found = 0;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -85,7 +92,7 @@ bool InitFind_Beacon(uint8_t Priority)
 
   MyPriority = Priority;
   // put us into the Initial PseudoState
-  CurrentState = Waiting;
+  CurrentState = Waiting1;
   
   //Do lots of setup:
   //Setup the timer 2 for input capture 1
@@ -166,15 +173,64 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
 
   switch (CurrentState)
   {
-    case Waiting:
+    case Waiting1:
     {
-      
+        switch (ThisEvent.EventType)
+        {
+            case FIND_BEACON:
+            {
+                //begin rotation
+                
+                //enable IC1 interrupts
+                EnableIC1Interrupts();
+                
+                CurrentState = Searching1;
+                
+                Found = 0;
+            }
+            break;
+            
+            default:
+              ;
+        }
     }
     break;
 
-    case Searching:
+    case Searching1:
     {
-      
+        switch (ThisEvent.EventType)
+        {
+            case BEACON_FOUND:
+            {
+                //stop rotation
+                
+                //send success message
+                DB_printf("Beacon found\n");
+                
+                //disable IC1 interrupts
+                DisableIC1Interrupts();
+                
+                CurrentState = Waiting1;
+            }
+            break;
+            
+            case GIVE_UP:
+            {
+                //stop rotation
+                
+                //send failure message
+                DB_printf("Did not find beacon\n");
+                
+                //disable IC1 interrupts
+                DisableIC1Interrupts();
+                
+                CurrentState = Waiting1;
+            }
+            break;
+            
+            default:
+                ;
+        }
     }
     break;
     // repeat state pattern as required for other states
@@ -223,7 +279,6 @@ void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2IntHandler(void) {
 }
 
 void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
-    
 //	Read input capture 1 buffer into local variable uint32_t CapturedTime
     uint32_t CapturedTime = IC1BUF;
 //	Clear the pending capture interrupt (IFS0CLR = _IFS0_IC1IF_MASK)
@@ -255,12 +310,14 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
         uint32_t pulsePeriod = CapturedTime - LastRiseTime;
         
         // If the pulse is in an acceptable range
-        if ((pulsePeriod < PULSEMAX) && (pulsePeriod > PULSEMIN)) {
+        if (((pulsePeriod < PULSEMAX) && (pulsePeriod > PULSEMIN)) && (!Found)) {
         
             ES_Event_t ThisEvent;
             ThisEvent.EventType = BEACON_FOUND;
     //Post EncoderPulse event to service
             PostFind_Beacon(ThisEvent);
+            
+            Found = true;
         }
         
 //Save CapturedTime into LastRiseTime
@@ -294,6 +351,8 @@ static bool SetupTimer2(void) {
   IPC2bits.T2IP = 6;
 //		Set the local interrupt enable for the timer (IEC0SET = _IEC0_T2IE_MASK)
   IEC0SET = _IEC0_T2IE_MASK;
+  
+  return true;
 }
 
 static bool SetupIC1(void) {
@@ -319,7 +378,11 @@ static bool SetupIC1(void) {
     //	Set the input capture?s interrupt priority level to 7 (IPC1bits.IC1IP = 7)
   IPC1bits.IC1IP = 7;
   
+  //IEC0SET = _IEC0_IC1IE_MASK;
+  
   DisableIC1Interrupts();
+  
+  return true;
 }
 
 static void EnableIC1Interrupts(void) {
@@ -329,5 +392,5 @@ static void EnableIC1Interrupts(void) {
 
 static void DisableIC1Interrupts(void) {
   //    Clear the local interrupt enable for the input capture module
-    IEC0CLR = _IEC0_IC1IE_MASK;
+  IEC0CLR = _IEC0_IC1IE_MASK;
 }

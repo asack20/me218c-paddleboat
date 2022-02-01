@@ -16,7 +16,7 @@
 // State definitions for use with the query function
 typedef enum
 {
-    Waiting, Searching
+    Waiting2, Searching2
 }Find_TapeState_t;
 
 // Public Function Prototypes

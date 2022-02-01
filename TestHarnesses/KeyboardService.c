@@ -20,6 +20,7 @@
 #include "ES_Framework.h"
 #include "KeyboardService.h"
 #include "../DriveTrain/DriveTrain.h"
+#include "../SensorInterfacing/Find_Beacon.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -175,6 +176,18 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     printf("KeyboardService: posting DRIVE_ROTATE_CCWINF to DriveTrain\n\r");
                     PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
                     PostDriveTrain(PostEvent);
+                } break;
+                case 'b':
+                {
+                    printf("KeyboardService: posting FIND_BEACON to Find_Beacon\n\r");
+                    PostEvent.EventType = FIND_BEACON;
+                    PostFind_Beacon(PostEvent);
+                } break;
+                case 'g':
+                {
+                    printf("KeyboardService: posting GIVE_UP to Find_Beacon\n\r");
+                    PostEvent.EventType = GIVE_UP;
+                    PostFind_Beacon(PostEvent);
                 } break;
                 default:
                 {
