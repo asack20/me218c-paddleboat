@@ -48,6 +48,8 @@
       <itemPath>DriveTrain/DriveTrain.h</itemPath>
       <itemPath>HALs/PIC32PortHAL.h</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
+      <itemPath>SensorInterfacing/Find_Beacon.h</itemPath>
+      <itemPath>SensorInterfacing/Find_Tape.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -63,6 +65,8 @@
       <itemPath>DriveTrain/DriveTrain.c</itemPath>
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
+      <itemPath>SensorInterfacing/Find_Beacon.c</itemPath>
+      <itemPath>SensorInterfacing/Find_Tape.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -78,6 +82,7 @@
     <Elem>TestHarnesses</Elem>
     <Elem>DriveTrain</Elem>
     <Elem>HALs</Elem>
+    <Elem>SensorInterfacing</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
