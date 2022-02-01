@@ -239,6 +239,9 @@ void PrintInstructions(void)
     printf( "Press 'o' to post DRIVE_BACKWARD_FULL (CG: 0x11)\n\r");
     printf( "Press 'p' to post DRIVE_ROTATE_CWINF \n\r");
     printf( "Press '[' to post DRIVE_ROTATE_CCWINF \n\r");
+    printf( "Press 'g' to post GIVE_UP to Find_Beacon and Find_Tape\n\r");
+    printf( "Press 'b' to post FIND_BEACON (CG: 0x20)\n\r");
+    printf( "Press 'n' to post FIND_TAPE (CG: 0x40)\n\r");
     printf( "---------------------------------------------------------\r\n\n");
 }
 
