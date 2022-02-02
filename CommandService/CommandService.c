@@ -188,6 +188,7 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
             if (ThisEvent.EventType == ES_RECEIVED)
             {
                 ThisCommand = SPI1BUF;
+                printf("%u\r\n", ThisCommand);
                 
                 if (ThisCommand == 0xFF)
                 {
@@ -202,57 +203,57 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
                     if (ThisCommand == 0x00)
                     {
                         PostEvent.EventType = DRIVE_STOP_MOTORS;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x02)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CW90;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x03)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CW45;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x04)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CCW90;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x05)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CCW45;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x08)
                     {
                         PostEvent.EventType = DRIVE_FORWARD_HALF;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x09)
                     {
                         PostEvent.EventType = DRIVE_FORWARD_FULL;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x10)
                     {
                         PostEvent.EventType = DRIVE_BACKWARD_HALF;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x11)
                     {
                         PostEvent.EventType = DRIVE_BACKWARD_FULL ;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x20)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CWINF ;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x40)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
-                        PostDriveTrain(PostEvent);
+                        //PostDriveTrain(PostEvent);
                     }
                 }
                 LastCommand = ThisCommand;
@@ -303,8 +304,10 @@ bool InitializeSPI(void)
     ReturnVal &= SPISetup_MapSSOutput(SPI_SPI1, SPI_RPA0); // make A0 SS
     ReturnVal &= SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1); // make A1 SDO
     
-    ReturnVal &= SPISetup_MapSDInput(SPI_SPI1, SPI_RPB5); // make B5 SDI 
+    //ReturnVal &= SPISetup_MapSDInput(SPI_SPI1, SPI_RPB5); // make B5 SDI 
     //NEED TO IMPLEMENT
+    PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_5);
+    SDI1R = 0b0001;
     
     ReturnVal &= SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI); // clock is idle high
     ReturnVal &= SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE); // read on 2nd edge 

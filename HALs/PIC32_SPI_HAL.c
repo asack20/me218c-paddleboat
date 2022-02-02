@@ -521,7 +521,7 @@ bool SPISetup_EnableSPI(SPI_Module_t WhichModule)
 ****************************************************************************/
 void SPIOperate_SPI1_Send8(uint8_t TheData)
 {
-  // not needed for ME218a Labs
+    // not needed for ME218a Labs
     SPI1BUF = TheData; 
 }
 
@@ -537,7 +537,6 @@ void SPIOperate_SPI1_Send8(uint8_t TheData)
 ****************************************************************************/
 void SPIOperate_SPI1_Send16( uint16_t TheData)
 {
-    
     SPI1BUF = TheData;       
 }
 /****************************************************************************
@@ -552,7 +551,7 @@ void SPIOperate_SPI1_Send16( uint16_t TheData)
 ****************************************************************************/
 void SPIOperate_SPI1_Send32(uint32_t TheData)
 {
-  // not needed for ME218a Labs
+    // not needed for ME218a Labs
     SPI1BUF = TheData; 
 }
 
@@ -669,7 +668,6 @@ void SPIOperate_SPI2_Send8(uint8_t TheData)
 ****************************************************************************/
 void SPIOperate_SPI2_Send16( uint16_t TheData)
 {
-    
     SPI2BUF = TheData;       
 }
 /****************************************************************************
@@ -702,7 +700,13 @@ void SPIOperate_SPI2_Send32(uint32_t TheData)
 ****************************************************************************/
 void SPIOperate_SPI2_Send8Wait(uint8_t TheData)
 {
-  // not needed for ME218a Labs
+    SPI2BUF = TheData; // write the data
+    
+    while (false == SPIOperate_HasSS2_Risen())
+    {
+        // do nothing until SS1 rises
+    }
+    return; // Return after SS1 has risen
 }
 
 /****************************************************************************
@@ -743,7 +747,13 @@ void SPIOperate_SPI2_Send16Wait( uint16_t TheData)
 ****************************************************************************/
 void SPIOperate_SPI2_Send32Wait(uint32_t TheData)
 {
-  // not needed for ME218a Labs
+    SPI2BUF = TheData; // write the data
+    
+    while (false == SPIOperate_HasSS2_Risen())
+    {
+        // do nothing until SS1 rises
+    }
+    return; // Return after SS1 has risen
 }
 
 /****************************************************************************
