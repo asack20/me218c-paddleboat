@@ -572,6 +572,13 @@ void SPIOperate_SPI1_Send32(uint32_t TheData)
 void SPIOperate_SPI1_Send8Wait(uint8_t TheData)
 {
   // not needed for ME218a Labs
+    SPI1BUF = TheData; // write the data
+    
+    while (false == SPIOperate_HasSS1_Risen())
+    {
+        // do nothing until SS1 rises
+    }
+    return; // Return after SS1 has risen
 }
 
 /****************************************************************************
@@ -613,6 +620,13 @@ void SPIOperate_SPI1_Send16Wait( uint16_t TheData)
 void SPIOperate_SPI1_Send32Wait(uint32_t TheData)
 {
   // not needed for ME218a Labs
+    SPI1BUF = TheData; // write the data
+    
+    while (false == SPIOperate_HasSS1_Risen())
+    {
+        // do nothing until SS1 rises
+    }
+    return; // Return after SS1 has risen
 }
 /****************************************************************************
  Function

@@ -48,6 +48,7 @@
       <itemPath>DriveTrain/DriveTrain.h</itemPath>
       <itemPath>HALs/PIC32PortHAL.h</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
+      <itemPath>CommandService/CommandService.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -63,6 +64,7 @@
       <itemPath>DriveTrain/DriveTrain.c</itemPath>
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
+      <itemPath>CommandService/CommandService.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -78,6 +80,7 @@
     <Elem>TestHarnesses</Elem>
     <Elem>DriveTrain</Elem>
     <Elem>HALs</Elem>
+    <Elem>CommandService</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -151,26 +154,6 @@
       <C32-AR>
         <property key="additional-options-chop-files" value="false"/>
       </C32-AR>
-      <C32-AS>
-        <property key="assembler-symbols" value=""/>
-        <property key="enable-symbols" value="true"/>
-        <property key="exclude-floating-point-library" value="false"/>
-        <property key="expand-macros" value="false"/>
-        <property key="extra-include-directories-for-assembler" value=""/>
-        <property key="extra-include-directories-for-preprocessor" value=""/>
-        <property key="false-conditionals" value="false"/>
-        <property key="generate-16-bit-code" value="false"/>
-        <property key="generate-micro-compressed-code" value="false"/>
-        <property key="keep-locals" value="false"/>
-        <property key="list-assembly" value="false"/>
-        <property key="list-source" value="false"/>
-        <property key="list-symbols" value="false"/>
-        <property key="oXC32asm-list-to-file" value="false"/>
-        <property key="omit-debug-dirs" value="false"/>
-        <property key="omit-forms" value="false"/>
-        <property key="preprocessor-macros" value=""/>
-        <property key="warning-level" value=""/>
-      </C32-AS>
       <C32-CO>
         <property key="coverage-enable" value=""/>
       </C32-CO>
@@ -261,8 +244,6 @@
         </C32>
         <C32-AR>
         </C32-AR>
-        <C32-AS>
-        </C32-AS>
         <C32-CO>
         </C32-CO>
         <C32-LD>
@@ -277,8 +258,6 @@
         </C32>
         <C32-AR>
         </C32-AR>
-        <C32-AS>
-        </C32-AS>
         <C32-CO>
         </C32-CO>
         <C32-LD>
@@ -293,8 +272,6 @@
         </C32>
         <C32-AR>
         </C32-AR>
-        <C32-AS>
-        </C32-AS>
         <C32-CO>
         </C32-CO>
         <C32-LD>

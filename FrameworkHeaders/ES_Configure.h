@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "TestHarnessService2.h"
+#define SERV_2_HEADER "../CommandService/CommandService.h"
 // the name of the Init function
-#define SERV_2_INIT InitTestHarnessService2
+#define SERV_2_INIT InitCommandService
 // the name of the run function
-#define SERV_2_RUN RunTestHarnessService2
+#define SERV_2_RUN RunCommandService
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -272,7 +272,9 @@ typedef enum
     DRIVE_BACKWARD_HALF,
     DRIVE_BACKWARD_FULL,
     DRIVE_ROTATE_CWINF,
-    DRIVE_ROTATE_CCWINF
+    DRIVE_ROTATE_CCWINF,
+    ES_QUERY,
+    ES_RECEIVED
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -307,7 +309,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke
+#define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -317,7 +319,7 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC PostDriveTrain
-#define TIMER1_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC PostCommandService
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -341,6 +343,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define DRIVETRAIN_TIMER 0
+#define COMMAND_TIMER 1
 
 
 #endif /* ES_CONFIGURE_H */

@@ -20,6 +20,7 @@
                 <sourceRootElem>TestHarnesses</sourceRootElem>
                 <sourceRootElem>DriveTrain</sourceRootElem>
                 <sourceRootElem>HALs</sourceRootElem>
+                <sourceRootElem>CommandService</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
