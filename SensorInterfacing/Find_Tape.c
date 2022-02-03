@@ -237,7 +237,7 @@ Find_TapeState_t QueryFind_Tape(void)
 //Include the event checking function for detecting tape
 bool Check4Tape(void) {
     if (EventCheckerActive) {
-        if (LastADCValue[0]>186) {
+        if (LastADCValue[0]>250) {
             TapeFound = true;
             ES_Event_t NewEvent;
             NewEvent.EventType = TAPE_FOUND;
