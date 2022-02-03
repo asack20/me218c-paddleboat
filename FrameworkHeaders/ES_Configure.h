@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 4
+#define NUM_SERVICES 5
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -96,11 +96,11 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "TestHarnessService4.h"
+#define SERV_4_HEADER "../CommandService/CommandService.h"
 // the name of the Init function
-#define SERV_4_INIT InitTestHarnessService4
+#define SERV_4_INIT InitCommandService
 // the name of the run function
-#define SERV_4_RUN RunTestHarnessService4
+#define SERV_4_RUN RunCommandService
 // How big should this services Queue be?
 #define SERV_4_QUEUE_SIZE 3
 #endif
@@ -277,7 +277,10 @@ typedef enum
     BEACON_FOUND,
     FIND_TAPE,
     TAPE_FOUND,
-    GIVE_UP
+    GIVE_UP,
+    /* Command Events */
+    ES_QUERY,
+    ES_RECEIVED
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -322,7 +325,7 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC PostDriveTrain
-#define TIMER1_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC PostCommandService
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -347,6 +350,7 @@ typedef enum
 
 #define DRIVETRAIN_TIMER 0
 #define TAPE_DETECT_ADC_TIMER 13
+#define COMMAND_TIMER 1
 
 
 #endif /* ES_CONFIGURE_H */
