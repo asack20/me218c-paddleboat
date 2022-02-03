@@ -175,6 +175,7 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
             {
                 SPIOperate_SPI1_Send8(0xAA);
                 CurrentState = CommandReceiveState;
+                //printf("Sent \r\n");
             }
             if (ThisEvent.EventType == ES_TIMEOUT){
                 ES_Event_t ThisEvent;
@@ -187,19 +188,16 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
         {
             if (ThisEvent.EventType == ES_RECEIVED)
             {
-                ThisCommand = SPI1BUF;
-                printf("%u\r\n", ThisCommand);
-                
+                ThisCommand = SPI1BUF;                
                 if (ThisCommand == 0xFF)
                 {
                     //Do nothing
                 }
-                else if (ThisCommand == LastCommand)
+                else if (LastCommand == 0xFF)
                 {
-                    //Do nothing
-                }
-                else 
-                {
+                    //Add give up event here
+                    
+                    printf("Received: %x\r\n", ThisCommand);
                     if (ThisCommand == 0x00)
                     {
                         PostEvent.EventType = DRIVE_STOP_MOTORS;
@@ -247,12 +245,12 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
                     }
                     else if (ThisCommand == 0x20)
                     {
-                        PostEvent.EventType = DRIVE_ROTATE_CWINF ;
+                        //PostEvent.EventType = DRIVE_ROTATE_CWINF ;
                         //PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x40)
                     {
-                        PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
+                        //PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
                         //PostDriveTrain(PostEvent);
                     }
                 }
