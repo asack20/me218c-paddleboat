@@ -280,7 +280,8 @@ typedef enum
     GIVE_UP,
     /* Command Events */
     ES_QUERY,
-    ES_RECEIVED
+    ES_RECEIVED,
+    KILL_SPI_EVENT
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -315,7 +316,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, Check4Tape
+#define EVENT_CHECK_LIST Check4Keystroke, Check4Tape, CheckSPIRBF
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the

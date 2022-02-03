@@ -62,6 +62,8 @@ static uint8_t ThisCommand;
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 
+static bool KillSPI;
+
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -91,6 +93,8 @@ bool InitCommandService(uint8_t Priority)
     ThisCommand = 0xFF;
     // put us into the Initial PseudoState
     CurrentState = CommandInitState;
+    
+    KillSPI = 0;
     
     puts("...Done Initializing CommandService\r\n");
  
@@ -150,6 +154,12 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
     ES_Event_t ReturnEvent;
     ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
     ES_Event_t PostEvent;
+    
+    if (ThisEvent.EventType == KILL_SPI_EVENT || KillSPI)
+    {
+        KillSPI = true;
+        return ReturnEvent;
+    }
     
     switch (CurrentState)
     {

@@ -22,6 +22,7 @@
 #include "../DriveTrain/DriveTrain.h"
 #include "../SensorInterfacing/Find_Beacon.h"
 #include "../SensorInterfacing/Find_Tape.h"
+#include "../CommandService/CommandService.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -197,6 +198,12 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     PostEvent.EventType = FIND_TAPE;
                     PostFind_Tape(PostEvent);
                 } break;
+                case 'a':
+                {
+                    printf("KeyboardService: posting KILL_SPI_EVENT to CommandService\n\r");
+                    PostEvent.EventType = KILL_SPI_EVENT;
+                    PostCommandService(PostEvent);
+                } break;
                 default:
                 {
                     printf("KeyboardService: No Event bound to %c. Press '?' to see list of valid keys.\r\n", (char) ThisEvent.EventParam);
@@ -242,6 +249,7 @@ void PrintInstructions(void)
     printf( "Press 'g' to post GIVE_UP to Find_Beacon and Find_Tape\n\r");
     printf( "Press 'b' to post FIND_BEACON (CG: 0x20)\n\r");
     printf( "Press 'n' to post FIND_TAPE (CG: 0x40)\n\r");
+    printf( "Press 'a' to post KILL_SPI_EVENT to CommandService \n\r");
     printf( "---------------------------------------------------------\r\n\n");
 }
 

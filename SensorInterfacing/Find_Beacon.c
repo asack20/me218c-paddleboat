@@ -183,7 +183,7 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case FIND_BEACON:
             {
                 //begin rotation
-                PostEvent.EventType = DRIVE_ROTATE_CWINF;
+                PostEvent.EventType = DRIVE_ROTATE_CCWINF;
                 PostDriveTrain(PostEvent);
                 
                 //enable IC1 interrupts
