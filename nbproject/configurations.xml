@@ -51,6 +51,7 @@
       <itemPath>SensorInterfacing/Find_Beacon.h</itemPath>
       <itemPath>SensorInterfacing/Find_Tape.h</itemPath>
       <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
+      <itemPath>CommandService/CommandService.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -69,6 +70,7 @@
       <itemPath>SensorInterfacing/Find_Beacon.c</itemPath>
       <itemPath>SensorInterfacing/Find_Tape.c</itemPath>
       <itemPath>ProjectSource/PIC32_AD_Lib.c</itemPath>
+      <itemPath>CommandService/CommandService.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -85,6 +87,7 @@
     <Elem>DriveTrain</Elem>
     <Elem>HALs</Elem>
     <Elem>SensorInterfacing</Elem>
+    <Elem>CommandService</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

@@ -21,6 +21,7 @@
                 <sourceRootElem>DriveTrain</sourceRootElem>
                 <sourceRootElem>HALs</sourceRootElem>
                 <sourceRootElem>SensorInterfacing</sourceRootElem>
+                <sourceRootElem>CommandService</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

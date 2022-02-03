@@ -33,6 +33,8 @@
 #include <xc.h>
 #include <sys/attribs.h>
 #include "../DriveTrain/DriveTrain.h"
+#include "../SensorInterfacing/Find_Beacon.h"
+#include "../SensorInterfacing/Find_Tape.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -195,63 +197,65 @@ ES_Event_t RunCommandService(ES_Event_t ThisEvent)
                 }
                 else if (LastCommand == 0xFF)
                 {
-                    //Add give up event here
+                    PostEvent.EventType = GIVE_UP;
+                    PostFind_Beacon(PostEvent);
+                    PostFind_Tape(PostEvent);
                     
                     printf("Received: %x\r\n", ThisCommand);
                     if (ThisCommand == 0x00)
                     {
                         PostEvent.EventType = DRIVE_STOP_MOTORS;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x02)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CW90;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x03)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CW45;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x04)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CCW90;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x05)
                     {
                         PostEvent.EventType = DRIVE_ROTATE_CCW45;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x08)
                     {
                         PostEvent.EventType = DRIVE_FORWARD_HALF;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x09)
                     {
                         PostEvent.EventType = DRIVE_FORWARD_FULL;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x10)
                     {
                         PostEvent.EventType = DRIVE_BACKWARD_HALF;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x11)
                     {
                         PostEvent.EventType = DRIVE_BACKWARD_FULL ;
-                        //PostDriveTrain(PostEvent);
+                        PostDriveTrain(PostEvent);
                     }
                     else if (ThisCommand == 0x20)
                     {
-                        //PostEvent.EventType = DRIVE_ROTATE_CWINF ;
-                        //PostDriveTrain(PostEvent);
+                        PostEvent.EventType = FIND_BEACON ;
+                        PostFind_Beacon(PostEvent);
                     }
                     else if (ThisCommand == 0x40)
                     {
-                        //PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
-                        //PostDriveTrain(PostEvent);
+                        PostEvent.EventType = FIND_TAPE ;
+                        PostFind_Tape(PostEvent);
                     }
                 }
                 LastCommand = ThisCommand;
