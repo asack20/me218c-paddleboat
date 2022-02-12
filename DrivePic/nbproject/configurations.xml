@@ -65,6 +65,8 @@
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
       <itemPath>ProjectSource/PIC32_AD_Lib.c</itemPath>
+      <itemPath>DriveTrain/MotorControlDriver.c</itemPath>
+      <itemPath>DriveTrain/MotorControlDriver.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
