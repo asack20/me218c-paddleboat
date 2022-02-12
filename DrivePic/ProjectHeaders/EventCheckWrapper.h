@@ -17,8 +17,6 @@
 
 // This is the header for the event checkers for the template project
 #include "EventCheckers.h"
-#include "../SensorInterfacing/Find_Tape.h"
-#include "../CommandService/CommandService.h"
 // Here you would #include the header files for any other modules that
 // contained event checking functions
 

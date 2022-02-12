@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 5
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -273,15 +273,6 @@ typedef enum
     DRIVE_BACKWARD_FULL,
     DRIVE_ROTATE_CWINF,
     DRIVE_ROTATE_CCWINF,
-    FIND_BEACON,
-    BEACON_FOUND,
-    FIND_TAPE,
-    TAPE_FOUND,
-    GIVE_UP,
-    /* Command Events */
-    ES_QUERY,
-    ES_RECEIVED,
-    KILL_SPI_EVENT
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -316,8 +307,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, Check4Tape, CheckSPIRBF
-
+#define EVENT_CHECK_LIST Check4Keystroke
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
 // corresponding timer expires. All 16 must be defined. If you are not using
@@ -326,7 +316,7 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC PostDriveTrain
-#define TIMER1_RESP_FUNC PostCommandService
+#define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -338,7 +328,7 @@ typedef enum
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
-#define TIMER13_RESP_FUNC PostFind_Tape
+#define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
 #define TIMER15_RESP_FUNC TIMER_UNUSED
 
@@ -350,8 +340,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define DRIVETRAIN_TIMER 0
-#define TAPE_DETECT_ADC_TIMER 13
-#define COMMAND_TIMER 1
+
 
 
 #endif /* ES_CONFIGURE_H */
