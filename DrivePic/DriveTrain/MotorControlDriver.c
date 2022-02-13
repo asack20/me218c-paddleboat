@@ -20,13 +20,6 @@
 #define DUTY_CYCLE_TO_OCRS 2// multiplier
 #define MAX_DUTY_CYCLE 1000
 
-// Command Tuning
-#define FULL_DUTY_CYCLE 100 // Duty cycle for 100% speed
-#define HALF_DUTY_CYCLE 75 // Duty cycle for 50% speed
-#define ROT_DUTY_CYCLE 100 // Duty cycle used for rotating
-#define ROT_90_TIME 1500 // time in ms required to rotate 90 degrees
-#define ROT_45_TIME 750 // time in ms required to rotate 45 degrees
-
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A
 #define L_DIRB_PIN _Pin_3
@@ -80,7 +73,7 @@ static bool MotorsActive; // true if motors are moving in any way. False if stop
  Author
     Andrew Sack
 ****************************************************************************/
-bool InitMotorControl(void)
+bool InitMotorControlDriver(void)
 {
     puts("Initializing MotorControlDriver...\r");
     // Call sub-init functions
