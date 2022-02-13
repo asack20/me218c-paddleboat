@@ -27,6 +27,7 @@
 #define MAX_DUTY_CYCLE 1000
 #define CONTROL_LAW_PERIOD 24999 // Set period to be 5 ms
 #define PERIOD_2_RPM 1000000 // conversion factor ((10^9*60)/(200*6*50))
+#define ZERO_SPEED_PERIOD 10000000 // Amount of ticks considered not moving (0.1rpm)
 
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A
@@ -204,9 +205,143 @@ void MotorControl_StopMotors(void)
 	MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 0);	
 	//Update States
     MotorsActive = false;
+    
+    // Set Target Speed to 0 for control law
+    LeftControl.TargetRPM = 0;
+    RightControl.TargetRPM = 0;
 
 }
-	
+
+/****************************************************************************
+ * Function
+ *      MotorControl_EnableClosedLoop 
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Enables Control Law timer interrupt, causing motors to follow CL control
+ *      SetMotorDutyCycle will not work properly when enabled
+****************************************************************************/
+void MotorControl_EnableClosedLoop(void)
+{
+    // Turn on timer to start control law running
+    T4CONbits.ON = 1;
+}
+
+/****************************************************************************
+ * Function
+ *      MotorControl_DisableClosedLoop 
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Disables Control Law timer interrupt. Motors use direct Duty Cycle
+ *      SetMotorDutyCycle will not work properly when enabled
+****************************************************************************/
+void MotorControl_DisableClosedLoop(void)
+{
+    // Turn off timer to stop control law running
+    T4CONbits.ON = 0;
+    
+    // Reset all error terms
+    LeftControl.IntegralTerm = 0;
+    LeftControl.RPMError = 0;
+    LeftControl.LastError = 0;
+    LeftControl.SumError = 0;
+
+    RightControl.IntegralTerm = 0;
+    RightControl.RPMError = 0;
+    RightControl.LastError = 0;
+    RightControl.SumError = 0;
+}
+
+/****************************************************************************
+ * Function
+ *      MotorControl_SetMotorSpeed
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ *      MotorControl_Direction_t WhichDirection - Direction to move motor in
+ *          Forward is relative to robot base (CW for right motor, CCW for left)
+ *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
+ *                       Max speed is approx 40-50 RPM
+ * Return
+ *      void
+ * Description
+ *      Set specified motor to move at set PWM duty cycle in specified direction
+ *      Only works when CloseLoop is enabled
+****************************************************************************/
+void MotorControl_SetMotorSpeed(MotorControl_Motor_t WhichMotor, MotorControl_Direction_t WhichDirection, uint16_t Speed)
+{
+    MotorsActive = true;
+    // Turn on closed loop control whenever a speed command is sent
+    MotorControl_EnableClosedLoop();
+    
+    if (_Left_Motor == WhichMotor)
+    {
+        LeftControl.TargetDirection = WhichDirection;
+        // input is speed in units of 0.1 rpm so need to convert to rpm
+        LeftControl.TargetRPM = (float) Speed / 10;
+    }
+    
+    else if (_Right_Motor == WhichMotor)
+    {
+        RightControl.TargetDirection = WhichDirection;
+        // input is speed in units of 0.1 rpm so need to convert to rpm
+        RightControl.TargetRPM = (float) Speed / 10;        
+    }
+    
+}
+
+/****************************************************************************
+ * Function
+ *      MotorControl_GetEncoder
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ * Return
+ *      Encoder_t struct for specified motor
+ * Description
+ *      Get function to return Encoder Struct for specified Motor
+****************************************************************************/
+Encoder_t MotorControl_GetEncoder(MotorControl_Motor_t WhichMotor)
+{
+    if (_Left_Motor == WhichMotor)
+    {
+        return LeftEncoder;
+    }
+    else
+    {
+        return RightEncoder;      
+    }
+}
+
+/****************************************************************************
+ * Function
+ *      MotorControl_GetControlState
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ * Return
+ *      ControlState_t struct for specified motor
+ * Description
+ *      Get function to return ControlState Struct for specified Motor
+****************************************************************************/
+ControlState_t MotorControl_GetControlState(MotorControl_Motor_t WhichMotor)
+{
+    if (_Left_Motor == WhichMotor)
+    {
+        return LeftControl;
+    }
+    else
+    {
+        return RightControl;      
+    }
+}
 
 /***************************************************************************
  private functions
@@ -467,6 +602,18 @@ void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2Handler(void)
         //	Clear the roll?over interrupt (timer interrupt flag)
         IFS0CLR = _IFS0_T2IF_MASK;  
     }
+    
+    // Check for long time since last tick and set speed to 0 if so
+    if ((ICTimerRollover.TotalTime - LeftEncoder.LastTime.TotalTime) > ZERO_SPEED_PERIOD)
+    {
+        LeftEncoder.CurrentRPM = 0;
+    }
+        if ((ICTimerRollover.TotalTime - RightEncoder.LastTime.TotalTime) > ZERO_SPEED_PERIOD)
+    {
+        RightEncoder.CurrentRPM = 0;
+    }
+    
+    
     //Enable interrupts (OK, since we know interrupts were enabled to get here)
     __builtin_enable_interrupts();
 }

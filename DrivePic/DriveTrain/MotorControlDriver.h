@@ -44,7 +44,7 @@ typedef struct {
 
 typedef struct {
     uint32_t TargetTickCount;
-    int32_t TargetRPM;
+    float TargetRPM;
     float RequestedDutyCycle;
     float IntegralTerm;
     float RPMError;
@@ -133,5 +133,31 @@ void MotorControl_DisableClosedLoop(void);
  *      Only works when CloseLoop is enabled
 ****************************************************************************/
 void MotorControl_SetMotorSpeed(MotorControl_Motor_t WhichMotor, MotorControl_Direction_t WhichDirection, uint16_t Speed);
+
+/****************************************************************************
+ * Function
+ *      MotorControl_GetEncoder
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ * Return
+ *      Encoder_t struct for specified motor
+ * Description
+ *      Get function to return Encoder Struct for specified Motor
+****************************************************************************/
+Encoder_t MotorControl_GetEncoder(MotorControl_Motor_t WhichMotor);
+
+/****************************************************************************
+ * Function
+ *      MotorControl_GetControlState
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ * Return
+ *      ControlState_t struct for specified motor
+ * Description
+ *      Get function to return ControlState Struct for specified Motor
+****************************************************************************/
+ControlState_t MotorControl_GetControlState(MotorControl_Motor_t WhichMotor);
 
 #endif	/* MOTORCONTROLDRIVER_H */
