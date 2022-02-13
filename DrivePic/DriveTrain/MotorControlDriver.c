@@ -12,13 +12,21 @@
 #include "../HALs/PIC32PortHAL.h"
 #include <xc.h>
 #include <sys/attribs.h>
+#include <string.h>
 
 /*----------------------------- Module Defines ----------------------------*/
+//PID constants
+#define pGain 1
+#define iGain 0.1
+#define dGain 0
+
 // PWM configuration
 #define PWM_TIMER 3
 #define PWM_PERIOD 1999 // Base frequency of 10kHz with prescale of 4
 #define DUTY_CYCLE_TO_OCRS 2// multiplier
 #define MAX_DUTY_CYCLE 1000
+#define CONTROL_LAW_PERIOD 24999 // Set period to be 5 ms
+#define PERIOD_2_RPM 1000000 // conversion factor ((10^9*60)/(200*6*50))
 
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A
@@ -35,15 +43,16 @@
 #define R_DIRA_REG RPB8R // Pin 17
 #define OC2_PERIPHERAL_CODE 0b0101
 #define R_OCRS OC2RS
+
+// Left encoder ports and pins
+#define L_ENCODER_CHA PORTAbits.RA4 // Pin 12
+#define L_ENCODER_CHB PORTBbits.RB12 // Pin 23
+
+// RIght encoder ports and pins
+#define R_ENCODER_CHA PORTBbits.RB10 // Pin 21
+#define R_ENCODER_CHB PORTBbits.RB13 // Pin 24
+
 /*----------------------------- Module Types ------------------------------*/
-// encoder tick count type
-typedef union {
-    struct {
-        uint16_t CapturedTime;
-        uint16_t Rollover;   
-    };
-    uint32_t TotalTime;
-} RolloverTimer_t;
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -52,10 +61,25 @@ typedef union {
 static void InitPWMTimer(void);
 static void InitLeftMotor(void);
 static void InitRightMotor(void);
+static void InitInputCapture(void);
+static void InitLeftEncoder(void);
+static void InitRightEncoder(void);
+static void InitControlLaw(void);
+
+void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2Handler(void);
+void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void);
+void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void);
+void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void);
+void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder);
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 static bool MotorsActive; // true if motors are moving in any way. False if stopped
-
+static RolloverTimer_t ICTimerRollover;
+static Encoder_t LeftEncoder;
+static Encoder_t RightEncoder;
+static ControlState_t LeftControl;
+static ControlState_t RightControl;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -76,15 +100,40 @@ static bool MotorsActive; // true if motors are moving in any way. False if stop
 bool InitMotorControlDriver(void)
 {
     puts("Initializing MotorControlDriver...\r");
+    
+    //disable global interrupts (built in)
+    __builtin_disable_interrupts();
+    //Enable multi vector configuration 
+    INTCONbits.MVEC = 1;
+    
     // Call sub-init functions
     InitPWMTimer();
     InitLeftMotor();
     InitRightMotor();
+    InitInputCapture();
+    InitLeftEncoder();
+    InitRightEncoder();
+    InitControlLaw();
+    
+    //enable global interrupts (built in)
+    __builtin_enable_interrupts();
     
     // Enable SFRS
     OC1CONbits.ON = 1;
     OC2CONbits.ON = 1;
+    IC1CONbits.ON = 1;
+    IC2CONbits.ON = 1;
+    T2CONbits.ON = 1;
     T3CONbits.ON = 1;
+    T4CONbits.ON = 0; // Control law timer. Not turning on for now
+    
+    // Init Variables to 0
+    MotorsActive = 0;
+    memset(&ICTimerRollover, 0, sizeof(ICTimerRollover));
+    memset(&LeftEncoder, 0, sizeof(LeftEncoder));
+    memset(&RightEncoder, 0, sizeof(RightEncoder));
+    memset(&LeftControl, 0, sizeof(LeftControl));
+    memset(&RightControl, 0, sizeof(RightControl));
     
     puts("...Done Initializing MotorControl\r\n");
  
@@ -99,7 +148,7 @@ bool InitMotorControlDriver(void)
  *      MotorControl_Motor_t WhichMotor - Left or Right Motor
  *      MotorControl_Direction_t WhichDirection - Direction to move motor in
  *          Forward is relative to robot base (CW for right motor, CCW for left)
- *      uint8_t DutyCycle - (valid range 0-1000 inclusive) PWM duty cycle to set 
+ *      uint16_t DutyCycle - (valid range 0-1000 inclusive) PWM duty cycle to set 
  * Return
  *      void
  * Description
@@ -250,4 +299,344 @@ static void InitRightMotor(void)
     
 }
 
+/*
+ * InitInputCapture
+ * Helper Function for InitMotorControl
+ * Handles configuration interrupts, and timers for input capture
+ */
+static void InitInputCapture(void)
+{
+    // Clear Interrupt flags
+    IFS0CLR = _IFS0_T2IF_MASK;
+    // Set priority
+    IPC2bits.T2IP = 6;
+    // Enable Interrupt
+    IEC0SET = _IEC0_T2IE_MASK;
+    
+    // Timer 2 (Encoder input capture)
+    //turn timer off 
+    T2CONbits.ON = 0;
+    //disable stop in idle 
+    T2CONbits.SIDL = 0;
+    //Set prescaler to 4 
+    T2CONbits.TCKPS = 0b010;
+    //Set to 16-bit mode 
+    T2CONbits.T32 = 0;
+    //Use syncronous internal clock 
+    T2CONbits.TCS = 0; 
+    T2CONbits.TGATE = 0;
+    //Set period to max 
+    PR2 = 0xFFFF;
+    //Clear timer to 0 
+    TMR2 = 0;
+}
 
+/*
+ * InitLeftEncoder
+ * Helper Function for InitMotorControl
+ * Handles configuration of IC and ports for left encoder
+ */
+static void InitLeftEncoder(void)
+{
+    // Clear Interrupt flags
+    IFS0CLR = _IFS0_IC1IF_MASK;
+    IFS0CLR = _IFS0_IC1EIF_MASK;
+    //Set interrupt priority
+    IPC1bits.IC1IP = 7;
+    //enable interrupt
+    IEC0SET = _IEC0_IC1IE_MASK;
+    
+    ////Input Capture 1 configuration (Encoder)
+    //Turn IC1 Off 
+    IC1CONbits.ON = 0;
+    //disable SIDL 
+    IC1CONbits.SIDL = 0;
+    //Configure Mode Edge Detect mode ? every edge (rising and falling)
+    IC1CONbits.ICM = 0b001;
+    //Use 16 bit timer 
+    IC1CONbits.C32 = 0;
+    //Use timer 2
+    IC1CONbits.ICTMR = 1;
+    //Interrupt every event 
+    IC1CONbits.ICI = 0b00;
+    //Clear IC1 buffer by reading IC1BUF 
+    IC1BUF;
+    
+    //Encoder Port Setup
+    PortSetup_ConfigureDigitalInputs(_Port_A, _Pin_4); // CH A
+    PortSetup_ConfigureDigitalInputs(_Port_B, _Pin_12); // CH B
+    // Map IC1 to RPA4 
+    IC1R = 0b0010;
+    
+}
+
+/*
+ * InitRightEncoder
+ * Helper Function for InitMotorControl
+ * Handles configuration of IC and ports for Right encoder
+ */
+static void InitRightEncoder(void)
+{
+    // Clear Interrupt flags
+    IFS0CLR = _IFS0_IC2IF_MASK;
+    IFS0CLR = _IFS0_IC2EIF_MASK;
+    //Set interrupt priority
+    IPC2bits.IC2IP = 7;
+    //enable interrupt
+    IEC0SET = _IEC0_IC2IE_MASK;
+    
+    ////Input Capture 2 configuration (Encoder)
+    //Turn IC2 Off 
+    IC2CONbits.ON = 0;
+    //disable SIDL 
+    IC2CONbits.SIDL = 0;
+    //Configure Mode Edge Detect mode ? every edge (rising and falling)
+    IC2CONbits.ICM = 0b001;
+    //Use 16 bit timer 
+    IC2CONbits.C32 = 0;
+    //Use timer 2
+    IC2CONbits.ICTMR = 1;
+    //Interrupt every event 
+    IC2CONbits.ICI = 0b00;
+    //Clear IC2 buffer by reading IC1BUF 
+    IC2BUF;
+    
+    //Encoder Port Setup
+    PortSetup_ConfigureDigitalInputs(_Port_B, _Pin_10); // CH A
+    PortSetup_ConfigureDigitalInputs(_Port_B, _Pin_13); // CH B
+    // Map IC2 to RPB10 
+    IC2R = 0b0011;
+}
+
+/*
+ * InitControlLaw
+ * Helper Function for InitMotorControl
+ * Handles configuration of interrupts and timer for control law
+ */
+static void InitControlLaw(void)
+{
+    // Clear Interrupt flags
+    IFS0CLR = _IFS0_T4IF_MASK;
+    //Set priority for Timer 4 to 4 
+    IPC4bits.T4IP = 4;
+    // enable interrupt
+    IEC0SET = _IEC0_T4IE_MASK;
+    
+    // Timer 4 (Control Law timer)
+    //turn timer off 
+    T4CONbits.ON = 0;
+    //disable stop in idle 
+    T4CONbits.SIDL = 0;
+    //Set prescaler to 4 
+    T4CONbits.TCKPS = 0b010;
+    //Set to 16-bit mode 
+    T4CONbits.T32 = 0;
+    //Use syncronous internal clock 
+    T4CONbits.TCS = 0; 
+    T4CONbits.TGATE = 0;
+    //Set period to 24999 for time of 5 ms
+    PR4 = CONTROL_LAW_PERIOD;
+    //Clear timer to 0 
+    TMR4 = 0;
+}
+/****************************************************************************
+ Function
+ Timer2Handler
+
+ Parameters
+     None
+
+ Returns
+ void
+ Description
+ Interrupt Handler for Encoder timer rollover
+ Notes
+
+ Author
+ * Andrew Sack 
+****************************************************************************/
+void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2Handler(void)
+{
+    //Disable interrupts globally (creates protected region in case IC happens)
+    __builtin_disable_interrupts();
+    //If T2IF is pending (there is a small chance that the IC has fired and handled it already)
+    if (1 == IFS0bits.T2IF)
+    {
+        //	Increment the rollover counter
+        ICTimerRollover.Rollover++;
+        //	Clear the roll?over interrupt (timer interrupt flag)
+        IFS0CLR = _IFS0_T2IF_MASK;  
+    }
+    //Enable interrupts (OK, since we know interrupts were enabled to get here)
+    __builtin_enable_interrupts();
+}
+
+/****************************************************************************
+ Function
+ LeftEncoderHandler
+
+ Parameters
+     None
+
+ Returns
+ void
+ Description
+ Interrupt Handler for LeftEncoder
+ Notes
+
+ Author
+ * Andrew Sack 
+****************************************************************************/
+void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void)
+{
+    __builtin_disable_interrupts();
+    
+    //Read ICxBUFinto a static variable
+    ICTimerRollover.CapturedTime = IC1BUF;
+    //Clear the capture interrupt flag
+    IFS0CLR = _IFS0_IC1IF_MASK;
+    //If T2IF is pending and CapturedTime is after rollover (<0x8000)
+    if (1 == IFS0bits.T2IF && ICTimerRollover.CapturedTime < 0x8000)
+    {
+        //	Increment the rollover counter
+        ICTimerRollover.Rollover++;
+        //	Clear the rollover interrupt (timer interrupt flag)
+        IFS0CLR = _IFS0_T2IF_MASK;
+    }   
+    
+    //Copy timer value to Encoder struct and calculate speed
+    LeftEncoder.CurrentPeriod.TotalTime = ICTimerRollover.TotalTime - LeftEncoder.LastTime.TotalTime;
+    LeftEncoder.LastTime.TotalTime = ICTimerRollover.TotalTime;
+    LeftEncoder.TickCount++;
+    LeftEncoder.CurrentRPM = (float) PERIOD_2_RPM / LeftEncoder.CurrentPeriod.TotalTime;
+    
+    // Trigger was a rising edge
+    if (1 == L_ENCODER_CHA)
+    {
+        // direction is value on ch B
+        LeftEncoder.Direction = L_ENCODER_CHB; // 0 is forward, 1 is backward
+    }
+    else
+    {
+        // direction is inverted
+        LeftEncoder.Direction = !L_ENCODER_CHB;
+    }
+    __builtin_enable_interrupts();
+}
+
+/****************************************************************************
+ Function
+ RightEncoderHandler
+
+ Parameters
+     None
+
+ Returns
+ void
+ Description
+ Interrupt Handler for RightEncoder
+ Notes
+
+ Author
+ * Andrew Sack 
+****************************************************************************/
+void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void)
+{
+     __builtin_disable_interrupts();
+    
+    //Read ICxBUFinto a static variable
+    ICTimerRollover.CapturedTime = IC2BUF;
+    //Clear the capture interrupt flag
+    IFS0CLR = _IFS0_IC2IF_MASK;
+    //If T2IF is pending and CapturedTime is after rollover (<0x8000)
+    if (1 == IFS0bits.T2IF && ICTimerRollover.CapturedTime < 0x8000)
+    {
+        //	Increment the rollover counter
+        ICTimerRollover.Rollover++;
+        //	Clear the rollover interrupt (timer interrupt flag)
+        IFS0CLR = _IFS0_T2IF_MASK;
+    }   
+    
+    //Copy timer value to Encoder struct and calculate speed
+    RightEncoder.CurrentPeriod.TotalTime = ICTimerRollover.TotalTime - RightEncoder.LastTime.TotalTime;
+    RightEncoder.LastTime.TotalTime = ICTimerRollover.TotalTime;
+    RightEncoder.TickCount++;
+    RightEncoder.CurrentRPM = (float) PERIOD_2_RPM / RightEncoder.CurrentPeriod.TotalTime;
+    
+    // Trigger was a rising edge
+    if (1 == R_ENCODER_CHA)
+    {
+        // direction is value on ch B
+        RightEncoder.Direction = R_ENCODER_CHB; // 0 is forward, 1 is backward
+    }
+    else
+    {
+        // direction is inverted
+        RightEncoder.Direction = !R_ENCODER_CHB;
+    }
+    __builtin_enable_interrupts();
+}
+
+/****************************************************************************
+ Function
+ ControlLawHandler
+
+ Parameters
+     None
+
+ Returns
+ void
+ Description
+ Interrupt Handler for Control Law Timer
+ Notes
+
+ Author
+ * Andrew Sack 
+****************************************************************************/
+void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void)
+{
+    //	Clear the timer interrupt flag
+    IFS0CLR = _IFS0_T4IF_MASK;  
+    
+    // Left Motor Control Law
+    UpdateControlLaw(&LeftControl, &LeftEncoder);
+    MotorControl_SetMotorDutyCycle(_Left_Motor, LeftControl.TargetDirection, LeftControl.RequestedDutyCycle);
+    
+    // Right Motor Control Law.
+    UpdateControlLaw(&RightControl, &RightEncoder);
+    MotorControl_SetMotorDutyCycle(_Right_Motor, RightControl.TargetDirection, RightControl.RequestedDutyCycle);
+}
+
+/****************************************************************************
+ Function
+ UpdateControlLaw
+
+ Parameters
+ ControlState_t *ThisControl - Pointer to Control struct for desired motor
+ Encoder_t *Encoder         - Pointer to Encoder struct for desired motor
+
+ Returns
+ void
+ Description
+ Helper function for control law
+ Notes
+
+ Author
+ * Andrew Sack 
+****************************************************************************/
+void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder)
+{
+    ThisControl->RPMError = ThisControl->TargetRPM - ThisEncoder->CurrentRPM;
+    ThisControl->SumError += ThisControl->RPMError;
+    ThisControl->RequestedDutyCycle = 
+    (pGain * ((ThisControl->RPMError)+(iGain * ThisControl->SumError)+
+            (dGain* (ThisControl->RPMError-ThisControl->LastError))));
+    if (ThisControl->RequestedDutyCycle > MAX_DUTY_CYCLE) {
+        ThisControl->RequestedDutyCycle = MAX_DUTY_CYCLE;
+        ThisControl->SumError -= ThisControl->RPMError;   /* anti-windup */
+    }else if (ThisControl->RequestedDutyCycle < 0){
+        ThisControl->RequestedDutyCycle = 0;
+        ThisControl->SumError -= ThisControl->RPMError;   /* anti-windup */
+    } 
+    ThisControl->LastError = ThisControl->RPMError; // update
+}
