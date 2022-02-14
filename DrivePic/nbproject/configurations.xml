@@ -52,6 +52,7 @@
       <itemPath>SensorInterfacing/Find_Tape.h</itemPath>
       <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
       <itemPath>CommandService/CommandService.h</itemPath>
+      <itemPath>//testarossa/Users$/afshanc/FinalProject218B/DrivePic/SPI/SPIFollowerSM.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -71,6 +72,7 @@
       <itemPath>SensorInterfacing/Find_Tape.c</itemPath>
       <itemPath>ProjectSource/PIC32_AD_Lib.c</itemPath>
       <itemPath>CommandService/CommandService.c</itemPath>
+      <itemPath>//testarossa/Users$/afshanc/FinalProject218B/DrivePic/SPI/SPIFollowerSM.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -88,6 +90,7 @@
     <Elem>HALs</Elem>
     <Elem>SensorInterfacing</Elem>
     <Elem>CommandService</Elem>
+    <Elem>//testarossa/Users$/afshanc/FinalProject218B/DrivePic/SPI</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
