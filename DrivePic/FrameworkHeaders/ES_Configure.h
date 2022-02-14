@@ -259,8 +259,11 @@ typedef enum
     ES_TIMEOUT,               /* signals that the timer has expired */
     ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
     /* User-defined events start here */
-    ES_NEW_KEY               /* signals a new key received from terminal */
-
+    ES_NEW_KEY,               /* signals a new key received from terminal */
+    SPI_COMMAND_RECEIVED,
+    SPI_TASK_COMPLETE,
+    SPI_TASK_FAILED,
+    SPI_RESET
 }ES_EventType_t;
 
 /****************************************************************************/

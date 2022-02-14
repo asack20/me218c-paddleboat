@@ -32,6 +32,7 @@
 #include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
+#include <proc/p32mx170f256b.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -162,11 +163,27 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         }break;
         case SPIFollowerReceiveState:
         {
-            
+            if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
+                //Interpret command and post it out
+                CurrentState = SPIFollowerSendState;
+            }
+            else if (ThisEvent.EventType == SPI_RESET){
+                CurrentState = SPIFollowerReceiveState;
+            }
         }break;
         case SPIFollowerSendState:
         {
-            
+            if (ThisEvent.EventType == SPI_TASK_COMPLETE){
+                SPIOperate_SPI1_Send16(0x1111);
+                CurrentState = SPIFollowerReceiveState;
+            }
+            else if (ThisEvent.EventType == SPI_TASK_FAILED){
+                SPIOperate_SPI1_Send16(0xAAAA);
+                CurrentState = SPIFollowerReceiveState;
+            }
+            else if (ThisEvent.EventType == SPI_RESET){
+                CurrentState = SPIFollowerReceiveState;
+            }
         }break;
         default:
           ;
@@ -217,6 +234,10 @@ bool InitializeSPI(void)
     PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_5);
     SDI1R = 0b0001;
     
+    PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_15);
+    REFCLKIR = 0b0111;
+    SPI1CONbits.MCLKSEL = 1;
+    
     ReturnVal &= SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI); // clock is idle high
     ReturnVal &= SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE); // read on 2nd edge 
     ReturnVal &= SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT); //16 bit messages
@@ -231,7 +252,7 @@ bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
         ES_Event_t ThisEvent;
-        ThisEvent.EventType   = ***;
+        ThisEvent.EventType   = SPI_COMMAND_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
         PostSPIFollowerSM(ThisEvent);
         return true;
