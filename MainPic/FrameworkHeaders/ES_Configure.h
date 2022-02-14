@@ -41,7 +41,7 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "KeyboardResponses.h"
+#define SERV_0_HEADER "../TestHarnesses/KeyboardResponses.h"
 // the name of the Init function
 #define SERV_0_INIT InitKeyboardResponses
 // the name of the run function
@@ -57,7 +57,7 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "RobotTopHSM.h"
+#define SERV_1_HEADER "../HSM/RobotTopHSM.h"
 // the name of the Init function
 #define SERV_1_INIT InitRobotTopHSM
 // the name of the run function
@@ -70,7 +70,7 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "Find_Beacon.h"
+#define SERV_2_HEADER "../Sensors/Find_Beacon.h"
 // the name of the Init function
 #define SERV_2_INIT InitFind_Beacon
 // the name of the run function

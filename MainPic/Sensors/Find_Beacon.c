@@ -27,8 +27,8 @@
 #include "ES_Framework.h"
 #include <sys/attribs.h>
 #include "Find_Beacon.h"
-#include "PIC32_AD_Lib.h"
-#include "PIC32PortHAL.h"
+#include "../HALs/PIC32_AD_Lib.h"
+#include "../HALs/PIC32PortHAL.h"
 #include "terminal.h"
 #include "dbprintf.h"
 #include <stdbool.h>

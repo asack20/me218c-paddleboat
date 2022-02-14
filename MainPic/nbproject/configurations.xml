@@ -44,14 +44,16 @@
       <itemPath>ProjectHeaders/EventCheckWrapper.h</itemPath>
       <itemPath>ProjectHeaders/EventCheckers.h</itemPath>
       <itemPath>ProjectHeaders/TestHarnessService0.h</itemPath>
-      <itemPath>TestHarnesses/KeyboardService.h</itemPath>
-      <itemPath>DriveTrain/DriveTrain.h</itemPath>
       <itemPath>HALs/PIC32PortHAL.h</itemPath>
+      <itemPath>HALs/PIC32_AD_Lib.h</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
-      <itemPath>SensorInterfacing/Find_Beacon.h</itemPath>
-      <itemPath>SensorInterfacing/Find_Tape.h</itemPath>
-      <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
-      <itemPath>CommandService/CommandService.h</itemPath>
+      <itemPath>HSM/CycleHSM.h</itemPath>
+      <itemPath>HSM/GameHSM.h</itemPath>
+      <itemPath>HSM/RobotTopHSM.h</itemPath>
+      <itemPath>HSM/StartupHSM.h</itemPath>
+      <itemPath>Sensors/Find_Beacon.h</itemPath>
+      <itemPath>Sensors/Find_Tape.h</itemPath>
+      <itemPath>TestHarnesses/KeyboardResponses.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -63,14 +65,16 @@
       <itemPath>ProjectSource/EventCheckers.c</itemPath>
       <itemPath>ProjectSource/TestHarnessService0.c</itemPath>
       <itemPath>ProjectSource/main.c</itemPath>
-      <itemPath>TestHarnesses/KeyboardService.c</itemPath>
-      <itemPath>DriveTrain/DriveTrain.c</itemPath>
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
+      <itemPath>HALs/PIC32_AD_Lib.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
-      <itemPath>SensorInterfacing/Find_Beacon.c</itemPath>
-      <itemPath>SensorInterfacing/Find_Tape.c</itemPath>
-      <itemPath>ProjectSource/PIC32_AD_Lib.c</itemPath>
-      <itemPath>CommandService/CommandService.c</itemPath>
+      <itemPath>HSM/CycleHSM.c</itemPath>
+      <itemPath>HSM/GameHSM.c</itemPath>
+      <itemPath>HSM/RobotTopHSM.c</itemPath>
+      <itemPath>HSM/StartupHSM.c</itemPath>
+      <itemPath>Sensors/Find_Beacon.c</itemPath>
+      <itemPath>Sensors/Find_Tape.c</itemPath>
+      <itemPath>TestHarnesses/KeyboardResponses.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -88,6 +92,8 @@
     <Elem>HALs</Elem>
     <Elem>SensorInterfacing</Elem>
     <Elem>CommandService</Elem>
+    <Elem>HSM</Elem>
+    <Elem>Sensors</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -251,6 +257,8 @@
         </C32>
         <C32-AR>
         </C32-AR>
+        <C32-AS>
+        </C32-AS>
         <C32-CO>
         </C32-CO>
         <C32-LD>
@@ -265,6 +273,8 @@
         </C32>
         <C32-AR>
         </C32-AR>
+        <C32-AS>
+        </C32-AS>
         <C32-CO>
         </C32-CO>
         <C32-LD>
@@ -279,6 +289,8 @@
         </C32>
         <C32-AR>
         </C32-AR>
+        <C32-AS>
+        </C32-AS>
         <C32-CO>
         </C32-CO>
         <C32-LD>
@@ -287,6 +299,10 @@
         </C32CPP>
         <C32Global>
         </C32Global>
+      </item>
+      <item path="Sensors/Find_Tape.c" ex="true" overriding="false">
+      </item>
+      <item path="Sensors/Find_Tape.h" ex="true" overriding="false">
       </item>
       <Simulator>
         <property key="codecoverage.enabled" value="Disable"/>
