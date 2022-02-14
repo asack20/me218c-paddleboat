@@ -250,10 +250,10 @@ bool InitializeSPI(void)
 bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
-        /*ES_Event_t ThisEvent;
+        ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_RESPONSE_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
-        PostSPILeaderSM(ThisEvent);*/
-        return false;
+        PostSPILeaderSM(ThisEvent);
+        return true;
     }
 }

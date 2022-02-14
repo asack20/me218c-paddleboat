@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 5
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "../DriveTrain/DriveTrain.h"
+#define SERV_0_HEADER "../SPI/SPIFollowerSM.h"
 // the name of the Init function
-#define SERV_0_INIT InitDriveTrain
+#define SERV_0_INIT InitSPIFollowerSM
 // the name of the run function
-#define SERV_0_RUN RunDriveTrain
+#define SERV_0_RUN RunSPIFollowerSM
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -259,29 +259,8 @@ typedef enum
     ES_TIMEOUT,               /* signals that the timer has expired */
     ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
     /* User-defined events start here */
-    ES_NEW_KEY,               /* signals a new key received from terminal */
-    /* DriveTrain Events */
-    DRIVE_COMMAND_COMPLETE,
-    DRIVE_STOP_MOTORS,
-    DRIVE_ROTATE_CW90,
-    DRIVE_ROTATE_CW45,
-    DRIVE_ROTATE_CCW90,
-    DRIVE_ROTATE_CCW45,
-    DRIVE_FORWARD_HALF,
-    DRIVE_FORWARD_FULL,
-    DRIVE_BACKWARD_HALF,
-    DRIVE_BACKWARD_FULL,
-    DRIVE_ROTATE_CWINF,
-    DRIVE_ROTATE_CCWINF,
-    FIND_BEACON,
-    BEACON_FOUND,
-    FIND_TAPE,
-    TAPE_FOUND,
-    GIVE_UP,
-    /* Command Events */
-    ES_QUERY,
-    ES_RECEIVED,
-    KILL_SPI_EVENT
+    ES_NEW_KEY               /* signals a new key received from terminal */
+
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -316,7 +295,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, Check4Tape, CheckSPIRBF
+#define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -325,8 +304,8 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostDriveTrain
-#define TIMER1_RESP_FUNC PostCommandService
+#define TIMER0_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -338,7 +317,7 @@ typedef enum
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
-#define TIMER13_RESP_FUNC PostFind_Tape
+#define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
 #define TIMER15_RESP_FUNC TIMER_UNUSED
 
@@ -348,10 +327,6 @@ typedef enum
 // definitions for the response functions to make it easier to check that
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
-
-#define DRIVETRAIN_TIMER 0
-#define TAPE_DETECT_ADC_TIMER 13
-#define COMMAND_TIMER 1
 
 
 #endif /* ES_CONFIGURE_H */
