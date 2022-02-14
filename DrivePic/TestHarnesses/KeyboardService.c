@@ -115,15 +115,21 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 'q':
                 {
-                    //printf("KeyboardService: posting DRIVE_STOP_MOTORS (CG: 0x00) to DriveTrain\n\r");
-                    //PostEvent.EventType = DRIVE_STOP_MOTORS;
-                    //PostDriveTrain(PostEvent);
+                    printf("KeyboardService: posting SPI_COMMAND_RECEIVED to SPIFollowerSM\n\r");
+                    PostEvent.EventType = SPI_COMMAND_RECEIVED;
+                    PostSPIFollowerSM(PostEvent);
                 } break;
                 case 'w':
                 {
-                    //printf("KeyboardService: posting DRIVE_ROTATE_CW90 (CG: 0x02) to DriveTrain\n\r");
-                    //PostEvent.EventType = DRIVE_ROTATE_CW90;
-                    //PostSPIFollowerSM(PostEvent);
+                    printf("KeyboardService: posting SPI_TASK_COMPLETE to SPIFollowerSM\n\r");
+                    PostEvent.EventType = SPI_TASK_COMPLETE;
+                    PostSPIFollowerSM(PostEvent);
+                } break;
+                case 'e':
+                {
+                    printf("KeyboardService: posting SPI_TASK_FAILED to SPIFollowerSM\n\r");
+                    PostEvent.EventType = SPI_TASK_FAILED;
+                    PostSPIFollowerSM(PostEvent);
                 } break;
                 default:
                 {
@@ -156,8 +162,9 @@ void PrintInstructions(void)
 {
     printf( "\n\n---------------------------------------------------------\r\n");
     printf( "Press '?' to print Key Press meanings again\n\r");
-    printf( "Press 'q' to post DRIVE_STOP_MOTORS (CG: 0x00)\n\r");
-    printf( "Press 'w' to post DRIVE_ROTATE_CW90 (CG: 0x02)\n\r");
+    printf( "Press 'q' to post SPI_COMMAND_RECEIVED \n\r");
+    printf( "Press 'w' to post SPI_TASK_COMPLETE \n\r");
+    printf( "Press 'e' to post SPI_TASK_FAILED \n\r");
     printf( "---------------------------------------------------------\r\n\n");
 }
 
