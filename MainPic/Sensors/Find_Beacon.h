@@ -19,6 +19,16 @@ typedef enum
     Waiting1, Searching1
 }Find_BeaconState_t;
 
+typedef enum
+{
+    DetermineTeam, FindKnownFrequency
+}SearchType_t;
+
+typedef enum
+{
+    Unknown, Red, Blue
+}TeamIdentity_t;
+
 // Public Function Prototypes
 
 bool InitFind_Beacon(uint8_t Priority);

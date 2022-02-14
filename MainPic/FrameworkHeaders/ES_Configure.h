@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 5
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "../DriveTrain/DriveTrain.h"
+#define SERV_0_HEADER "KeyboardResponses.h"
 // the name of the Init function
-#define SERV_0_INIT InitDriveTrain
+#define SERV_0_INIT InitKeyboardResponses
 // the name of the run function
-#define SERV_0_RUN RunDriveTrain
+#define SERV_0_RUN RunKeyboardResponses
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,37 +57,37 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "../TestHarnesses/KeyboardService.h"
+#define SERV_1_HEADER "RobotTopHSM.h"
 // the name of the Init function
-#define SERV_1_INIT InitKeyboardService
+#define SERV_1_INIT InitRobotTopHSM
 // the name of the run function
-#define SERV_1_RUN RunKeyboardService
+#define SERV_1_RUN RunRobotTopHSM
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 3
+#define SERV_1_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "../SensorInterfacing/Find_Beacon.h"
+#define SERV_2_HEADER "Find_Beacon.h"
 // the name of the Init function
 #define SERV_2_INIT InitFind_Beacon
 // the name of the run function
 #define SERV_2_RUN RunFind_Beacon
 // How big should this services Queue be?
-#define SERV_2_QUEUE_SIZE 3
+#define SERV_2_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "../SensorInterfacing/Find_Tape.h"
+#define SERV_3_HEADER "TestHarnessService3.h"
 // the name of the Init function
-#define SERV_3_INIT InitFind_Tape
+#define SERV_3_INIT InitTestHarnessService3
 // the name of the run function
-#define SERV_3_RUN RunFind_Tape
+#define SERV_3_RUN RunTestHarnessService3
 // How big should this services Queue be?
 #define SERV_3_QUEUE_SIZE 3
 #endif
@@ -96,11 +96,11 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "../CommandService/CommandService.h"
+#define SERV_4_HEADER "TestHarnessService4.h"
 // the name of the Init function
-#define SERV_4_INIT InitCommandService
+#define SERV_4_INIT InitTestHarnessService4
 // the name of the run function
-#define SERV_4_RUN RunCommandService
+#define SERV_4_RUN RunTestHarnessService4
 // How big should this services Queue be?
 #define SERV_4_QUEUE_SIZE 3
 #endif
@@ -253,47 +253,47 @@
 // Universal events occupy the lowest entries, followed by user-defined events
 typedef enum
 {
-    ES_NO_EVENT = 0,
-    ES_ERROR,                 /* used to indicate an error from the service */
-    ES_INIT,                  /* used to transition from initial pseudo-state */
-    ES_TIMEOUT,               /* signals that the timer has expired */
-    ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
-    /* User-defined events start here */
-    ES_NEW_KEY,               /* signals a new key received from terminal */
-    /* DriveTrain Events */
-    DRIVE_COMMAND_COMPLETE,
-    DRIVE_STOP_MOTORS,
-    DRIVE_ROTATE_CW90,
-    DRIVE_ROTATE_CW45,
-    DRIVE_ROTATE_CCW90,
-    DRIVE_ROTATE_CCW45,
-    DRIVE_FORWARD_HALF,
-    DRIVE_FORWARD_FULL,
-    DRIVE_BACKWARD_HALF,
-    DRIVE_BACKWARD_FULL,
-    DRIVE_ROTATE_CWINF,
-    DRIVE_ROTATE_CCWINF,
-    FIND_BEACON,
-    BEACON_FOUND,
-    FIND_TAPE,
-    TAPE_FOUND,
-    GIVE_UP,
-    /* Command Events */
-    ES_QUERY,
-    ES_RECEIVED,
-    KILL_SPI_EVENT
+  ES_NO_EVENT = 0,
+  ES_ERROR,                 /* used to indicate an error from the service */
+  ES_INIT,                  /* used to transition from initial pseudo-state */
+  ES_TIMEOUT,               /* signals that the timer has expired */
+  ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
+  /* User-defined events start here */
+  ES_NEW_KEY,               /* signals a new key received from terminal */
+  ES_ENTRY,
+  ES_ENTRY_HISTORY,
+  ES_EXIT,
+  ROBOT_INIT_COMPLETE,
+  START_BUTTON_PRESSED,
+  GAME_STARTUP_COMPLETE,
+  GAME_CYCLE_COMPLETE,
+  REFILL_BUTTON_PRESSED,
+  STARTUP_STEP_COMPLETE,
+  DRIVE_GOAL_REACHED,
+  BEACON_FOUND,
+  RELOAD_COMPLETE,
+  SHOT_COMPLETE,
+  DRIVE_STOP_MOTORS,
+  INITIATE_DRIVE,
+  FIND_BEACON,
+  GIVE_UP,
+  FIND_TAPE,
+  TAPE_FOUND,
+  SEND_SPI_COMMAND,
+  SPI_RESPONSE_RECEIVED,
+  GAME_TIMEOUT
 }ES_EventType_t;
 
 /****************************************************************************/
 // These are the definitions for the Distribution lists. Each definition
 // should be a comma separated list of post functions to indicate which
 // services are on that distribution list.
-#define NUM_DIST_LISTS 1
+#define NUM_DIST_LISTS 0
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostKeyboardService
+#define DIST_LIST0 PostTestHarnessService0, PostTestHarnessService0
 #endif
 #if NUM_DIST_LISTS > 1
-#define DIST_LIST1 PostFind_Tape
+#define DIST_LIST1 PostTestHarnessService1, PostTestHarnessService1
 #endif
 #if NUM_DIST_LISTS > 2
 #define DIST_LIST2 PostTemplateFSM
@@ -316,7 +316,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, Check4Tape, CheckSPIRBF
+#define EVENT_CHECK_LIST Check4Keystroke
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -325,8 +325,8 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostDriveTrain
-#define TIMER1_RESP_FUNC PostCommandService
+#define TIMER0_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -338,9 +338,9 @@ typedef enum
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
-#define TIMER13_RESP_FUNC PostFind_Tape
+#define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC TIMER_UNUSED
+#define TIMER15_RESP_FUNC PostRobotTopHSM
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -349,9 +349,7 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define DRIVETRAIN_TIMER 0
-#define TAPE_DETECT_ADC_TIMER 13
-#define COMMAND_TIMER 1
+#define GameTimer 15
 
 
 #endif /* ES_CONFIGURE_H */

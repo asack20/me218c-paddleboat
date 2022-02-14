@@ -26,18 +26,21 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include <sys/attribs.h>
-#include "../SensorInterfacing/Find_Beacon.h"
-#include "../ProjectHeaders/PIC32_AD_Lib.h"
-#include "../HALs/PIC32PortHAL.h"
-#include "../DriveTrain/DriveTrain.h"
+#include "Find_Beacon.h"
+#include "PIC32_AD_Lib.h"
+#include "PIC32PortHAL.h"
 #include "terminal.h"
 #include "dbprintf.h"
+#include <stdbool.h>
+#include "ES_Port.h"
+#include <string.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 
-#define PULSEMAX 3500 // 5 million divided by desired min frequency (1 kHz in this case)
-
-#define PULSEMIN 3400 // 5 million divided by desired min frequency (2 kHz in this case)
+#define REDTEAM_PULSEMAX 1666 // 5 million divided by desired min frequency (3.000 kHz in this case)
+#define REDTEAM_PULSEMIN 1364 // 5 million divided by desired min frequency (3.666 kHz in this case)
+#define BLUETEAM_PULSEMAX 6250 // 5 million divided by desired min frequency (800 Hz in this case)
+#define BLUETEAM_PULSEMIN 5000 // 5 million divided by desired min frequency (1000 Hz in this case)
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -45,9 +48,9 @@
 */
 
 static bool SetupTimer2(void);
-static bool SetupIC1(void);
-static void EnableIC1Interrupts(void);
-static void DisableIC1Interrupts(void);
+static bool SetupIC4(void);
+static void EnableIC4Interrupts(void);
+static void DisableIC4Interrupts(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -67,6 +70,12 @@ static bool FirstMeasurementFlag = 1;
 //	This flag is high until a first measurement has been taken
 
 static volatile bool Found = 0;
+
+static volatile uint32_t PulseMin;
+static volatile uint32_t PulseMax;
+
+static SearchType_t SearchMode = DetermineTeam;
+static volatile TeamIdentity_t TeamIdentity = Unknown;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -99,7 +108,7 @@ bool InitFind_Beacon(uint8_t Priority)
   //Setup the timer 2 for input capture 1
   SetupTimer2();
   //Setup the input capture 1 module
-  SetupIC1();
+  SetupIC4();
   
   //Set up and enable interrupts using the following steps:
 //	Ensure multi-vector mode is enabled (INTCONbits.MVEC = 1)
@@ -110,8 +119,8 @@ bool InitFind_Beacon(uint8_t Priority)
   //Turn on timer 2 to get the ball rolling (T2CONbits.ON = 1)
   T2CONbits.ON = 1;
   
-  //Turn on input capture 1 (IC1CONbits.ON = 1)
-  IC1CONbits.ON = 1;
+  //Turn on input capture 4 (IC4CONbits.ON = 1)
+  IC4CONbits.ON = 1;
   
   
   
@@ -183,11 +192,33 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case FIND_BEACON:
             {
                 //begin rotation
-                PostEvent.EventType = DRIVE_ROTATE_CCWINF;
-                PostDriveTrain(PostEvent);
+                if (ThisEvent.EventParam == DetermineTeam) {
+                    SearchMode = DetermineTeam;
+                    puts("Determining team identity\r");
+                    TeamIdentity = Unknown;
+                }
+                else if (ThisEvent.EventParam == FindKnownFrequency) {
+                    SearchMode = FindKnownFrequency;
+                    char StateChar[40];
+                    if (TeamIdentity == Red) {
+                        strcpy(StateChar,"A (Red)");
+                    }
+                    else if (TeamIdentity == Blue) {
+                        strcpy(StateChar,"B (Blue)");
+                    }
+                    else {
+                        puts("Cannot search yet - need to determine team identity first\r\n");
+                        break;
+                    }
+                    
+                    DB_printf("Searching for Team %s\'s Beacon\r\n",StateChar);
+                }
+                puts("Finding beacon - start rotation\r\n");
+                //PostEvent.EventType = DRIVE_ROTATE_CCWINF;
+                //PostDriveTrain(PostEvent);
                 
-                //enable IC1 interrupts
-                EnableIC1Interrupts();
+                //enable IC4 interrupts
+                EnableIC4Interrupts();
                 
                 CurrentState = Searching1;
                 
@@ -208,13 +239,15 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case BEACON_FOUND:
             {
                 //stop rotation
-                PostEvent.EventType = DRIVE_STOP_MOTORS;
-                PostDriveTrain(PostEvent);
-                //send success message
-                DB_printf("Beacon found\n");
                 
-                //disable IC1 interrupts
-                DisableIC1Interrupts();
+                //PostEvent.EventType = DRIVE_STOP_MOTORS;
+                //PostDriveTrain(PostEvent);
+                
+                //send success message
+                DB_printf("Beacon found\r\n");
+                
+                //disable IC4 interrupts
+                DisableIC4Interrupts();
                 
                 CurrentState = Waiting1;
             }
@@ -223,13 +256,14 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
             case GIVE_UP:
             {
                 //stop rotation
-                PostEvent.EventType = DRIVE_STOP_MOTORS;
-                PostDriveTrain(PostEvent);
-                //send failure message
-                DB_printf("Did not find beacon\n");
+                //PostEvent.EventType = DRIVE_STOP_MOTORS;
+                //PostDriveTrain(PostEvent);
                 
-                //disable IC1 interrupts
-                DisableIC1Interrupts();
+                //send failure message
+                DB_printf("Did not find beacon\r\n");
+                
+                //disable IC4 interrupts
+                DisableIC4Interrupts();
                 
                 CurrentState = Waiting1;
             }
@@ -285,11 +319,11 @@ void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2IntHandler(void) {
 
 }
 
-void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
-//	Read input capture 1 buffer into local variable uint32_t CapturedTime
-    uint32_t CapturedTime = IC1BUF;
-//	Clear the pending capture interrupt (IFS0CLR = _IFS0_IC1IF_MASK)
-    IFS0CLR = _IFS0_IC1IF_MASK;
+void __ISR(_INPUT_CAPTURE_4_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
+//	Read input capture 4 buffer into local variable uint32_t CapturedTime
+    uint32_t CapturedTime = IC4BUF;
+//	Clear the pending capture interrupt (IFS0CLR = _IFS0_IC4IF_MASK)
+    IFS0CLR = _IFS0_IC4IF_MASK;
 //	
 //	If Timer 2?s rollover interrupt is active (IFS0bits.T2IF is 1) and the CapturedTime is after rollover (<0x8000):
      if ((IFS0bits.T2IF == 1) && (CapturedTime<0x8000)) {
@@ -317,14 +351,44 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
         uint32_t pulsePeriod = CapturedTime - LastRiseTime;
         
         // If the pulse is in an acceptable range
-        if (((pulsePeriod < PULSEMAX) && (pulsePeriod > PULSEMIN)) && (!Found)) {
-        
-            ES_Event_t ThisEvent;
-            ThisEvent.EventType = BEACON_FOUND;
-    //Post EncoderPulse event to service
-            PostFind_Beacon(ThisEvent);
-            
-            Found = true;
+        if (SearchMode == DetermineTeam) {
+            if (((pulsePeriod < REDTEAM_PULSEMAX) && (pulsePeriod > REDTEAM_PULSEMIN)) && (!Found)) {
+
+                TeamIdentity = Red;
+                PulseMin = REDTEAM_PULSEMIN;
+                PulseMax = REDTEAM_PULSEMAX;
+                
+                ES_Event_t ThisEvent;
+                ThisEvent.EventType = BEACON_FOUND;
+                //Post EncoderPulse event to service
+                PostFind_Beacon(ThisEvent);
+
+                Found = true;
+            }
+            else if (((pulsePeriod < BLUETEAM_PULSEMAX) && (pulsePeriod > BLUETEAM_PULSEMIN)) && (!Found)) {
+
+                TeamIdentity = Blue;
+                PulseMin = BLUETEAM_PULSEMIN;
+                PulseMax = BLUETEAM_PULSEMAX;
+                
+                ES_Event_t ThisEvent;
+                ThisEvent.EventType = BEACON_FOUND;
+                //Post EncoderPulse event to service
+                PostFind_Beacon(ThisEvent);
+
+                Found = true;
+            }
+        }
+        else if (SearchMode == FindKnownFrequency) {
+            if (((pulsePeriod < PulseMax) && (pulsePeriod > PulseMin)) && (!Found)) {
+
+                ES_Event_t ThisEvent;
+                ThisEvent.EventType = BEACON_FOUND;
+                //Post EncoderPulse event to service
+                PostFind_Beacon(ThisEvent);
+
+                Found = true;
+            }
         }
         
 //Save CapturedTime into LastRiseTime
@@ -362,42 +426,42 @@ static bool SetupTimer2(void) {
   return true;
 }
 
-static bool SetupIC1(void) {
-     //Setup input capture 1 module for beacon detection
+static bool SetupIC4(void) {
+     //Setup input capture 4 module for beacon detection
     
-//	Configure pin RA4 as a digital input (PortSetup_ConfigureDigitalInputs(_Port_A, _Pin_4)) for input capture
-  PortSetup_ConfigureDigitalInputs(_Port_A, _Pin_4);
+//	Configure pin RB4 as a digital input (PortSetup_ConfigureDigitalInputs(_Port_B, _Pin_4)) for input capture
+  PortSetup_ConfigureDigitalInputs(_Port_B, _Pin_4);
   
-    //	Disable the Input Capture module (IC1CONbits.ON = 0)
-  IC1CONbits.ON = 0;
-    //  Map RPA4 to the input capture 1 input (IC1R = 0b0010)
-  IC1R = 0b0010;
-    //	Use a 16-bit timer capture (IC1CONbits.C32 = 0)
-  IC1CONbits.C32 = 0;
-    //	Select timer 2 for the input capture (IC1CONbits.ICTMR = 1)
-  IC1CONbits.ICTMR = 1;
-    //	Make interrupts occur on every capture event (IC1CONbits.ICI = 0b00)
-  IC1CONbits.ICI = 0b00;
-    //	Set up input capture mode to simple capture event mode every rising edge (IC1CONbits.ICM = 0b011)
-  IC1CONbits.ICM = 0b011;
-    //	Clear the input capture interrupt flag bit (IFS0CLR = _IFS0_IC1IF_MASK)
-  IFS0CLR = _IFS0_IC1IF_MASK;
-    //	Set the input capture?s interrupt priority level to 7 (IPC1bits.IC1IP = 7)
-  IPC1bits.IC1IP = 7;
+    //	Disable the Input Capture module (IC4CONbits.ON = 0)
+  IC4CONbits.ON = 0;
+    //  Map RPB4 to the input capture 4 input (IC4R = 0b0010)
+  IC4R = 0b0010;
+    //	Use a 16-bit timer capture (IC4CONbits.C32 = 0)
+  IC4CONbits.C32 = 0;
+    //	Select timer 2 for the input capture (IC4CONbits.ICTMR = 1)
+  IC4CONbits.ICTMR = 1;
+    //	Make interrupts occur on every capture event (IC4CONbits.ICI = 0b00)
+  IC4CONbits.ICI = 0b00;
+    //	Set up input capture mode to simple capture event mode every rising edge (IC4CONbits.ICM = 0b011)
+  IC4CONbits.ICM = 0b011;
+    //	Clear the input capture interrupt flag bit (IFS0CLR = _IFS0_IC4IF_MASK)
+  IFS0CLR = _IFS0_IC4IF_MASK;
+    //	Set the input capture?s interrupt priority level to 7 (IPC4bits.IC4IP = 7)
+  IPC4bits.IC4IP = 7;
   
   //IEC0SET = _IEC0_IC1IE_MASK;
   
-  DisableIC1Interrupts();
+  DisableIC4Interrupts();
   
   return true;
 }
 
-static void EnableIC1Interrupts(void) {
-  //	Set the local interrupt enable for the input capture module (IEC0SET = _IEC0_IC1IE_MASK)
-  IEC0SET = _IEC0_IC1IE_MASK;
+static void EnableIC4Interrupts(void) {
+  //	Set the local interrupt enable for the input capture module (IEC0SET = _IEC0_IC4IE_MASK)
+  IEC0SET = _IEC0_IC4IE_MASK;
 }
 
-static void DisableIC1Interrupts(void) {
+static void DisableIC4Interrupts(void) {
   //    Clear the local interrupt enable for the input capture module
-  IEC0CLR = _IEC0_IC1IE_MASK;
+  IEC0CLR = _IEC0_IC4IE_MASK;
 }

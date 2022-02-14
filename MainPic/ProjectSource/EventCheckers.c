@@ -113,7 +113,7 @@ bool Check4Keystroke(void)
     ES_Event_t ThisEvent;
     ThisEvent.EventType   = ES_NEW_KEY;
     ThisEvent.EventParam  = GetNewKey();
-    ES_PostAll(ThisEvent);
+    PostKeyboardResponses(ThisEvent);
     return true;
   }
   return false;
