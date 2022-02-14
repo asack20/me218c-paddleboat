@@ -13,17 +13,7 @@
             <sourceEncoding>ISO-8859-1</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>FrameworkHeaders</sourceRootElem>
-                <sourceRootElem>FrameworkSource</sourceRootElem>
-                <sourceRootElem>ProjectSource</sourceRootElem>
-                <sourceRootElem>ProjectHeaders</sourceRootElem>
-                <sourceRootElem>TestHarnesses</sourceRootElem>
-                <sourceRootElem>DriveTrain</sourceRootElem>
-                <sourceRootElem>HALs</sourceRootElem>
-                <sourceRootElem>SensorInterfacing</sourceRootElem>
-                <sourceRootElem>CommandService</sourceRootElem>
-                <sourceRootElem>HSM</sourceRootElem>
-                <sourceRootElem>Sensors</sourceRootElem>
+                <sourceRootElem>//testarossa/Users$/afshanc/FinalProject218B/MainPic</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
