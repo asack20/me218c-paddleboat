@@ -28,13 +28,12 @@
 #include "terminal.h"
 #include "SPILeaderSM.h"
 #include "../HALs/PIC32PortHAL.h"
-#include "../HALs/PIC32_SPI_HAL.h" 
+#include "../HALs/PIC32_SPI_HAL.h"
+#include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-
-#define COMMAND_TIME 100
 
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
@@ -151,7 +150,7 @@ ES_Event_t RunSPILeaderSM(ES_Event_t ThisEvent)
             if (true == InitializeSPI()) //Initialize SPI for display
             {
                 //If successful switch state
-                CurrentState = SPILeaderQueryState;
+                CurrentState = SPILeaderSendState;
                 puts("...Done Initializing SPI1\r\n");
             }           
             else // SPI failed to initialize, throw error
@@ -160,15 +159,38 @@ ES_Event_t RunSPILeaderSM(ES_Event_t ThisEvent)
                 ReturnEvent.EventType = ES_ERROR;
             }  
           }
-        }
-        case SPILeaderQueryState:
+        }break;
+        case SPILeaderSendState:
         {
-
-        }
+            if (ThisEvent.EventType == SEND_SPI_COMMAND){
+                printf("Sending %x\r\n",ThisEvent.EventParam);
+                SPIOperate_SPI1_Send16(ThisEvent.EventParam);
+                CurrentState = SPILeaderReceiveState;
+            }
+            if (ThisEvent.EventType == SPI_RESET){
+                CurrentState = SPILeaderSendState;
+            }
+            
+        }break;
         case SPILeaderReceiveState:
         {
-
-        }
+            if (ThisEvent.EventType == SPI_RESPONSE_RECEIVED){
+                if (ThisEvent.EventParam == 0x1111){
+                    ES_Event_t NewEvent;
+                    NewEvent.EventType   = SPI_TASK_COMPLETE;
+                    printf("Success, posting to service\r\n");
+                }
+                else if (ThisEvent.EventParam == 0xAAAA){
+                    ES_Event_t NewEvent;
+                    NewEvent.EventType   = SPI_TASK_FAILED;
+                    printf("Failure, posting to service\r\n");
+                }
+                CurrentState = SPILeaderSendState;
+            }
+            if (ThisEvent.EventType == SPI_RESET){
+                CurrentState = SPILeaderSendState;
+            }
+        }break;
         default:
           ;
     }                                   // end switch on Current State
@@ -217,7 +239,7 @@ bool InitializeSPI(void)
     
     ReturnVal &= SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI); // clock is idle high
     ReturnVal &= SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE); // read on 2nd edge 
-    ReturnVal &= SPISetup_SetXferWidth(SPI_SPI1, SPI_8BIT); //8 bit messages
+    ReturnVal &= SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT); //16 bit messages
     ReturnVal &= SPISetEnhancedBuffer(SPI_SPI1, false); //disable ENHBUF
     //After everything set up, enable spi
     ReturnVal &= SPISetup_EnableSPI(SPI_SPI1);
@@ -228,6 +250,10 @@ bool InitializeSPI(void)
 bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
-        return true;
+        /*ES_Event_t ThisEvent;
+        ThisEvent.EventType   = SPI_RESPONSE_RECEIVED;
+        ThisEvent.EventParam = SPI1BUF;
+        PostSPILeaderSM(ThisEvent);*/
+        return false;
     }
 }

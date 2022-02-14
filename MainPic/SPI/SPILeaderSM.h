@@ -18,7 +18,7 @@
 // State definitions for use with the query function
 typedef enum
 {
-    SPILeaderInitState, SPILeaderQueryState, SPILeaderReceiveState
+    SPILeaderInitState, SPILeaderSendState, SPILeaderReceiveState
 }SPILeaderSMState_t;
 
 // Public Function Prototypes

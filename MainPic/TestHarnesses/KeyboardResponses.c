@@ -28,6 +28,7 @@
 #include "../HSM/StartupHSM.h"
 #include "../HSM/CycleHSM.h"
 #include "../Sensors/Find_Beacon.h"
+#include "../SPI/SPILeaderSM.h"
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
@@ -305,13 +306,19 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
               
               case 'p':
               {
+                puts("Posting SEND_SPI_COMMAND Event to SPILeaderSM with a param of 0xABCD \r\n");
                 NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = 0xABCD;
+                PostSPILeaderSM(NewEvent);
               }
               break;
               
               case 'P':
               {
+                puts("Posting SPI_RESPONSE_RECEIVED Event to SPILeaderSM with a param of 0x1111 \r\n");
                 NewEvent.EventType = SPI_RESPONSE_RECEIVED;
+                NewEvent.EventParam = 0xAAAA;
+                PostSPILeaderSM(NewEvent);
               }
               break;
               

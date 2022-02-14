@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 3
+#define NUM_SERVICES 4
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -83,11 +83,11 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "TestHarnessService3.h"
+#define SERV_3_HEADER "../SPI/SPILeaderSM.h"
 // the name of the Init function
-#define SERV_3_INIT InitTestHarnessService3
+#define SERV_3_INIT InitSPILeaderSM
 // the name of the run function
-#define SERV_3_RUN RunTestHarnessService3
+#define SERV_3_RUN RunSPILeaderSM
 // How big should this services Queue be?
 #define SERV_3_QUEUE_SIZE 3
 #endif
@@ -281,6 +281,9 @@ typedef enum
   TAPE_FOUND,
   SEND_SPI_COMMAND,
   SPI_RESPONSE_RECEIVED,
+  SPI_TASK_COMPLETE,
+  SPI_TASK_FAILED,
+  SPI_RESET,
   GAME_TIMEOUT
 }ES_EventType_t;
 
