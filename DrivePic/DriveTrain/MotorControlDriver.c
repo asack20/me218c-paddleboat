@@ -747,11 +747,11 @@ void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void)
     
     // Left Motor Control Law
     UpdateControlLaw(&LeftControl, &LeftEncoder);
-    MotorControl_SetMotorDutyCycle(_Left_Motor, LeftControl.TargetDirection, LeftControl.RequestedDutyCycle);
+    MotorControl_SetMotorDutyCycle(_Left_Motor, LeftControl.TargetDirection, (uint16_t) LeftControl.RequestedDutyCycle);
     
     // Right Motor Control Law.
     UpdateControlLaw(&RightControl, &RightEncoder);
-    MotorControl_SetMotorDutyCycle(_Right_Motor, RightControl.TargetDirection, RightControl.RequestedDutyCycle);
+    MotorControl_SetMotorDutyCycle(_Right_Motor, RightControl.TargetDirection, (uint16_t)RightControl.RequestedDutyCycle);
 }
 
 /****************************************************************************
@@ -775,7 +775,7 @@ void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder)
 {
     ThisControl->RPMError = ThisControl->TargetRPM - ThisEncoder->CurrentRPM;
     ThisControl->SumError += ThisControl->RPMError;
-    ThisControl->RequestedDutyCycle = 
+    ThisControl->RequestedDutyCycle =
     (pGain * ((ThisControl->RPMError)+(iGain * ThisControl->SumError)+
             (dGain* (ThisControl->RPMError-ThisControl->LastError))));
     if (ThisControl->RequestedDutyCycle > MAX_DUTY_CYCLE) {

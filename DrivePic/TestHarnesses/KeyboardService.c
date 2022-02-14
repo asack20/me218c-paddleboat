@@ -20,6 +20,7 @@
 #include "ES_Framework.h"
 #include "KeyboardService.h"
 #include "../DriveTrain/DriveTrain.h"
+#include "../DriveTrain/MotorControlDriver.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -29,6 +30,7 @@
    relevant to the behavior of this service
 */
 void PrintInstructions(void);
+void PrintMotorDetails(void);
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
@@ -177,7 +179,21 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
                     PostDriveTrain(PostEvent);
                 } break;
-
+                case 'a':
+                {
+                    printf("KeyboardService: Disabling Control Law\n\r");
+                    MotorControl_DisableClosedLoop();
+                } break;
+                case 's':
+                {
+                    printf("KeyboardService: Enabling Control Law\n\r");
+                    MotorControl_EnableClosedLoop();
+                } break;
+                case '.':
+                {
+                    printf("KeyboardService: Current Motor Details\n\r");
+                    PrintMotorDetails();
+                } break;       
                 default:
                 {
                     printf("KeyboardService: No Event bound to %c. Press '?' to see list of valid keys.\r\n", (char) ThisEvent.EventParam);
@@ -220,11 +236,44 @@ void PrintInstructions(void)
     printf( "Press 'o' to post DRIVE_BACKWARD_FULL (CG: 0x11)\n\r");
     printf( "Press 'p' to post DRIVE_ROTATE_CWINF \n\r");
     printf( "Press '[' to post DRIVE_ROTATE_CCWINF \n\r");
-    printf( "Press 'g' to post GIVE_UP to Find_Beacon and Find_Tape\n\r");
-    printf( "Press 'b' to post FIND_BEACON (CG: 0x20)\n\r");
-    printf( "Press 'n' to post FIND_TAPE (CG: 0x40)\n\r");
-    printf( "Press 'a' to post KILL_SPI_EVENT to CommandService \n\r");
+    printf( "Press 'a' to DISABLE Closed Loop Control \n\r");
+    printf( "Press 's' to ENABLE Closed Loop Control \n\r");
+    printf( "Press '.' to Print Current Motor Details\n\r");
     printf( "---------------------------------------------------------\r\n\n");
+}
+
+/****************************************************************************
+ * Function
+ *      PrintMotorDetails
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Prints all the instructions of what each keypress does
+****************************************************************************/
+void PrintMotorDetails(void)
+{
+    Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
+    Encoder_t RightEncoder = MotorControl_GetEncoder(_Right_Motor);
+    
+    ControlState_t LeftControl = MotorControl_GetControlState(_Left_Motor);
+    ControlState_t RightControl = MotorControl_GetControlState(_Right_Motor);
+    
+    printf("Left Encoder:\tCurrentRPM: %0.2f\tDir: %u\tTickCount: %u\r\n", 
+            LeftEncoder.CurrentRPM, LeftEncoder.Direction, LeftEncoder.TickCount);
+    printf("Left Control:\tTargetRPM: %0.2f\tDir: %u\tTargetTick: %u\tDutyCycle: %0.2f\r\n",
+            LeftControl.TargetRPM, LeftControl.TargetDirection, LeftControl.TargetTickCount,LeftControl.RequestedDutyCycle);
+    printf("Left Error:\tIntegralTerm:%0.2f\tRPMError: %0.2f\tLastError: %0.2f\tSumError: %0.2f\r\n\n",
+            LeftControl.IntegralTerm, LeftControl.RPMError, LeftControl.LastError, LeftControl.SumError);
+    
+    printf("Right Encoder:\tCurrentRPM: %0.2f\tDir: %u\tTickCount: %u\r\n", 
+            RightEncoder.CurrentRPM, RightEncoder.Direction, RightEncoder.TickCount);
+    printf("Right Control:\tTargetRPM: %0.2f\tDir: %u\tTargetTick: %u\tDutyCycle: %0.2f\r\n",
+            RightControl.TargetRPM, RightControl.TargetDirection, RightControl.TargetTickCount,RightControl.RequestedDutyCycle);
+    printf("Right Error:\tIntegralTerm:%0.2f\tRPMError: %0.2f\tLastError: %0.2f\tSumError: %0.2f\r\n\n",
+            RightControl.IntegralTerm, RightControl.RPMError, RightControl.LastError, RightControl.SumError);
 }
 
 /*------------------------------- Footnotes -------------------------------*/
