@@ -27,42 +27,28 @@
 #include "../HALs/PIC32PortHAL.h"
 #include "terminal.h"
 #include "dbprintf.h"
+#include <sys/attribs.h>
 
 // This module
 #include "LaunchService.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
-// these times assume a 1.000mS/tick timing
-#define ONE_SEC 1000
-#define HALF_SEC (ONE_SEC / 2)
-#define TWO_SEC (ONE_SEC * 2)
-#define FIVE_SEC (ONE_SEC * 5)
-#define TEN_MS (10)
-#define TWENTY_FIVE_MS (25)
-#define FIFTY_MS (50)
-
-#define TIME_STEP TWENTY_FIVE_MS
-
 // TICS_PER_MS assumes a 20MHz PBClk /8 = 2.5MHz clock rate
 #define TICS_PER_MS 2500
 
 // these are extents of servo motion
 #define FULL_CW ((uint16_t)(0.5*TICS_PER_MS))
 #define FULL_CCW ((uint16_t)(2.35*TICS_PER_MS))
-#define MID_POINT (FULL_CW+((FULL_CCW-FULL_CW)/2))
 
-// these are related to how fast we move. full range of motion in 100 steps
-#define TICKS_PER_STEP ((FULL_CCW-FULL_CW)/100)
-
-#define DOOR_CNL 4 // Use pwm channel 4
-#define DOOR_PIN PWM_RPB13 //Servo on RB13 (Pin 24)
-#define FULL_OPEN 5700 //Open is counter-Clockwise
-#define FULL_CLOSE 2900 //close is clockwise
-
-#define DOOR_TMR _Timer3_ // Use PWM timer 3
-#define DOOR_FREQ 50 // 50 HZ
-#define NUM_PWM 5 // Configure All PWM Channels?
+#define FLAG_UP_DC 5000
+#define FLAG_DOWN_DC 2500
+#define RELOAD_OUT_DC 5000
+#define RELOAD_IN_DC 2500
+#define LATCH_ENGAGE_DC 5000
+#define LATCH_RELEASE_DC 2500
+#define TENSION_ENGAGE_DC 5000
+#define TENSION_RELEASE_DC 2500
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
@@ -115,7 +101,7 @@ bool InitLaunchService(uint8_t Priority)
     T3CONCLR = _T3CON_ON_MASK;
     T3CONbits.TCKPS = 0b011;
     TMR3 = 0;
-    PR3 = 800;
+    PR3 = 49999;
     //OC1
     OC1CONCLR = _OC1CON_ON_MASK;
     RPB3R = 0b0101;
@@ -220,38 +206,50 @@ ES_Event_t RunLaunchService(ES_Event_t ThisEvent)
   {
     case FLAG_UP:
     {
+        OC4RS = FLAG_UP_DC;
     }
     break;
     case FLAG_DOWN:
     {
+        OC4RS = FLAG_DOWN_DC;
     }
     break;
     case RELOAD_OUT:
     {
+        OC1RS = RELOAD_OUT_DC;
     }
     break;
     case RELOAD_IN:
     {
+        OC1RS = RELOAD_IN_DC;
     }
     break;
     case LATCH_ENGAGE:
     {
+        OC5RS = LATCH_ENGAGE_DC;
     }
     break;
     case LATCH_RELEASE:
     {
+        OC5RS = LATCH_RELEASE_DC;
     }
     break;
     case TENSION_ENGAGE:
     {
+        OC3RS = TENSION_ENGAGE_DC;
     }
     break;
     case TENSION_RELEASE:
     {
+        OC3RS = TENSION_RELEASE_DC;
     }
     break;
     case SERVO_RESET:
     {
+        OC1RS = RELOAD_IN_DC;
+        OC3RS = TENSION_RELEASE_DC;
+        OC4RS = FLAG_DOWN_DC;
+        OC5RS = LATCH_RELEASE_DC;
     }
     break;
     default:
@@ -265,7 +263,6 @@ ES_Event_t RunLaunchService(ES_Event_t ThisEvent)
 /***************************************************************************
  private functions
  ***************************************************************************/
-
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
 
