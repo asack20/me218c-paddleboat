@@ -165,7 +165,7 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         {
             if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
                 //Interpret command and post it out
-                printf("Command Received, going to Send State\r\n");
+                printf("Command Received: %x, going to Send State\r\n", ThisEvent.EventParam);
                 CurrentState = SPIFollowerSendState;
             }
             else if (ThisEvent.EventType == SPI_RESET){
@@ -227,6 +227,9 @@ bool InitializeSPI(void)
     ReturnVal &= SPISetup_SetFollower(SPI_SPI1);
     ReturnVal &= SPISetup_SetBitTime(SPI_SPI1, 1000); //1,000 ns = 1 MHZ
     
+    SPI1CONbits.SSEN = 1;
+    SPI1STATbits.SPIROV = 0;
+    
     //ReturnVal &= SPISetup_MapSSInput(SPI_SPI1, SPI_RPA0); // make A0 SS
     PortSetup_ConfigureDigitalInputs(_Port_A,_Pin_0);
     SS1R = 0b0000;
@@ -237,10 +240,7 @@ bool InitializeSPI(void)
     PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_5);
     SDI1R = 0b0001;
     
-    /*PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_15);
-    REFCLKIR = 0b0111;
-    SPI1CONbits.MCLKSEL = 1;
-    */
+    PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_14);
     
     ReturnVal &= SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI); // clock is idle high
     ReturnVal &= SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE); // read on 2nd edge 
@@ -255,7 +255,6 @@ bool InitializeSPI(void)
 bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
-        printf("Received");
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_COMMAND_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
