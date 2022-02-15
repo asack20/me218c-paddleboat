@@ -221,7 +221,7 @@ bool InitializeSPI(void)
     SPIOperate_HasSS1_Risen();
     //Configure SPI connection
     ReturnVal &= SPISetup_BasicConfig(SPI_SPI1);
-    ReturnVal &= SPISetup_SetFollower(SPI_SPI1, SPI_SMP_MID);
+    ReturnVal &= SPISetup_SetFollower(SPI_SPI1);
     ReturnVal &= SPISetup_SetBitTime(SPI_SPI1, 1000); //1,000 ns = 1 MHZ
     
     //ReturnVal &= SPISetup_MapSSInput(SPI_SPI1, SPI_RPA0); // make A0 SS

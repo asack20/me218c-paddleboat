@@ -23,6 +23,7 @@
                 <sourceRootElem>SensorInterfacing</sourceRootElem>
                 <sourceRootElem>CommandService</sourceRootElem>
                 <sourceRootElem>//testarossa/Users$/afshanc/FinalProject218B/DrivePic/SPI</sourceRootElem>
+                <sourceRootElem>SPI</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

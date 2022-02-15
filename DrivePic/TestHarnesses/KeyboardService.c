@@ -19,10 +19,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "KeyboardService.h"
-#include "../DriveTrain/DriveTrain.h"
-#include "../SensorInterfacing/Find_Beacon.h"
-#include "../SensorInterfacing/Find_Tape.h"
-#include "../CommandService/CommandService.h"
+#include "../SPI/SPIFollowerSM.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
