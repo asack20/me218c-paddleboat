@@ -52,6 +52,8 @@ bool InitializeSPI(void);
 // type of state variable should match htat of enum in header file
 static SPIFollowerSMState_t CurrentState;
 
+static uint16_t SendData;
+
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 
@@ -82,7 +84,7 @@ bool InitSPIFollowerSM(uint8_t Priority)
     MyPriority = Priority;
     // put us into the Initial PseudoState
     CurrentState = SPIFollowerInitState;
-    
+    SendData = 0xFFFF;
     puts("...Done Initializing SPIFollowerSM\r\n");
  
     // post the initial transition event
@@ -165,27 +167,18 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         {
             if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
                 //Interpret command and post it out
-                printf("Command Received: %x, going to Send State\r\n", ThisEvent.EventParam);
-                CurrentState = SPIFollowerSendState;
+                printf("Command Received: %x\r\n", ThisEvent.EventParam);
             }
-            else if (ThisEvent.EventType == SPI_RESET){
-                CurrentState = SPIFollowerReceiveState;
-            }
-        }break;
-        case SPIFollowerSendState:
-        {
-            if (ThisEvent.EventType == SPI_TASK_COMPLETE){
-                SPIOperate_SPI1_Send16(0x1111);
-                printf("Complete, going to Receive State\r\n");
-                CurrentState = SPIFollowerReceiveState;
+            else if (ThisEvent.EventType == SPI_TASK_COMPLETE){
+                SendData = 0x1111;
+                printf("Complete\r\n");
             }
             else if (ThisEvent.EventType == SPI_TASK_FAILED){
-                SPIOperate_SPI1_Send16(0xAAAA);
-                printf("Failed, going to Receive State\r\n");
-                CurrentState = SPIFollowerReceiveState;
+                SendData = 0xAAAA;
+                printf("Failed\r\n");
             }
             else if (ThisEvent.EventType == SPI_RESET){
-                CurrentState = SPIFollowerReceiveState;
+                SendData = 0xFFFF;
             }
         }break;
         default:
@@ -227,7 +220,7 @@ bool InitializeSPI(void)
     ReturnVal &= SPISetup_SetFollower(SPI_SPI1);
     ReturnVal &= SPISetup_SetBitTime(SPI_SPI1, 1000); //1,000 ns = 1 MHZ
     
-    SPI1CONbits.SSEN = 1;
+    SPI1CONbits.SSEN = 0;
     SPI1STATbits.SPIROV = 0;
     
     //ReturnVal &= SPISetup_MapSSInput(SPI_SPI1, SPI_RPA0); // make A0 SS
@@ -255,6 +248,9 @@ bool InitializeSPI(void)
 bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
+        //printf("%x\r\n",SendData);
+        SPIOperate_SPI1_Send16(SendData);
+        SendData = 0xFFFF;
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_COMMAND_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;

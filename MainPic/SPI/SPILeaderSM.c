@@ -34,7 +34,7 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-
+#define SPI_TIME 1000
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -165,6 +165,7 @@ ES_Event_t RunSPILeaderSM(ES_Event_t ThisEvent)
             if (ThisEvent.EventType == SEND_SPI_COMMAND){
                 printf("Sending %x\r\n",ThisEvent.EventParam);
                 SPIOperate_SPI1_Send16(ThisEvent.EventParam);
+                ES_Timer_InitTimer(SPITimer,SPI_TIME);
                 CurrentState = SPILeaderReceiveState;
             }
             if (ThisEvent.EventType == SPI_RESET){
@@ -179,13 +180,23 @@ ES_Event_t RunSPILeaderSM(ES_Event_t ThisEvent)
                     ES_Event_t NewEvent;
                     NewEvent.EventType   = SPI_TASK_COMPLETE;
                     printf("Success, posting to service\r\n");
+                    CurrentState = SPILeaderSendState;
                 }
                 else if (ThisEvent.EventParam == 0xAAAA){
                     ES_Event_t NewEvent;
                     NewEvent.EventType   = SPI_TASK_FAILED;
                     printf("Failure, posting to service\r\n");
+                    CurrentState = SPILeaderSendState;
                 }
-                CurrentState = SPILeaderSendState;
+            }
+            if (ThisEvent.EventType == ES_TIMEOUT){
+                SPIOperate_SPI1_Send16(0x2222);
+                ES_Timer_InitTimer(SPITimer,SPI_TIME);
+            }
+            if (ThisEvent.EventType == SEND_SPI_COMMAND){
+                printf("Sending %x\r\n",ThisEvent.EventParam);
+                SPIOperate_SPI1_Send16(ThisEvent.EventParam);
+                CurrentState = SPILeaderReceiveState;
             }
             if (ThisEvent.EventType == SPI_RESET){
                 CurrentState = SPILeaderSendState;
@@ -253,6 +264,7 @@ bool CheckSPIRBF(void)
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_RESPONSE_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
+        printf("Querying %x\r\n", ThisEvent.EventParam);
         PostSPILeaderSM(ThisEvent);
         return true;
     }

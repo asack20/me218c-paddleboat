@@ -18,7 +18,7 @@
 // State definitions for use with the query function
 typedef enum
 {
-    SPIFollowerInitState, SPIFollowerSendState, SPIFollowerReceiveState
+    SPIFollowerInitState, SPIFollowerReceiveState
 }SPIFollowerSMState_t;
 
 // Public Function Prototypes

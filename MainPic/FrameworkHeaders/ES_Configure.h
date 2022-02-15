@@ -342,7 +342,7 @@ typedef enum
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
-#define TIMER14_RESP_FUNC TIMER_UNUSED
+#define TIMER14_RESP_FUNC PostSPILeaderSM
 #define TIMER15_RESP_FUNC PostRobotTopHSM
 
 /****************************************************************************/
@@ -353,6 +353,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define GameTimer 15
+#define SPITimer 14
 
 
 #endif /* ES_CONFIGURE_H */
