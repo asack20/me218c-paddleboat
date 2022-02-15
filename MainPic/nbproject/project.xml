@@ -24,6 +24,7 @@
                 <sourceRootElem>CommandService</sourceRootElem>
                 <sourceRootElem>HSM</sourceRootElem>
                 <sourceRootElem>Sensors</sourceRootElem>
+                <sourceRootElem>Launch</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

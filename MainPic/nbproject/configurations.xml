@@ -54,6 +54,7 @@
       <itemPath>Sensors/Find_Beacon.h</itemPath>
       <itemPath>Sensors/Find_Tape.h</itemPath>
       <itemPath>TestHarnesses/KeyboardResponses.h</itemPath>
+      <itemPath>Launch/LaunchService.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -75,6 +76,7 @@
       <itemPath>Sensors/Find_Beacon.c</itemPath>
       <itemPath>Sensors/Find_Tape.c</itemPath>
       <itemPath>TestHarnesses/KeyboardResponses.c</itemPath>
+      <itemPath>Launch/LaunchService.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -94,6 +96,7 @@
     <Elem>CommandService</Elem>
     <Elem>HSM</Elem>
     <Elem>Sensors</Elem>
+    <Elem>Launch</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -301,8 +304,36 @@
         </C32Global>
       </item>
       <item path="Sensors/Find_Tape.c" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <item path="Sensors/Find_Tape.h" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <Simulator>
         <property key="codecoverage.enabled" value="Disable"/>
