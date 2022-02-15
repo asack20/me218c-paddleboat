@@ -24,7 +24,8 @@
 
 
 /*----------------------------- Module Defines ----------------------------*/
-
+#define MAX_SPEED 1500
+#define SPEED_STEP 100
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
@@ -34,6 +35,11 @@ void PrintMotorDetails(void);
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
+
+static MotorControl_Direction_t LeftDirection;
+static MotorControl_Direction_t RightDirection;
+static uint16_t LeftSpeed;
+static uint16_t RightSpeed;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -56,11 +62,17 @@ static uint8_t MyPriority;
 ****************************************************************************/
 bool InitKeyboardService(uint8_t Priority)
 {
-  printf("\n\n---------------------------------------------------------\n\r");
-  printf("Initializing KeyboardService\r");
-  PrintInstructions(); // print meaning of each key
-  MyPriority = Priority;
-  return true;
+    printf("\n\n---------------------------------------------------------\n\r");
+    printf("Initializing KeyboardService\r");
+    PrintInstructions(); // print meaning of each key
+    MyPriority = Priority;
+    
+    LeftDirection = _Forward_Dir;
+    RightDirection = _Forward_Dir;
+    LeftSpeed = 0;
+    RightSpeed = 0; 
+
+    return true;
 }
 
 /****************************************************************************
@@ -189,6 +201,82 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     printf("KeyboardService: Enabling Control Law\n\r");
                     MotorControl_EnableClosedLoop();
                 } break;
+                
+                case 'd':
+                {
+                    printf("KeyboardService: Setting Left motor direction to FORWARD\n\r");
+                    LeftDirection = _Forward_Dir;
+                    MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
+                } break;
+                case 'f':
+                {
+                    printf("KeyboardService: Setting Left motor direction to BACKWARD\n\r");
+                    LeftDirection = _Backward_Dir;
+                    MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
+                } break;
+                case 'g':
+                {
+                    LeftSpeed = 0;
+                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
+                } break;
+                case 'h':
+                {
+                    LeftSpeed -= SPEED_STEP;
+                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
+                } break;
+                case 'j':
+                {
+                    LeftSpeed += SPEED_STEP;
+                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
+                } break;
+                case 'k':
+                {
+                    LeftSpeed = MAX_SPEED;
+                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
+                } break;
+                
+                case 'x':
+                {
+                    printf("KeyboardService: Setting Right motor direction to FORWARD\n\r");
+                    RightDirection = _Forward_Dir;
+                    MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
+                } break;
+                case 'c':
+                {
+                    printf("KeyboardService: Setting Right motor direction to BACKWARD\n\r");
+                    RightDirection = _Backward_Dir;
+                    MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
+                } break;
+                
+                case 'v':
+                {
+                    RightSpeed = 0;
+                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
+                } break;
+                case 'b':
+                {
+                    RightSpeed -= SPEED_STEP;
+                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
+                } break;
+                case 'n':
+                {
+                    RightSpeed += SPEED_STEP;
+                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
+                } break;
+                case 'm':
+                {
+                    RightSpeed = MAX_SPEED;
+                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
+                } break;
+                
                 case '.':
                 {
                     printf("KeyboardService: Current Motor Details\n\r");
@@ -235,9 +323,26 @@ void PrintInstructions(void)
     printf( "Press 'i' to post DRIVE_BACKWARD_HALF (CG: 0x10)\n\r");
     printf( "Press 'o' to post DRIVE_BACKWARD_FULL (CG: 0x11)\n\r");
     printf( "Press 'p' to post DRIVE_ROTATE_CWINF \n\r");
-    printf( "Press '[' to post DRIVE_ROTATE_CCWINF \n\r");
+    printf( "Press '[' to post DRIVE_ROTATE_CCWINF \n\r\n");
+    
+    printf( "\n\n------------Closed Loop--------------\r\n");
     printf( "Press 'a' to DISABLE Closed Loop Control \n\r");
     printf( "Press 's' to ENABLE Closed Loop Control \n\r");
+    printf( "Press 'd' to set LEFT motor direction to FORWARD \n\r");
+    printf( "Press 'f' to set LEFT motor direction to BACKWARD \n\r");
+    printf( "Press 'g' to set LEFT motor speed to 0 RPM \n\r");
+    printf( "Press 'h' to decrease LEFT motor speed by 10 RPM \n\r");
+    printf( "Press 'j' to increase LEFT motor speed by 10 RPM \n\r");
+    printf( "Press 'k' to set LEFT motor speed to MAX RPM \n\r");
+    printf( "Press 'x' to set RIGHT motor direction to FORWARD \n\r");
+    printf( "Press 'c' to set RIGHT motor direction to BACKWARD \n\r");
+    printf( "Press 'v' to set RIGHT motor speed to 0 RPM \n\r");
+    printf( "Press 'b' to decrease RIGHT motor speed by 10 RPM \n\r");
+    printf( "Press 'n' to increase RIGHT motor speed by 10 RPM \n\r");
+    printf( "Press 'm' to set RIGHT motor speed to MAX RPM \n\r");
+    
+            
+            
     printf( "Press '.' to Print Current Motor Details\n\r");
     printf( "---------------------------------------------------------\r\n\n");
 }
