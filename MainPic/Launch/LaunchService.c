@@ -24,6 +24,7 @@
 #include "ES_Framework.h"
 #include "ES_DeferRecall.h"
 #include "ES_Port.h"
+#include "../HALs/PIC32PortHAL.h"
 #include "terminal.h"
 #include "dbprintf.h"
 
@@ -97,13 +98,69 @@ bool InitLaunchService(uint8_t Priority)
     bool ReturnVal = true; // assume that everything will be OK
     
     MyPriority = Priority;
-
+    
+    // disable interrupts
+    __builtin_disable_interrupts();
+    // configure pins
+    PortSetup_ConfigureDigitalOutputs(_Port_B, _Pin_2);//Flag Servo, OC4
+    PortSetup_ConfigureDigitalOutputs(_Port_B, _Pin_3);//Reloader Servo, OC1
+    PortSetup_ConfigureDigitalOutputs(_Port_A, _Pin_2);//Latch Servo, OC5
+    PortSetup_ConfigureDigitalOutputs(_Port_A, _Pin_3);//Tensioner Servo, OC3
+    // configure interrupts
+    INTCONSET = _INTCON_MVEC_MASK;
+    //Timer 3
+    IFS0CLR = _IFS0_T3IF_MASK;
+    IEC0SET = _IEC0_T3IE_MASK;
+    IPC3bits.T3IP = 5;
+    T3CONCLR = _T3CON_ON_MASK;
+    T3CONbits.TCKPS = 0b011;
+    TMR3 = 0;
+    PR3 = 800;
+    //OC1
+    OC1CONCLR = _OC1CON_ON_MASK;
+    RPB3R = 0b0101;
+    OC1CONCLR = _OC1CON_OC32_MASK;
+    OC1CONSET = _OC1CON_OCTSEL_MASK;
+    OC1CONbits.OCM = 0b110;
+    OC1R = 0;
+    OC1RS = 0;
+    //OC3
+    OC3CONCLR = _OC3CON_ON_MASK;
+    RPA3R = 0b0101;
+    OC3CONCLR = _OC3CON_OC32_MASK;
+    OC3CONSET = _OC3CON_OCTSEL_MASK;
+    OC3CONbits.OCM = 0b110;
+    OC3R = 0;
+    OC3RS = 0;
+    //OC4
+    OC4CONCLR = _OC4CON_ON_MASK;
+    RPB2R = 0b0101;
+    OC4CONCLR = _OC4CON_OC32_MASK;
+    OC4CONSET = _OC4CON_OCTSEL_MASK;
+    OC4CONbits.OCM = 0b110;
+    OC4R = 0;
+    OC4RS = 0;
+    //OC5
+    OC5CONCLR = _OC5CON_ON_MASK;
+    RPA2R = 0b0110;
+    OC5CONCLR = _OC5CON_OC32_MASK;
+    OC5CONSET = _OC5CON_OCTSEL_MASK;
+    OC5CONbits.OCM = 0b110;
+    OC5R = 0;
+    OC5RS = 0;
+    __builtin_enable_interrupts();
+    T3CONSET = _T3CON_ON_MASK;
+    OC1CONSET = _OC1CON_ON_MASK;
+    OC3CONSET = _OC3CON_ON_MASK;
+    OC4CONSET = _OC4CON_ON_MASK;
+    OC5CONSET = _OC5CON_ON_MASK;
+    
     /********************************************
      Initialization sequence for timers to do servo drive
      *******************************************/
 
     // post the initial transition event
-    ThisEvent.EventType = 1;
+    ThisEvent.EventType = ES_INIT;
     if (!ES_PostToService(MyPriority, ThisEvent))
     {
         ReturnVal = false;
@@ -161,11 +218,42 @@ ES_Event_t RunLaunchService(ES_Event_t ThisEvent)
   
   switch (ThisEvent.EventType)
   {
-    case 1:
+    case FLAG_UP:
     {
     }
     break;
-
+    case FLAG_DOWN:
+    {
+    }
+    break;
+    case RELOAD_OUT:
+    {
+    }
+    break;
+    case RELOAD_IN:
+    {
+    }
+    break;
+    case LATCH_ENGAGE:
+    {
+    }
+    break;
+    case LATCH_RELEASE:
+    {
+    }
+    break;
+    case TENSION_ENGAGE:
+    {
+    }
+    break;
+    case TENSION_RELEASE:
+    {
+    }
+    break;
+    case SERVO_RESET:
+    {
+    }
+    break;
     default:
     {}
     break;
