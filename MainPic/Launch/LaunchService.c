@@ -41,13 +41,13 @@
 #define FULL_CW ((uint16_t)(0.5*TICS_PER_MS))
 #define FULL_CCW ((uint16_t)(2.35*TICS_PER_MS))
 
-#define FLAG_UP_DC 5000
-#define FLAG_DOWN_DC 2500
-#define RELOAD_OUT_DC 5000
-#define RELOAD_IN_DC 2500
-#define LATCH_ENGAGE_DC 5000
-#define LATCH_RELEASE_DC 2500
-#define TENSION_ENGAGE_DC 5000
+#define FLAG_UP_DC 6250
+#define FLAG_DOWN_DC 1250
+#define RELOAD_OUT_DC 5200
+#define RELOAD_IN_DC 6300
+#define LATCH_ENGAGE_DC 6250
+#define LATCH_RELEASE_DC 1250
+#define TENSION_ENGAGE_DC 6250
 #define TENSION_RELEASE_DC 2500
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
@@ -96,7 +96,7 @@ bool InitLaunchService(uint8_t Priority)
     INTCONSET = _INTCON_MVEC_MASK;
     //Timer 3
     IFS0CLR = _IFS0_T3IF_MASK;
-    IEC0SET = _IEC0_T3IE_MASK;
+    IEC0CLR = _IEC0_T3IE_MASK;
     IPC3bits.T3IP = 5;
     T3CONCLR = _T3CON_ON_MASK;
     T3CONbits.TCKPS = 0b011;

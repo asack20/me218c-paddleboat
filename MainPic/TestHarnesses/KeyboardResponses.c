@@ -28,6 +28,7 @@
 #include "../HSM/StartupHSM.h"
 #include "../HSM/CycleHSM.h"
 #include "../Sensors/Find_Beacon.h"
+#include "../Launch/LaunchService.h"
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
@@ -175,6 +176,16 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                   puts("GAME_TIMEOUT:                                    \'o\'\r");
                   puts("FIND_BEACON to determine team (only to BeaconSM) \'k\'\r");
                   puts("FIND_BEACON to align          (only to BeaconSM) \'K\'\r");
+                  
+                  puts("FLAG_DOWN:                                       \'z\'\r");
+                  puts("FLAG_UP:                                         \'Z\'\r");
+                  puts("RELOAD_OUT:                                      \'q\'\r");
+                  puts("RELOAD_IN:                                       \'Q\'\r");
+                  puts("LATCH_ENGAGE:                                    \'w\'\r");
+                  puts("LATCH_RELEASE:                                   \'W\'\r");
+                  puts("TENSION_ENGAGE:                                  \'e\'\r");
+                  puts("TENSION_RELEASE:                                 \'E\'\r");
+                  
                   puts("Query State of RobotTopHSM:                      \'1\'\r");
                   puts("Query State of GameHSM:                          \'2\'\r");
                   puts("Query State of StartupHSM:                       \'3\'\r");
@@ -338,6 +349,70 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 NewEvent.EventType = FIND_BEACON;
                 NewEvent.EventParam = FindKnownFrequency;
                 PostFind_Beacon(NewEvent);
+              }
+              break;
+              
+              case 'z':
+              {
+                puts("Posting FLAG_DOWN Event to LaunchService\r\n");
+                NewEvent.EventType = FLAG_DOWN;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'Z':
+              {
+                puts("Posting FLAG_UP Event to LaunchService\r\n");
+                NewEvent.EventType = FLAG_UP;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'q':
+              {
+                puts("Posting RELOAD_OUT Event to LaunchService\r\n");
+                NewEvent.EventType = RELOAD_OUT;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'Q':
+              {
+                puts("Posting RELOAD_IN Event to LaunchService\r\n");
+                NewEvent.EventType = RELOAD_IN;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'w':
+              {
+                puts("Posting LATCH_ENGAGE Event to LaunchService\r\n");
+                NewEvent.EventType = LATCH_ENGAGE;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'W':
+              {
+                puts("Posting LATCH_RELEASE Event to LaunchService\r\n");
+                NewEvent.EventType = LATCH_RELEASE;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'e':
+              {
+                puts("Posting TENSION_ENGAGE Event to LaunchService\r\n");
+                NewEvent.EventType = TENSION_ENGAGE;
+                PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'E':
+              {
+                puts("Posting TENSION_RELEASE Event to LaunchService\r\n");
+                NewEvent.EventType = TENSION_RELEASE;
+                PostLaunchService(NewEvent);
               }
               break;
               
