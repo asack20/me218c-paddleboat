@@ -219,112 +219,130 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 'a':
                 {
-                    printf("KeyboardService: Disabling Control Law\n\r");
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Disabling Control Law\n\r");
                     MotorControl_DisableClosedLoop();
                 } break;
                 case 's':
                 {
-                    printf("KeyboardService: Enabling Control Law\n\r");
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Enabling Control Law\n\r");
                     MotorControl_EnableClosedLoop();
                 } break;
                 
                 case 'd':
                 {
-                    printf("KeyboardService: Setting Left motor direction to FORWARD\n\r");
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Left motor direction to FORWARD\n\r");
                     LeftDirection = _Forward_Dir;
                     MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
                 } break;
                 case 'f':
                 {
-                    printf("KeyboardService: Setting Left motor direction to BACKWARD\n\r");
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Left motor direction to BACKWARD\n\r");
                     LeftDirection = _Backward_Dir;
                     MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
                 } break;
                 case 'g':
                 {
                     LeftSpeed = 0;
-                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
                     MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
                 } break;
                 case 'h':
                 {
                     LeftSpeed -= SPEED_STEP;
-                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
                     MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
                 } break;
                 case 'j':
                 {
                     LeftSpeed += SPEED_STEP;
-                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
                     MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
                 } break;
                 case 'k':
                 {
                     LeftSpeed = MAX_SPEED;
-                    printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Left motor speed to %d RPM\n\r", LeftSpeed/10);
                     MotorControl_SetMotorSpeed(_Left_Motor, LeftDirection, LeftSpeed);  
                 } break;
                 
                 case 'x':
                 {
                     printf("KeyboardService: Setting Right motor direction to FORWARD\n\r");
-                    RightDirection = _Forward_Dir;
+                    if(!LeftLog && !RightLog)
+                        RightDirection = _Forward_Dir;
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 case 'c':
                 {
                     printf("KeyboardService: Setting Right motor direction to BACKWARD\n\r");
-                    RightDirection = _Backward_Dir;
+                    if(!LeftLog && !RightLog)
+                        RightDirection = _Backward_Dir;
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 
                 case 'v':
                 {
                     RightSpeed = 0;
-                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 case 'b':
                 {
                     RightSpeed -= SPEED_STEP;
-                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 case 'n':
                 {
                     RightSpeed += SPEED_STEP;
-                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 case 'm':
                 {
                     RightSpeed = MAX_SPEED;
-                    printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Setting Right motor speed to %d RPM\n\r", RightSpeed/10);
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 
                 case '1':
                 {
-                    printf("KeyboardService: Moving Left Motor %d ticks\n\r", SMALL_TICK_TARGET);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Moving Left Motor %d ticks\n\r", SMALL_TICK_TARGET);
                     MotorControl_ResetTickCount(_Left_Motor);
                     MotorControl_SetTickGoal(_Left_Motor, SMALL_TICK_TARGET);
                 } break;
                 case '2':
                 {
-                    printf("KeyboardService: Moving Left Motor %d ticks\n\r", BIG_TICK_TARGET);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Moving Left Motor %d ticks\n\r", BIG_TICK_TARGET);
                     MotorControl_ResetTickCount(_Left_Motor);
                     MotorControl_SetTickGoal(_Left_Motor, BIG_TICK_TARGET);
                 } break;
                 
                 case '4':
                 {
-                    printf("KeyboardService: Moving Right Motor %d ticks\n\r", SMALL_TICK_TARGET);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Moving Right Motor %d ticks\n\r", SMALL_TICK_TARGET);
                     MotorControl_ResetTickCount(_Right_Motor);
                     MotorControl_SetTickGoal(_Right_Motor, SMALL_TICK_TARGET);
                 } break;
                 case '5':
                 {
-                    printf("KeyboardService: Moving Right Motor %d ticks\n\r", BIG_TICK_TARGET);
+                    if(!LeftLog && !RightLog)
+                        printf("KeyboardService: Moving Right Motor %d ticks\n\r", BIG_TICK_TARGET);
                     MotorControl_ResetTickCount(_Right_Motor);
                     MotorControl_SetTickGoal(_Right_Motor, BIG_TICK_TARGET);
                 } break;

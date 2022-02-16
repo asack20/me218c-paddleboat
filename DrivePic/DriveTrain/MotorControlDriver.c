@@ -16,8 +16,8 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 //PID constants
-#define pGain 10
-#define iGain 1
+#define pGain 0.5
+#define iGain 0.5
 #define dGain 0
 #define PositionGain 0.5
 

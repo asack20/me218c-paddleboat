@@ -35,7 +35,7 @@
 /*----------------------------- Module Defines ----------------------------*/
 // Command Tuning
 #define FULL_DUTY_CYCLE 1000 // Duty cycle for 100% speed
-#define HALF_DUTY_CYCLE 750 // Duty cycle for 50% speed
+#define HALF_DUTY_CYCLE 500 // Duty cycle for 50% speed
 #define ROT_DUTY_CYCLE 1000 // Duty cycle used for rotating
 #define ROT_90_TIME 1500 // time in ms required to rotate 90 degrees
 #define ROT_45_TIME 750 // time in ms required to rotate 45 degrees
