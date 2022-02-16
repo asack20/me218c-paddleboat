@@ -330,7 +330,7 @@ typedef enum
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC TIMER_UNUSED
+#define TIMER15_RESP_FUNC PostKeyboardService
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -340,6 +340,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define DRIVETRAIN_TIMER 0
+#define KEYBOARD_TIMER 15
 
 
 

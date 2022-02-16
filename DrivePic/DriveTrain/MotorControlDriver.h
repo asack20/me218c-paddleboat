@@ -44,7 +44,8 @@ typedef struct {
 
 typedef struct {
     uint32_t TargetTickCount;
-    float TargetRPM;
+    float TargetRPM;            // Set by user
+    float ActualTargetRPM;      // Actual target used by control law. Changed based on distance when TickGoalSet
     float RequestedDutyCycle;
     float IntegralTerm;
     float RPMError;
@@ -77,7 +78,7 @@ void MotorControl_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, MotorContro
 
 /****************************************************************************
  * Function
- *      MotorControl_StopMotors   
+ *      MotorControl_StopMotors
  *      
  * Parameters
  *      void
@@ -133,6 +134,34 @@ void MotorControl_DisableClosedLoop(void);
  *      Only works when CloseLoop is enabled
 ****************************************************************************/
 void MotorControl_SetMotorSpeed(MotorControl_Motor_t WhichMotor, MotorControl_Direction_t WhichDirection, uint16_t Speed);
+
+/****************************************************************************
+ * Function
+ *      MotorControl_ResetTickCount
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ * Return
+ *      void
+ * Description
+ *      Sets current tick count for specified motor to zero
+****************************************************************************/
+void MotorControl_ResetTickCount(MotorControl_Motor_t WhichMotor);
+
+/****************************************************************************
+ * Function
+ *      MotorControl_SetTickGoal
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ *      uint32_t NumTicks - Amount of ticks encoder will count to before stopping
+ * Return
+ *      void
+ * Description
+ *      Sets tick goal for specified motor to NumTicks
+****************************************************************************/
+void MotorControl_SetTickGoal(MotorControl_Motor_t WhichMotor, uint32_t NumTicks);
+
 
 /****************************************************************************
  * Function

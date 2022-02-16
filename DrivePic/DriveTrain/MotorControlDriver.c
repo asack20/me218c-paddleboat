@@ -16,9 +16,10 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 //PID constants
-#define pGain 1
-#define iGain 0.1
+#define pGain 10
+#define iGain 1
 #define dGain 0
+#define PositionGain 0.5
 
 // PWM configuration
 #define PWM_TIMER 3
@@ -293,9 +294,55 @@ void MotorControl_SetMotorSpeed(MotorControl_Motor_t WhichMotor, MotorControl_Di
         RightControl.TargetDirection = WhichDirection;
         // input is speed in units of 0.1 rpm so need to convert to rpm
         RightControl.TargetRPM = (float) Speed / 10;        
-    }
-    
+    }   
 }
+/****************************************************************************
+ * Function
+ *      MotorControl_ResetTickCount
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ * Return
+ *      void
+ * Description
+ *      Sets current tick count for specified motor to zero
+****************************************************************************/
+void MotorControl_ResetTickCount(MotorControl_Motor_t WhichMotor)
+{
+    if (_Left_Motor == WhichMotor)
+    {
+        LeftEncoder.TickCount = 0;
+    }
+    else if (_Right_Motor == WhichMotor)
+    {
+        RightEncoder.TickCount = 0;       
+    }   
+}
+
+/****************************************************************************
+ * Function
+ *      MotorControl_SetTickGoal
+ *      
+ * Parameters
+ *      MotorControl_Motor_t WhichMotor - Left or Right Motor
+ *      uint32_t NumTicks - Amount of ticks encoder will count to before stopping
+ * Return
+ *      void
+ * Description
+ *      Sets tick goal for specified motor to NumTicks
+****************************************************************************/
+void MotorControl_SetTickGoal(MotorControl_Motor_t WhichMotor, uint32_t NumTicks)
+{
+    if (_Left_Motor == WhichMotor)
+    {
+        LeftControl.TargetTickCount = NumTicks; 
+    }
+    else if (_Right_Motor == WhichMotor)
+    {
+        RightControl.TargetTickCount = NumTicks;       
+    }   
+}
+
 
 /****************************************************************************
  * Function
@@ -668,6 +715,20 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void)
         // direction is inverted
         LeftEncoder.Direction = !L_ENCODER_CHB;
     }
+    
+    // Distance handling
+    if (LeftControl.TargetTickCount != 0) // Tick Target is set
+    {
+        // target reached
+        if (LeftEncoder.TickCount >= LeftControl.TargetTickCount)
+        {
+            // stop motor
+            LeftControl.TargetRPM = 0;
+            // TODO: Post a target reached event
+            // Reset TargetTickCount
+            LeftControl.TargetTickCount = 0;
+        }
+    }    
     __builtin_enable_interrupts();
 }
 
@@ -721,6 +782,19 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void)
         // direction is inverted
         RightEncoder.Direction = !R_ENCODER_CHB;
     }
+    // Distance handling
+    if (RightControl.TargetTickCount != 0) // Tick Target is set
+    {
+        // target reached
+        if (RightEncoder.TickCount >= RightControl.TargetTickCount)
+        {
+            // stop motor
+            RightControl.TargetRPM = 0;
+            // TODO: Post a target reached event
+            // Reset TargetTickCount
+            RightControl.TargetTickCount = 0;
+        }
+    }    
     __builtin_enable_interrupts();
 }
 
@@ -773,7 +847,32 @@ void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void)
 ****************************************************************************/
 void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder)
 {
-    ThisControl->RPMError = ThisControl->TargetRPM - ThisEncoder->CurrentRPM;
+    
+    // Position goal set
+    if (ThisControl->TargetTickCount != 0)
+    {
+        // Scale target velocity based on distance to goal
+        ThisControl->ActualTargetRPM = PositionGain * 
+                (float)(ThisControl->TargetTickCount - ThisEncoder->TickCount);
+        
+        // Bound by 0 and TargetRPM
+        // Take Min of the two
+        ThisControl->ActualTargetRPM = 
+                (ThisControl->ActualTargetRPM  < ThisControl->TargetRPM) ? 
+                    ThisControl->ActualTargetRPM : ThisControl->TargetRPM;
+        
+        // Take Max of the two
+        ThisControl->ActualTargetRPM = 
+                (ThisControl->ActualTargetRPM  > 0) ? 
+                    ThisControl->ActualTargetRPM : 0;
+    }
+    else // no position target. Always move at target velocity
+    {
+        ThisControl->ActualTargetRPM = ThisControl->TargetRPM;
+    }
+    
+    
+    ThisControl->RPMError = ThisControl->ActualTargetRPM - ThisEncoder->CurrentRPM;
     ThisControl->SumError += ThisControl->RPMError;
     ThisControl->RequestedDutyCycle =
     (pGain * ((ThisControl->RPMError)+(iGain * ThisControl->SumError)+

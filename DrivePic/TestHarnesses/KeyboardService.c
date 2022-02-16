@@ -21,17 +21,25 @@
 #include "KeyboardService.h"
 #include "../DriveTrain/DriveTrain.h"
 #include "../DriveTrain/MotorControlDriver.h"
+#include "../FrameworkHeaders/ES_Timers.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
 #define MAX_SPEED 1500
 #define SPEED_STEP 100
+#define TICKS_PER_ROT 300
+#define SMALL_TICK_TARGET 50
+#define BIG_TICK_TARGET 5*TICKS_PER_ROT
+#define LOG_TIME 10 // ms
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
 */
 void PrintInstructions(void);
 void PrintMotorDetails(void);
+void LogLeftMotor(void);
+void LogRightMotor(void);
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
@@ -40,6 +48,9 @@ static MotorControl_Direction_t LeftDirection;
 static MotorControl_Direction_t RightDirection;
 static uint16_t LeftSpeed;
 static uint16_t RightSpeed;
+
+static bool LeftLog;
+static bool RightLog;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -71,6 +82,9 @@ bool InitKeyboardService(uint8_t Priority)
     RightDirection = _Forward_Dir;
     LeftSpeed = 0;
     RightSpeed = 0; 
+    
+    LeftLog = false;
+    RightLog = false;
 
     return true;
 }
@@ -117,6 +131,18 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
   
     switch (ThisEvent.EventType)
     {
+        case ES_TIMEOUT:
+        {
+            if (LeftLog)
+            {
+                LogLeftMotor();
+            }
+            if (RightLog)
+            {
+                LogRightMotor();
+            }
+            ES_Timer_InitTimer(KEYBOARD_TIMER, LOG_TIME);
+        } break;
         case ES_NEW_KEY:
         {
             switch (ThisEvent.EventParam)
@@ -277,6 +303,47 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     MotorControl_SetMotorSpeed(_Right_Motor, RightDirection, RightSpeed);  
                 } break;
                 
+                case '1':
+                {
+                    printf("KeyboardService: Moving Left Motor %d ticks\n\r", SMALL_TICK_TARGET);
+                    MotorControl_ResetTickCount(_Left_Motor);
+                    MotorControl_SetTickGoal(_Left_Motor, SMALL_TICK_TARGET);
+                } break;
+                case '2':
+                {
+                    printf("KeyboardService: Moving Left Motor %d ticks\n\r", BIG_TICK_TARGET);
+                    MotorControl_ResetTickCount(_Left_Motor);
+                    MotorControl_SetTickGoal(_Left_Motor, BIG_TICK_TARGET);
+                } break;
+                
+                case '4':
+                {
+                    printf("KeyboardService: Moving Right Motor %d ticks\n\r", SMALL_TICK_TARGET);
+                    MotorControl_ResetTickCount(_Right_Motor);
+                    MotorControl_SetTickGoal(_Right_Motor, SMALL_TICK_TARGET);
+                } break;
+                case '5':
+                {
+                    printf("KeyboardService: Moving Right Motor %d ticks\n\r", BIG_TICK_TARGET);
+                    MotorControl_ResetTickCount(_Right_Motor);
+                    MotorControl_SetTickGoal(_Right_Motor, BIG_TICK_TARGET);
+                } break;
+                
+                case '7':
+                {
+                    printf("KeyboardService: Starting Left Motor Logging\n\r");
+                    printf("CurrentRPM, Dir, TickCount, TargetRPM, ActualTargetRPM, TargetDir, TargetTick, ReqDutyCycle, Integral, RPMError, LastError, SumError\r\n");
+                    LeftLog = true;
+                    ES_Timer_InitTimer(KEYBOARD_TIMER, LOG_TIME);
+                } break;
+                case '9':
+                {
+                    printf("KeyboardService: Stopping Motor Logging\n\r");
+                    ES_Timer_StopTimer(KEYBOARD_TIMER);
+                    LeftLog = false;
+                    RightLog = false;
+                } break;
+                
                 case '.':
                 {
                     printf("KeyboardService: Current Motor Details\n\r");
@@ -327,21 +394,34 @@ void PrintInstructions(void)
     
     printf( "\n\n------------Closed Loop--------------\r\n");
     printf( "Press 'a' to DISABLE Closed Loop Control \n\r");
-    printf( "Press 's' to ENABLE Closed Loop Control \n\r");
+    printf( "Press 's' to ENABLE Closed Loop Control \n\r\n");
+    
     printf( "Press 'd' to set LEFT motor direction to FORWARD \n\r");
-    printf( "Press 'f' to set LEFT motor direction to BACKWARD \n\r");
+    printf( "Press 'f' to set LEFT motor direction to BACKWARD \n\r\n");
+    
     printf( "Press 'g' to set LEFT motor speed to 0 RPM \n\r");
     printf( "Press 'h' to decrease LEFT motor speed by 10 RPM \n\r");
     printf( "Press 'j' to increase LEFT motor speed by 10 RPM \n\r");
-    printf( "Press 'k' to set LEFT motor speed to MAX RPM \n\r");
+    printf( "Press 'k' to set LEFT motor speed to MAX RPM \n\r\n");
+    
+    printf( "Press '1' to move LEFT motor SMAll DISTANCE\n\r");
+    printf( "Press '2' to move LEFT motor BIG DISTANCE\n\r\n");
+    
     printf( "Press 'x' to set RIGHT motor direction to FORWARD \n\r");
-    printf( "Press 'c' to set RIGHT motor direction to BACKWARD \n\r");
+    printf( "Press 'c' to set RIGHT motor direction to BACKWARD \n\r\n");
+    
     printf( "Press 'v' to set RIGHT motor speed to 0 RPM \n\r");
     printf( "Press 'b' to decrease RIGHT motor speed by 10 RPM \n\r");
     printf( "Press 'n' to increase RIGHT motor speed by 10 RPM \n\r");
-    printf( "Press 'm' to set RIGHT motor speed to MAX RPM \n\r");
+    printf( "Press 'm' to set RIGHT motor speed to MAX RPM \n\r\n");
     
-            
+    printf( "Press '4' to move RIGHT motor SMAll DISTANCE\n\r");
+    printf( "Press '5' to move RIGHT motor BIG DISTANCE\n\r\n");
+    
+    printf( "Press '7' to start LEFT motor logging\r\n");
+    printf( "Press '8' to start LEFT motor logging\r\n");
+    printf( "Press '9' to stop motor logging\r\n\n");
+      
             
     printf( "Press '.' to Print Current Motor Details\n\r");
     printf( "---------------------------------------------------------\r\n\n");
@@ -356,7 +436,7 @@ void PrintInstructions(void)
  * Return
  *      void
  * Description
- *      Prints all the instructions of what each keypress does
+ *      Prints all the struct values for motors
 ****************************************************************************/
 void PrintMotorDetails(void)
 {
@@ -368,19 +448,54 @@ void PrintMotorDetails(void)
     
     printf("Left Encoder:\tCurrentRPM: %0.2f\tDir: %u\tTickCount: %u\r\n", 
             LeftEncoder.CurrentRPM, LeftEncoder.Direction, LeftEncoder.TickCount);
-    printf("Left Control:\tTargetRPM: %0.2f\tDir: %u\tTargetTick: %u\tDutyCycle: %0.2f\r\n",
-            LeftControl.TargetRPM, LeftControl.TargetDirection, LeftControl.TargetTickCount,LeftControl.RequestedDutyCycle);
+    printf("Left Control:\tTargetRPM: %0.2f\tActualTargetRPM: %0.2f\tDir: %u\tTargetTick: %u\tDutyCycle: %0.2f\r\n",
+            LeftControl.TargetRPM, LeftControl.ActualTargetRPM, LeftControl.TargetDirection, LeftControl.TargetTickCount,LeftControl.RequestedDutyCycle);
     printf("Left Error:\tIntegralTerm:%0.2f\tRPMError: %0.2f\tLastError: %0.2f\tSumError: %0.2f\r\n\n",
             LeftControl.IntegralTerm, LeftControl.RPMError, LeftControl.LastError, LeftControl.SumError);
     
     printf("Right Encoder:\tCurrentRPM: %0.2f\tDir: %u\tTickCount: %u\r\n", 
             RightEncoder.CurrentRPM, RightEncoder.Direction, RightEncoder.TickCount);
-    printf("Right Control:\tTargetRPM: %0.2f\tDir: %u\tTargetTick: %u\tDutyCycle: %0.2f\r\n",
-            RightControl.TargetRPM, RightControl.TargetDirection, RightControl.TargetTickCount,RightControl.RequestedDutyCycle);
+    printf("Right Control:\tTargetRPM: %0.2f\tActualTargetRPM: %0.2f\tDir: %u\tTargetTick: %u\tDutyCycle: %0.2f\r\n",
+            RightControl.TargetRPM, RightControl.ActualTargetRPM, RightControl.TargetDirection, RightControl.TargetTickCount,RightControl.RequestedDutyCycle);
     printf("Right Error:\tIntegralTerm:%0.2f\tRPMError: %0.2f\tLastError: %0.2f\tSumError: %0.2f\r\n\n",
             RightControl.IntegralTerm, RightControl.RPMError, RightControl.LastError, RightControl.SumError);
 }
-
+/****************************************************************************
+ * Function
+ *      LogLeftMotor
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Prints struct values for Left Motor in comma separated form
+****************************************************************************/
+void LogLeftMotor(void)
+{
+    Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
+    ControlState_t LeftControl = MotorControl_GetControlState(_Left_Motor);
+    
+    printf("%0.2f, %u, %u, %0.2f, %0.2f, %u, %u, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f\r\n", LeftEncoder.CurrentRPM, 
+            LeftEncoder.Direction, LeftEncoder.TickCount, LeftControl.TargetRPM, 
+            LeftControl.ActualTargetRPM, LeftControl.TargetDirection, LeftControl.TargetTickCount,
+            LeftControl.RequestedDutyCycle,LeftControl.IntegralTerm, LeftControl.RPMError, LeftControl.LastError, LeftControl.SumError);
+}
+/****************************************************************************
+ * Function
+ *      LogRightMotor
+ *      
+ * Parameters
+ *      void
+ * Return
+ *      void
+ * Description
+ *      Prints struct values for Right Motor in comma separated form
+****************************************************************************/
+void LogRightMotor(void)
+{
+    
+}
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
 
