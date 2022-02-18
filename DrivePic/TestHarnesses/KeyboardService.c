@@ -354,6 +354,13 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     LeftLog = true;
                     ES_Timer_InitTimer(KEYBOARD_TIMER, LOG_TIME);
                 } break;
+                case '8':
+                {
+                    printf("KeyboardService: Starting Right Motor Logging\n\r");
+                    printf("CurrentRPM, Dir, TickCount, TargetRPM, ActualTargetRPM, TargetDir, TargetTick, ReqDutyCycle, Integral, RPMError, LastError, SumError\r\n");
+                    RightLog = true;
+                    ES_Timer_InitTimer(KEYBOARD_TIMER, LOG_TIME);
+                } break;
                 case '9':
                 {
                     printf("KeyboardService: Stopping Motor Logging\n\r");
@@ -437,7 +444,7 @@ void PrintInstructions(void)
     printf( "Press '5' to move RIGHT motor BIG DISTANCE\n\r\n");
     
     printf( "Press '7' to start LEFT motor logging\r\n");
-    printf( "Press '8' to start LEFT motor logging\r\n");
+    printf( "Press '8' to start RIGHT motor logging\r\n");
     printf( "Press '9' to stop motor logging\r\n\n");
       
             
@@ -512,7 +519,13 @@ void LogLeftMotor(void)
 ****************************************************************************/
 void LogRightMotor(void)
 {
+    Encoder_t RightEncoder = MotorControl_GetEncoder(_Right_Motor);
+    ControlState_t RightControl = MotorControl_GetControlState(_Right_Motor);
     
+    printf("%0.2f, %u, %u, %0.2f, %0.2f, %u, %u, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f\r\n", RightEncoder.CurrentRPM, 
+            RightEncoder.Direction, RightEncoder.TickCount, RightControl.TargetRPM, 
+            RightControl.ActualTargetRPM, RightControl.TargetDirection, RightControl.TargetTickCount,
+            RightControl.RequestedDutyCycle,RightControl.IntegralTerm, RightControl.RPMError, RightControl.LastError, RightControl.SumError);
 }
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/

@@ -24,6 +24,12 @@ typedef enum
   _Backward_Dir = 1,
 }MotorControl_Direction_t;
 
+typedef enum
+{
+  _Clockwise_Turn = 0,
+  _CounterClockwise_Turn = 1,
+}MotorControl_Turn_t;
+
 // encoder tick count type
 typedef union {
     struct {
@@ -85,7 +91,7 @@ void MotorControl_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, MotorContro
  * Return
  *      void
  * Description
- *      Stop both motors
+ *      Stop both motors, and cancel any tick goal
 ****************************************************************************/
 void MotorControl_StopMotors(void);
 
@@ -126,7 +132,7 @@ void MotorControl_DisableClosedLoop(void);
  *      MotorControl_Direction_t WhichDirection - Direction to move motor in
  *          Forward is relative to robot base (CW for right motor, CCW for left)
  *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
- *                       Max speed is approx 40-50 RPM
+ *                       Max speed is approx 170 RPM
  * Return
  *      void
  * Description
@@ -188,5 +194,43 @@ Encoder_t MotorControl_GetEncoder(MotorControl_Motor_t WhichMotor);
  *      Get function to return ControlState Struct for specified Motor
 ****************************************************************************/
 ControlState_t MotorControl_GetControlState(MotorControl_Motor_t WhichMotor);
+
+/****************************************************************************
+ * Function
+ *      MotorControl_DriveStraight
+ *      
+ * Parameters
+ *      MotorControl_Direction_t WhichDirection - Direction to drive in 
+ *                                      (forward or backward)       
+ *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
+ *                       Max speed is approx 170 RPM
+ *      uint16_t DistanceCM - Ground distance to travel in centimeters
+ *                  if set to 0, will drive indefinitely
+ * Return
+ *      void
+ * Description
+ *      Drive whole drive train straight forward or backward at set speed for 
+ *      specified distance
+****************************************************************************/
+void MotorControl_DriveStraight(MotorControl_Direction_t WhichDirection, uint16_t Speed, uint16_t DistanceCM);
+
+/****************************************************************************
+ * Function
+ *      MotorControl_DriveTurn
+ *      
+ * Parameters
+ *      MotorControl_Turn_t WhichTurn - Direction to turn (clock or counterclock)      
+ *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
+ *                       Max speed is approx 170 RPM
+ *      uint16_t AngleDeg - Angle in degrees to rotate base by
+ *                  if set to 0, will drive indefinitely
+ * Return
+ *      void
+ * Description
+ *      Turn whole drive train on the spot by Angle in specified direction and speed
+****************************************************************************/
+void MotorControl_DriveTurn(MotorControl_Turn_t WhichTurn, uint16_t Speed, uint16_t AngleDeg);
+
+
 
 #endif	/* MOTORCONTROLDRIVER_H */

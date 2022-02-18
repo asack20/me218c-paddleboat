@@ -15,16 +15,20 @@
 #include <string.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-//PID constants
+// PID constants
 #define pGain 0.5
-#define iGain 0.5
-#define dGain 0
+#define iGain 2
+#define dGain 1
 #define PositionGain 0.5
+
+// Drive Train
+#define TICKS_PER_CM 7.639 // Encoder ticks per cm of drive train distance
+#define TICKS_PER_DEGREE 1.763 // ticks per degree of drive train rotation
 
 // PWM configuration
 #define PWM_TIMER 3
 #define PWM_PERIOD 1999 // Base frequency of 10kHz with prescale of 4
-#define DUTY_CYCLE_TO_OCRS 2// multiplier
+#define DUTY_CYCLE_TO_OCRS  2 // multiplier
 #define MAX_DUTY_CYCLE 1000
 #define CONTROL_LAW_PERIOD 24999 // Set period to be 5 ms
 #define PERIOD_2_RPM 1000000 // conversion factor ((10^9*60)/(200*6*50))
@@ -210,6 +214,10 @@ void MotorControl_StopMotors(void)
     // Set Target Speed to 0 for control law
     LeftControl.TargetRPM = 0;
     RightControl.TargetRPM = 0;
+    
+    // Cancel any tick goal
+    LeftControl.TargetTickCount = 0;
+    RightControl.TargetTickCount = 0;
 
 }
 
@@ -269,7 +277,7 @@ void MotorControl_DisableClosedLoop(void)
  *      MotorControl_Direction_t WhichDirection - Direction to move motor in
  *          Forward is relative to robot base (CW for right motor, CCW for left)
  *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
- *                       Max speed is approx 40-50 RPM
+ *                       Max speed is approx 170 RPM
  * Return
  *      void
  * Description
@@ -343,6 +351,80 @@ void MotorControl_SetTickGoal(MotorControl_Motor_t WhichMotor, uint32_t NumTicks
     }   
 }
 
+/****************************************************************************
+ * Function
+ *      MotorControl_DriveStraight
+ *      
+ * Parameters
+ *      MotorControl_Direction_t WhichDirection - Direction to drive in 
+ *                                      (forward or backward)       
+ *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
+ *                       Max speed is approx 170 RPM
+ *      uint16_t DistanceCM - Ground distance to travel in centimeters
+ *                  if set to 0, will drive indefinitely
+ * Return
+ *      void
+ * Description
+ *      Drive whole drive train straight forward or backward at set speed for 
+ *      specified distance
+****************************************************************************/
+void MotorControl_DriveStraight(MotorControl_Direction_t WhichDirection, uint16_t Speed, uint16_t DistanceCM)
+{
+    // Reset Tick Count
+    MotorControl_ResetTickCount(_Left_Motor);
+    MotorControl_ResetTickCount(_Right_Motor);
+    
+    // Set Target Tick Count
+    // Do math in floating point
+    uint16_t NumTicks = (uint16_t) ((float) DistanceCM * TICKS_PER_CM);
+    MotorControl_SetTickGoal(_Left_Motor, NumTicks);
+    MotorControl_SetTickGoal(_Right_Motor, NumTicks);
+    
+    // Set Speed
+    MotorControl_SetMotorSpeed(_Left_Motor, WhichDirection, Speed);
+    MotorControl_SetMotorSpeed(_Right_Motor, WhichDirection, Speed);
+}
+
+/****************************************************************************
+ * Function
+ *      MotorControl_DriveTurn
+ *      
+ * Parameters
+ *      MotorControl_Turn_t WhichTurn - Direction to turn (clock or counterclock)      
+ *      uint16_t Speed - target speed to move at in units of 0.1 RPM (5 RPM = 50)
+ *                       Max speed is approx 170 RPM
+ *      uint16_t AngleDeg - Angle in degrees to rotate base by
+ *                  if set to 0, will drive indefinitely
+ * Return
+ *      void
+ * Description
+ *      Turn whole drive train on the spot by Angle in specified direction and speed
+****************************************************************************/
+void MotorControl_DriveTurn(MotorControl_Turn_t WhichTurn, uint16_t Speed, uint16_t AngleDeg)
+{
+    // Reset Tick Count
+    MotorControl_ResetTickCount(_Left_Motor);
+    MotorControl_ResetTickCount(_Right_Motor);
+    
+    // Set Target Tick Count
+    // Do math in floating point
+    uint16_t NumTicks = (uint16_t) ((float) AngleDeg * TICKS_PER_DEGREE);
+    MotorControl_SetTickGoal(_Left_Motor, NumTicks);
+    MotorControl_SetTickGoal(_Right_Motor, NumTicks);
+    
+    // Set Speed and direction
+    if (WhichTurn == _Clockwise_Turn)
+    {
+        MotorControl_SetMotorSpeed(_Left_Motor, _Forward_Dir, Speed);
+        MotorControl_SetMotorSpeed(_Right_Motor, _Backward_Dir, Speed);
+    }
+    else
+    {
+        MotorControl_SetMotorSpeed(_Left_Motor, _Backward_Dir, Speed);
+        MotorControl_SetMotorSpeed(_Right_Motor, _Forward_Dir, Speed);
+    }
+    
+}
 
 /****************************************************************************
  * Function
@@ -870,7 +952,6 @@ void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder)
     {
         ThisControl->ActualTargetRPM = ThisControl->TargetRPM;
     }
-    
     
     ThisControl->RPMError = ThisControl->ActualTargetRPM - ThisEncoder->CurrentRPM;
     ThisControl->SumError += ThisControl->RPMError;

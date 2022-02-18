@@ -37,7 +37,7 @@ DriveTrainState_t QueryDriveTrain(void);
  * Return
  *      void
  * Description
- *      Sets timer for correct amount of time which generates timout to stop
+ *      Sets timer for correct amount of time which generates timeout to stop
  *		motors after it expires
 ****************************************************************************/
 void DriveTrain_StopAfterDelay(uint16_t DelayMS);
