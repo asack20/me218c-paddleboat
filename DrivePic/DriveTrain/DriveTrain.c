@@ -37,6 +37,9 @@
 #define FULL_DUTY_CYCLE 1000 // Duty cycle for 100% speed
 #define HALF_DUTY_CYCLE 500 // Duty cycle for 50% speed
 #define ROT_DUTY_CYCLE 1000 // Duty cycle used for rotating
+#define LOW_SPEED 200
+#define HIGH_SPEED 1000
+
 #define ROT_90_TIME 1500 // time in ms required to rotate 90 degrees
 #define ROT_45_TIME 750 // time in ms required to rotate 45 degrees
 
@@ -198,42 +201,36 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 
                 case DRIVE_FORWARD_HALF:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, HALF_DUTY_CYCLE);
+                    MotorControl_DriveStraight(_Forward_Dir, LOW_SPEED, 0);
                     CurrentState = DriveReadyState;
                 } break; 
                 case DRIVE_FORWARD_FULL:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, FULL_DUTY_CYCLE);
+                    MotorControl_DriveStraight(_Forward_Dir, HIGH_SPEED, 0);
                     CurrentState = DriveReadyState;
                 } break;
                 
                 case DRIVE_BACKWARD_HALF:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, HALF_DUTY_CYCLE);
+                    MotorControl_DriveStraight(_Backward_Dir, LOW_SPEED, 0);
                     CurrentState = DriveReadyState;
                 } break;
                 
                 case DRIVE_BACKWARD_FULL:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, FULL_DUTY_CYCLE);
+                    MotorControl_DriveStraight(_Backward_Dir, HIGH_SPEED, 0);
                     CurrentState = DriveReadyState;
                 } break;
                 
                 case DRIVE_ROTATE_CWINF:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
+                    MotorControl_DriveTurn(_Clockwise_Turn, LOW_SPEED, 0);
                     CurrentState = DriveReadyState;
                 } break;
                 
                 case DRIVE_ROTATE_CCWINF:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
+                    MotorControl_DriveTurn(_CounterClockwise_Turn, LOW_SPEED, 0);
                     CurrentState = DriveReadyState;
                 } break;
                 default:
