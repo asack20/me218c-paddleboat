@@ -380,6 +380,10 @@ static ES_Event_t DuringRobotInactiveState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        ES_Event_t NewEvent;
+        //This is just for checkpoint 3 - simulate start button press
+        NewEvent.EventType = START_BUTTON_PRESSED;
+        PostRobotTopHSM(NewEvent);
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );

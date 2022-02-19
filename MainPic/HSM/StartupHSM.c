@@ -57,6 +57,11 @@
    next lower level in the hierarchy that are sub-machines to this machine
 */
 #include "StartupHSM.h"
+#include "RobotTopHSM.h"
+#include "../Sensors/Find_Beacon.h"
+#include "terminal.h"
+#include "dbprintf.h"
+#include <string.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 // define constants for the states for this machine
@@ -79,6 +84,7 @@ static ES_Event_t DuringRotateToForwardState( ES_Event_t Event);
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well
 static StartupHSMState_t CurrentState;
+static TeamIdentity_t TeamIdentity = Unknown;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -120,6 +126,13 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                case STARTUP_STEP_COMPLETE : //If event is event one
                   // Execute action function for state one : event one
                   puts("Searching for beacon to determine team identity\r");
+                  
+                  // Send FIND_BEACON event to Find_Beacon state machine
+                  ES_Event_t NewEvent;
+                  NewEvent.EventType = FIND_BEACON;
+                  NewEvent.EventParam = DetermineTeam;
+                  PostFind_Beacon(NewEvent);
+                  
                   NextState = FIND_BEACON_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
@@ -148,6 +161,12 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                case BEACON_FOUND : //If event is event one
                   // Execute action function for state one : event one
                   puts("Beacon found\r");
+                  
+                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM
+                  ES_Event_t NewEvent;
+                  NewEvent.EventType = STARTUP_STEP_COMPLETE;
+                  PostRobotTopHSM(NewEvent);
+                  
                   NextState = DETERMINE_TEAM_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
@@ -174,8 +193,29 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
             {
                case STARTUP_STEP_COMPLETE : //If event is event one
                   // Execute action function for state one : event one
-                  puts("Team identity has been determined\r");
+                   
+                  TeamIdentity = QueryTeamIdentity(); 
+                  
+                  char TeamChar[40];
+                  
+                  if (TeamIdentity == Unknown) {
+                      strcpy(TeamChar,"Unknown - Error");
+                  }
+                  else if (TeamIdentity == Red) {
+                      strcpy(TeamChar,"Red");
+                  }
+                  else if (TeamIdentity == Blue) {
+                      strcpy(TeamChar,"Blue");
+                  }
+                  
+                  DB_printf("Team identity has been determined to be %s\r\n",TeamChar);
                   puts("Initiating rotation toward wall\r\n");
+                  
+                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM (skip next step)
+                  ES_Event_t NewEvent;
+                  NewEvent.EventType = STARTUP_STEP_COMPLETE;
+                  PostRobotTopHSM(NewEvent);
+                  
                   NextState = ROTATE_TO_SIDE_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
@@ -204,6 +244,12 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   // Execute action function for state one : event one
                   puts("Rotation complete\r");
                   puts("Initiating movement toward wall\r\n");
+                  
+                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM (skip next step)
+                  ES_Event_t NewEvent;
+                  NewEvent.EventType = STARTUP_STEP_COMPLETE;
+                  PostRobotTopHSM(NewEvent);
+                  
                   NextState = DRIVE_TO_WALL_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
@@ -231,7 +277,13 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                case STARTUP_STEP_COMPLETE : //If event is event one
                   // Execute action function for state one : event one
                   puts("Wall has been reached\r");
-                  puts("Initiating rotation toward front of lane\r\n");                  
+                  puts("Initiating rotation toward front of lane\r\n"); 
+                  
+                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM (skip next step)
+                  ES_Event_t NewEvent;
+                  NewEvent.EventType = GAME_STARTUP_COMPLETE;
+                  PostRobotTopHSM(NewEvent);
+                  
                   NextState = ROTATE_TO_FORWARD_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
@@ -266,6 +318,7 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   EntryEventKind.EventType = ES_ENTRY;
                   // optionally, consume or re-map this event for the upper
                   // level state machine
+                  
                   break;
                 // repeat cases as required for relevant events
             }
@@ -356,6 +409,10 @@ static ES_Event_t DuringStartupInitState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        
+        ES_Event_t NewEvent;
+        NewEvent.EventType = STARTUP_STEP_COMPLETE;
+        PostRobotTopHSM(NewEvent);
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );

@@ -300,7 +300,12 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
 ****************************************************************************/
 Find_BeaconState_t QueryFind_Beacon(void)
 {
-  return CurrentState;
+    return CurrentState;
+}
+
+TeamIdentity_t QueryTeamIdentity(void) 
+{
+    return TeamIdentity;
 }
 
 

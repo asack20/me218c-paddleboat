@@ -1,0 +1,204 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 2 7
+Title "ME 218b Team 3 Project Schematic"
+Date ""
+Rev "v1"
+Comp "Drafted by Ryan Brandt"
+Comment1 "Checkpoint 1"
+Comment2 "Teammates:  Andrew Sack and Afshan Chandani"
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L ME218_BaseLib:Motor_Servo M1
+U 1 1 621E3FC0
+P 5950 2750
+F 0 "M1" H 6282 2815 50  0000 L CNN
+F 1 "Motor_Servo" H 6282 2724 50  0000 L CNN
+F 2 "" H 5950 2560 50  0001 C CNN
+F 3 "" H 5950 2560 50  0001 C CNN
+	1    5950 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR017
+U 1 1 621E5CEA
+P 5500 2500
+F 0 "#PWR017" H 5500 2350 50  0001 C CNN
+F 1 "+5V" H 5515 2673 50  0000 C CNN
+F 2 "" H 5500 2500 50  0001 C CNN
+F 3 "" H 5500 2500 50  0001 C CNN
+	1    5500 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR018
+U 1 1 621E6226
+P 5500 2950
+F 0 "#PWR018" H 5500 2700 50  0001 C CNN
+F 1 "GNDREF" H 5505 2777 50  0000 C CNN
+F 2 "" H 5500 2950 50  0001 C CNN
+F 3 "" H 5500 2950 50  0001 C CNN
+	1    5500 2950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5650 2850 5500 2850
+Wire Wire Line
+	5500 2850 5500 2950
+Wire Wire Line
+	5650 2750 5500 2750
+Wire Wire Line
+	5500 2750 5500 2500
+Wire Wire Line
+	5650 2650 4350 2650
+Text Label 4550 2650 0    49   ~ 0
+Latch_Servo_PWM
+Text GLabel 4350 2650 0    49   Input ~ 0
+Latch_Servo_PWM
+$Comp
+L ME218_BaseLib:Motor_Servo M2
+U 1 1 621E7E4B
+P 5950 3800
+F 0 "M2" H 6282 3865 50  0000 L CNN
+F 1 "Motor_Servo" H 6282 3774 50  0000 L CNN
+F 2 "" H 5950 3610 50  0001 C CNN
+F 3 "" H 5950 3610 50  0001 C CNN
+	1    5950 3800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR020
+U 1 1 621E7E51
+P 5500 3550
+F 0 "#PWR020" H 5500 3400 50  0001 C CNN
+F 1 "+5V" H 5515 3723 50  0000 C CNN
+F 2 "" H 5500 3550 50  0001 C CNN
+F 3 "" H 5500 3550 50  0001 C CNN
+	1    5500 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR021
+U 1 1 621E7E57
+P 5500 4000
+F 0 "#PWR021" H 5500 3750 50  0001 C CNN
+F 1 "GNDREF" H 5505 3827 50  0000 C CNN
+F 2 "" H 5500 4000 50  0001 C CNN
+F 3 "" H 5500 4000 50  0001 C CNN
+	1    5500 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5650 3900 5500 3900
+Wire Wire Line
+	5500 3900 5500 4000
+Wire Wire Line
+	5650 3800 5500 3800
+Wire Wire Line
+	5500 3800 5500 3550
+Wire Wire Line
+	5650 3700 4350 3700
+Text Label 4550 3700 0    49   ~ 0
+Launcher_Servo_PWM
+Text GLabel 4350 3700 0    49   Input ~ 0
+Launcher_Servo_PWM
+$Comp
+L ME218_BaseLib:Motor_Servo M3
+U 1 1 621E8EFA
+P 5950 4800
+F 0 "M3" H 6282 4865 50  0000 L CNN
+F 1 "Motor_Servo" H 6282 4774 50  0000 L CNN
+F 2 "" H 5950 4610 50  0001 C CNN
+F 3 "" H 5950 4610 50  0001 C CNN
+	1    5950 4800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR022
+U 1 1 621E8F00
+P 5500 4550
+F 0 "#PWR022" H 5500 4400 50  0001 C CNN
+F 1 "+5V" H 5515 4723 50  0000 C CNN
+F 2 "" H 5500 4550 50  0001 C CNN
+F 3 "" H 5500 4550 50  0001 C CNN
+	1    5500 4550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR023
+U 1 1 621E8F06
+P 5500 5000
+F 0 "#PWR023" H 5500 4750 50  0001 C CNN
+F 1 "GNDREF" H 5505 4827 50  0000 C CNN
+F 2 "" H 5500 5000 50  0001 C CNN
+F 3 "" H 5500 5000 50  0001 C CNN
+	1    5500 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5650 4900 5500 4900
+Wire Wire Line
+	5500 4900 5500 5000
+Wire Wire Line
+	5650 4800 5500 4800
+Wire Wire Line
+	5500 4800 5500 4550
+Text Label 4200 4700 0    49   ~ 0
+Game_Status_Flag_Servo_PWM
+Text GLabel 3750 4700 0    49   Input ~ 0
+Game_Status_Flag_Servo_PWM
+$Comp
+L ME218_BaseLib:Motor_Servo M4
+U 1 1 621EA68A
+P 5950 5850
+F 0 "M4" H 6282 5915 50  0000 L CNN
+F 1 "Motor_Servo" H 6282 5824 50  0000 L CNN
+F 2 "" H 5950 5660 50  0001 C CNN
+F 3 "" H 5950 5660 50  0001 C CNN
+	1    5950 5850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR024
+U 1 1 621EA690
+P 5500 5600
+F 0 "#PWR024" H 5500 5450 50  0001 C CNN
+F 1 "+5V" H 5515 5773 50  0000 C CNN
+F 2 "" H 5500 5600 50  0001 C CNN
+F 3 "" H 5500 5600 50  0001 C CNN
+	1    5500 5600
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR025
+U 1 1 621EA696
+P 5500 6050
+F 0 "#PWR025" H 5500 5800 50  0001 C CNN
+F 1 "GNDREF" H 5505 5877 50  0000 C CNN
+F 2 "" H 5500 6050 50  0001 C CNN
+F 3 "" H 5500 6050 50  0001 C CNN
+	1    5500 6050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5650 5950 5500 5950
+Wire Wire Line
+	5500 5950 5500 6050
+Wire Wire Line
+	5650 5850 5500 5850
+Wire Wire Line
+	5500 5850 5500 5600
+Wire Wire Line
+	5650 5750 4350 5750
+Text Label 4550 5750 0    49   ~ 0
+Reloader_Servo_PWM
+Text GLabel 4350 5750 0    49   Input ~ 0
+Reloader_Servo_PWM
+Wire Wire Line
+	3750 4700 5650 4700
+$EndSCHEMATC

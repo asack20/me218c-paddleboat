@@ -1,0 +1,664 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 7 7
+Title "ME 218b Team 3 Project Schematic"
+Date ""
+Rev "v1"
+Comp "Drafted by Ryan Brandt"
+Comment1 "Checkpoint 1"
+Comment2 "Teammates:  Andrew Sack and Afshan Chandani"
+Comment3 ""
+Comment4 ""
+$EndDescr
+Wire Wire Line
+	3150 2250 3350 2250
+Connection ~ 3150 2250
+Wire Wire Line
+	3150 2300 3150 2250
+$Comp
+L power:GNDREF #PWR?
+U 1 1 622A092D
+P 3150 2300
+AR Path="/622A092D" Ref="#PWR?"  Part="1" 
+AR Path="/621E1073/622A092D" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3150 2050 50  0001 C CNN
+F 1 "GNDREF" H 3155 2127 50  0000 C CNN
+F 2 "" H 3150 2300 50  0001 C CNN
+F 3 "" H 3150 2300 50  0001 C CNN
+	1    3150 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 2250 3150 2250
+$Comp
+L ME218_BaseLib:Res1 R?
+U 1 1 622A093C
+P 3350 2100
+AR Path="/622A093C" Ref="R?"  Part="1" 
+AR Path="/621E1073/622A093C" Ref="R?"  Part="1" 
+F 0 "R?" H 3418 2146 50  0000 L CNN
+F 1 "10k" H 3418 2055 50  0000 L CNN
+F 2 "" V 3390 2090 50  0001 C CNN
+F 3 "" H 3350 2100 50  0001 C CNN
+	1    3350 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_BaseLib:Res1 R?
+U 1 1 622A0942
+P 2950 2100
+AR Path="/622A0942" Ref="R?"  Part="1" 
+AR Path="/621E1073/622A0942" Ref="R?"  Part="1" 
+F 0 "R?" H 3018 2146 50  0000 L CNN
+F 1 "10k" H 3018 2055 50  0000 L CNN
+F 2 "" V 2990 2090 50  0001 C CNN
+F 3 "" H 2950 2100 50  0001 C CNN
+	1    2950 2100
+	1    0    0    -1  
+$EndComp
+Connection ~ 8100 1850
+Wire Wire Line
+	8100 1850 8100 1250
+Wire Wire Line
+	8100 1850 8100 1950
+Wire Wire Line
+	7200 1850 8100 1850
+Connection ~ 7850 2250
+Wire Wire Line
+	7850 2250 7600 2250
+Wire Wire Line
+	8100 2250 7850 2250
+Connection ~ 7600 1350
+Wire Wire Line
+	7600 1350 7600 1950
+Wire Wire Line
+	7600 1350 7600 1250
+Wire Wire Line
+	7200 1350 7600 1350
+$Comp
+L power:GND #PWR?
+U 1 1 622A095E
+P 7850 2250
+AR Path="/622A095E" Ref="#PWR?"  Part="1" 
+AR Path="/621E1073/622A095E" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 7850 2000 50  0001 C CNN
+F 1 "GND" H 7855 2077 50  0000 C CNN
+F 2 "" H 7850 2250 50  0001 C CNN
+F 3 "" H 7850 2250 50  0001 C CNN
+	1    7850 2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 622A0964
+P 8100 2100
+AR Path="/622A0964" Ref="D?"  Part="1" 
+AR Path="/621E1073/622A0964" Ref="D?"  Part="1" 
+F 0 "D?" V 8054 2179 50  0000 L CNN
+F 1 "Diode" V 8145 2179 50  0000 L CNN
+F 2 "" H 8100 2100 50  0001 C CNN
+F 3 "" H 8100 2100 50  0001 C CNN
+	1    8100 2100
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 622A096A
+P 7600 2100
+AR Path="/622A096A" Ref="D?"  Part="1" 
+AR Path="/621E1073/622A096A" Ref="D?"  Part="1" 
+F 0 "D?" V 7554 2179 50  0000 L CNN
+F 1 "Diode" V 7645 2179 50  0000 L CNN
+F 2 "" H 7600 2100 50  0001 C CNN
+F 3 "" H 7600 2100 50  0001 C CNN
+	1    7600 2100
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 622A0970
+P 8100 1100
+AR Path="/622A0970" Ref="D?"  Part="1" 
+AR Path="/621E1073/622A0970" Ref="D?"  Part="1" 
+F 0 "D?" V 8054 1179 50  0000 L CNN
+F 1 "Diode" V 8145 1179 50  0000 L CNN
+F 2 "" H 8100 1100 50  0001 C CNN
+F 3 "" H 8100 1100 50  0001 C CNN
+	1    8100 1100
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 622A0976
+P 7600 1100
+AR Path="/622A0976" Ref="D?"  Part="1" 
+AR Path="/621E1073/622A0976" Ref="D?"  Part="1" 
+F 0 "D?" V 7554 1179 50  0000 L CNN
+F 1 "Diode" V 7645 1179 50  0000 L CNN
+F 2 "" H 7600 1100 50  0001 C CNN
+F 3 "" H 7600 1100 50  0001 C CNN
+	1    7600 1100
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Motor M?
+U 1 1 622A0980
+P 7200 1550
+AR Path="/622A0980" Ref="M?"  Part="1" 
+AR Path="/621E1073/622A0980" Ref="M?"  Part="1" 
+F 0 "M?" H 7347 1546 50  0000 L CNN
+F 1 "Motor" H 7347 1455 50  0000 L CNN
+F 2 "" H 7200 1460 50  0001 C CNN
+F 3 "" H 7200 1460 50  0001 C CNN
+	1    7200 1550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 622A09AD
+P 5050 2200
+AR Path="/622A09AD" Ref="#PWR?"  Part="1" 
+AR Path="/621E1073/622A09AD" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 5050 1950 50  0001 C CNN
+F 1 "GND" H 5055 2027 50  0000 C CNN
+F 2 "" H 5050 2200 50  0001 C CNN
+F 3 "" H 5050 2200 50  0001 C CNN
+	1    5050 2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_H_Bridge_Symbol:TLE5206-2G U?
+U 1 1 622AF509
+P 4650 1650
+F 0 "U?" H 4650 2215 50  0000 C CNN
+F 1 "TLE5206-2G" H 4650 2124 50  0000 C CNN
+F 2 "DPAK127P1500X440-8N" H 4650 1650 50  0001 L BNN
+F 3 "" H 4650 1650 50  0001 L BNN
+F 4 "IPC7351B" H 4650 1650 50  0001 L BNN "STANDARD"
+F 5 "APRIL 2018" H 4650 1650 50  0001 L BNN "PARTREV"
+F 6 "Texas Instruments" H 4650 1650 50  0001 L BNN "MANUFACTURER"
+	1    4650 1650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7600 950  7850 950 
+Wire Wire Line
+	4250 1550 2950 1550
+Wire Wire Line
+	4250 1650 3350 1650
+Wire Wire Line
+	3350 1650 3350 1950
+Wire Wire Line
+	2950 1950 2950 1550
+Connection ~ 2950 1550
+Wire Wire Line
+	2950 1550 2750 1550
+Wire Wire Line
+	5050 2200 5050 1950
+Wire Wire Line
+	5050 1350 5050 1000
+$Comp
+L power:+15V #PWR?
+U 1 1 622BD102
+P 5050 1000
+F 0 "#PWR?" H 5050 850 50  0001 C CNN
+F 1 "+15V" H 5065 1173 50  0000 C CNN
+F 2 "" H 5050 1000 50  0001 C CNN
+F 3 "" H 5050 1000 50  0001 C CNN
+	1    5050 1000
+	1    0    0    -1  
+$EndComp
+NoConn ~ 5050 1750
+Wire Wire Line
+	6900 1550 6900 1350
+Wire Wire Line
+	6900 1350 7200 1350
+Connection ~ 7200 1350
+Wire Wire Line
+	6900 1650 6900 1850
+Wire Wire Line
+	6900 1850 7200 1850
+Connection ~ 7200 1850
+$Comp
+L power:+15V #PWR?
+U 1 1 622BE77D
+P 7850 950
+F 0 "#PWR?" H 7850 800 50  0001 C CNN
+F 1 "+15V" H 7865 1123 50  0000 C CNN
+F 2 "" H 7850 950 50  0001 C CNN
+F 3 "" H 7850 950 50  0001 C CNN
+	1    7850 950 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3350 1650 2750 1650
+Connection ~ 3350 1650
+$Comp
+L ME218_BaseLib:Molex6 J?
+U 1 1 6233CE55
+P 5850 1750
+F 0 "J?" H 5930 1742 50  0000 L CNN
+F 1 "Molex6" H 5930 1651 50  0000 L CNN
+F 2 "" H 5850 1750 50  0001 C CNN
+F 3 "" H 5850 1750 50  0001 C CNN
+	1    5850 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_BaseLib:Molex2 J?
+U 1 1 6233D762
+P 6300 1550
+F 0 "J?" H 6218 1225 50  0000 C CNN
+F 1 "Molex2" H 6218 1316 50  0000 C CNN
+F 2 "" H 6300 1550 50  0001 C CNN
+F 3 "" H 6300 1550 50  0001 C CNN
+	1    6300 1550
+	-1   0    0    -1  
+$EndComp
+Wire Notes Line
+	5550 1150 6600 1150
+Wire Notes Line
+	6600 1150 6600 2150
+Wire Notes Line
+	6600 2150 5550 2150
+Wire Notes Line
+	5550 2150 5550 1150
+Text Notes 5650 1350 0    79   ~ 0
+Encoder Board
+Wire Wire Line
+	5050 1550 5650 1550
+Wire Wire Line
+	5050 1650 5650 1650
+Wire Wire Line
+	6500 1550 6900 1550
+Wire Wire Line
+	6500 1650 6900 1650
+Wire Wire Line
+	5650 1750 5400 1750
+Wire Wire Line
+	5400 1750 5400 1350
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62342FD0
+P 5400 1350
+F 0 "#PWR?" H 5400 1200 50  0001 C CNN
+F 1 "+3.3V" H 5415 1523 50  0000 C CNN
+F 2 "" H 5400 1350 50  0001 C CNN
+F 3 "" H 5400 1350 50  0001 C CNN
+	1    5400 1350
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR?
+U 1 1 62343976
+P 5400 2200
+F 0 "#PWR?" H 5400 1950 50  0001 C CNN
+F 1 "GNDREF" H 5405 2027 50  0000 C CNN
+F 2 "" H 5400 2200 50  0001 C CNN
+F 3 "" H 5400 2200 50  0001 C CNN
+	1    5400 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 2200 5400 2050
+Wire Wire Line
+	5400 2050 5650 2050
+Wire Wire Line
+	5650 1850 5150 1850
+Wire Wire Line
+	5150 1850 5150 2650
+Wire Wire Line
+	5650 1950 5200 1950
+Wire Wire Line
+	5200 1950 5200 2750
+Text Label 3100 1550 0    50   ~ 0
+Motor_1_PWM_OC1
+Text Label 3100 1650 0    50   ~ 0
+Motor_1_Digital_Output
+Text Label 3600 2650 0    50   ~ 0
+Motor_1_Encoder_A_IC1
+Text Label 3600 2750 0    50   ~ 0
+Motor_1_Encoder_B_Digital_Input
+Wire Wire Line
+	3500 2650 5150 2650
+Wire Wire Line
+	3500 2750 5200 2750
+Text GLabel 3500 2650 0    50   Input ~ 0
+Motor_1_Encoder_A_IC1
+Text GLabel 3500 2750 0    50   Input ~ 0
+Motor_1_Encoder_B_Digital_Input
+Text GLabel 2750 1550 0    50   Input ~ 0
+Motor_1_PWM_OC1
+Text GLabel 2750 1650 0    50   Input ~ 0
+Motor_1_Digital_Output
+Connection ~ 7850 950 
+Wire Wire Line
+	7850 950  8100 950 
+Wire Wire Line
+	3150 4550 3350 4550
+Connection ~ 3150 4550
+Wire Wire Line
+	3150 4600 3150 4550
+$Comp
+L power:GNDREF #PWR?
+U 1 1 623570F3
+P 3150 4600
+AR Path="/623570F3" Ref="#PWR?"  Part="1" 
+AR Path="/621E1073/623570F3" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3150 4350 50  0001 C CNN
+F 1 "GNDREF" H 3155 4427 50  0000 C CNN
+F 2 "" H 3150 4600 50  0001 C CNN
+F 3 "" H 3150 4600 50  0001 C CNN
+	1    3150 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 4550 3150 4550
+$Comp
+L ME218_BaseLib:Res1 R?
+U 1 1 623570FA
+P 3350 4400
+AR Path="/623570FA" Ref="R?"  Part="1" 
+AR Path="/621E1073/623570FA" Ref="R?"  Part="1" 
+F 0 "R?" H 3418 4446 50  0000 L CNN
+F 1 "10k" H 3418 4355 50  0000 L CNN
+F 2 "" V 3390 4390 50  0001 C CNN
+F 3 "" H 3350 4400 50  0001 C CNN
+	1    3350 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_BaseLib:Res1 R?
+U 1 1 62357100
+P 2950 4400
+AR Path="/62357100" Ref="R?"  Part="1" 
+AR Path="/621E1073/62357100" Ref="R?"  Part="1" 
+F 0 "R?" H 3018 4446 50  0000 L CNN
+F 1 "10k" H 3018 4355 50  0000 L CNN
+F 2 "" V 2990 4390 50  0001 C CNN
+F 3 "" H 2950 4400 50  0001 C CNN
+	1    2950 4400
+	1    0    0    -1  
+$EndComp
+Connection ~ 8100 4150
+Wire Wire Line
+	8100 4150 8100 3550
+Wire Wire Line
+	8100 4150 8100 4250
+Wire Wire Line
+	7200 4150 8100 4150
+Connection ~ 7850 4550
+Wire Wire Line
+	7850 4550 7600 4550
+Wire Wire Line
+	8100 4550 7850 4550
+Connection ~ 7600 3650
+Wire Wire Line
+	7600 3650 7600 4250
+Wire Wire Line
+	7600 3650 7600 3550
+Wire Wire Line
+	7200 3650 7600 3650
+$Comp
+L power:GND #PWR?
+U 1 1 62357111
+P 7850 4550
+AR Path="/62357111" Ref="#PWR?"  Part="1" 
+AR Path="/621E1073/62357111" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 7850 4300 50  0001 C CNN
+F 1 "GND" H 7855 4377 50  0000 C CNN
+F 2 "" H 7850 4550 50  0001 C CNN
+F 3 "" H 7850 4550 50  0001 C CNN
+	1    7850 4550
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 62357117
+P 8100 4400
+AR Path="/62357117" Ref="D?"  Part="1" 
+AR Path="/621E1073/62357117" Ref="D?"  Part="1" 
+F 0 "D?" V 8054 4479 50  0000 L CNN
+F 1 "Diode" V 8145 4479 50  0000 L CNN
+F 2 "" H 8100 4400 50  0001 C CNN
+F 3 "" H 8100 4400 50  0001 C CNN
+	1    8100 4400
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 6235711D
+P 7600 4400
+AR Path="/6235711D" Ref="D?"  Part="1" 
+AR Path="/621E1073/6235711D" Ref="D?"  Part="1" 
+F 0 "D?" V 7554 4479 50  0000 L CNN
+F 1 "Diode" V 7645 4479 50  0000 L CNN
+F 2 "" H 7600 4400 50  0001 C CNN
+F 3 "" H 7600 4400 50  0001 C CNN
+	1    7600 4400
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 62357123
+P 8100 3400
+AR Path="/62357123" Ref="D?"  Part="1" 
+AR Path="/621E1073/62357123" Ref="D?"  Part="1" 
+F 0 "D?" V 8054 3479 50  0000 L CNN
+F 1 "Diode" V 8145 3479 50  0000 L CNN
+F 2 "" H 8100 3400 50  0001 C CNN
+F 3 "" H 8100 3400 50  0001 C CNN
+	1    8100 3400
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Diode D?
+U 1 1 62357129
+P 7600 3400
+AR Path="/62357129" Ref="D?"  Part="1" 
+AR Path="/621E1073/62357129" Ref="D?"  Part="1" 
+F 0 "D?" V 7554 3479 50  0000 L CNN
+F 1 "Diode" V 7645 3479 50  0000 L CNN
+F 2 "" H 7600 3400 50  0001 C CNN
+F 3 "" H 7600 3400 50  0001 C CNN
+	1    7600 3400
+	0    1    1    0   
+$EndComp
+$Comp
+L ME218_BaseLib:Motor M?
+U 1 1 6235712F
+P 7200 3850
+AR Path="/6235712F" Ref="M?"  Part="1" 
+AR Path="/621E1073/6235712F" Ref="M?"  Part="1" 
+F 0 "M?" H 7347 3846 50  0000 L CNN
+F 1 "Motor" H 7347 3755 50  0000 L CNN
+F 2 "" H 7200 3760 50  0001 C CNN
+F 3 "" H 7200 3760 50  0001 C CNN
+	1    7200 3850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62357135
+P 5050 4500
+AR Path="/62357135" Ref="#PWR?"  Part="1" 
+AR Path="/621E1073/62357135" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 5050 4250 50  0001 C CNN
+F 1 "GND" H 5055 4327 50  0000 C CNN
+F 2 "" H 5050 4500 50  0001 C CNN
+F 3 "" H 5050 4500 50  0001 C CNN
+	1    5050 4500
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_H_Bridge_Symbol:TLE5206-2G U?
+U 1 1 6235713E
+P 4650 3950
+F 0 "U?" H 4650 4515 50  0000 C CNN
+F 1 "TLE5206-2G" H 4650 4424 50  0000 C CNN
+F 2 "DPAK127P1500X440-8N" H 4650 3950 50  0001 L BNN
+F 3 "" H 4650 3950 50  0001 L BNN
+F 4 "IPC7351B" H 4650 3950 50  0001 L BNN "STANDARD"
+F 5 "APRIL 2018" H 4650 3950 50  0001 L BNN "PARTREV"
+F 6 "Texas Instruments" H 4650 3950 50  0001 L BNN "MANUFACTURER"
+	1    4650 3950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7600 3250 7850 3250
+Wire Wire Line
+	4250 3850 2950 3850
+Wire Wire Line
+	4250 3950 3350 3950
+Wire Wire Line
+	3350 3950 3350 4250
+Wire Wire Line
+	2950 4250 2950 3850
+Connection ~ 2950 3850
+Wire Wire Line
+	2950 3850 2750 3850
+Wire Wire Line
+	5050 4500 5050 4250
+Wire Wire Line
+	5050 3650 5050 3300
+$Comp
+L power:+15V #PWR?
+U 1 1 6235714D
+P 5050 3300
+F 0 "#PWR?" H 5050 3150 50  0001 C CNN
+F 1 "+15V" H 5065 3473 50  0000 C CNN
+F 2 "" H 5050 3300 50  0001 C CNN
+F 3 "" H 5050 3300 50  0001 C CNN
+	1    5050 3300
+	1    0    0    -1  
+$EndComp
+NoConn ~ 5050 4050
+Wire Wire Line
+	6900 3850 6900 3650
+Wire Wire Line
+	6900 3650 7200 3650
+Connection ~ 7200 3650
+Wire Wire Line
+	6900 3950 6900 4150
+Wire Wire Line
+	6900 4150 7200 4150
+Connection ~ 7200 4150
+$Comp
+L power:+15V #PWR?
+U 1 1 6235715A
+P 7850 3250
+F 0 "#PWR?" H 7850 3100 50  0001 C CNN
+F 1 "+15V" H 7865 3423 50  0000 C CNN
+F 2 "" H 7850 3250 50  0001 C CNN
+F 3 "" H 7850 3250 50  0001 C CNN
+	1    7850 3250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3350 3950 2750 3950
+Connection ~ 3350 3950
+$Comp
+L ME218_BaseLib:Molex6 J?
+U 1 1 62357162
+P 5850 4050
+F 0 "J?" H 5930 4042 50  0000 L CNN
+F 1 "Molex6" H 5930 3951 50  0000 L CNN
+F 2 "" H 5850 4050 50  0001 C CNN
+F 3 "" H 5850 4050 50  0001 C CNN
+	1    5850 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L ME218_BaseLib:Molex2 J?
+U 1 1 62357168
+P 6300 3850
+F 0 "J?" H 6218 3525 50  0000 C CNN
+F 1 "Molex2" H 6218 3616 50  0000 C CNN
+F 2 "" H 6300 3850 50  0001 C CNN
+F 3 "" H 6300 3850 50  0001 C CNN
+	1    6300 3850
+	-1   0    0    -1  
+$EndComp
+Wire Notes Line
+	5550 3450 6600 3450
+Wire Notes Line
+	6600 3450 6600 4450
+Wire Notes Line
+	6600 4450 5550 4450
+Wire Notes Line
+	5550 4450 5550 3450
+Text Notes 5650 3650 0    79   ~ 0
+Encoder Board
+Wire Wire Line
+	5050 3850 5650 3850
+Wire Wire Line
+	5050 3950 5650 3950
+Wire Wire Line
+	6500 3850 6900 3850
+Wire Wire Line
+	6500 3950 6900 3950
+Wire Wire Line
+	5650 4050 5400 4050
+Wire Wire Line
+	5400 4050 5400 3650
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62357179
+P 5400 3650
+F 0 "#PWR?" H 5400 3500 50  0001 C CNN
+F 1 "+3.3V" H 5415 3823 50  0000 C CNN
+F 2 "" H 5400 3650 50  0001 C CNN
+F 3 "" H 5400 3650 50  0001 C CNN
+	1    5400 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR?
+U 1 1 6235717F
+P 5400 4500
+F 0 "#PWR?" H 5400 4250 50  0001 C CNN
+F 1 "GNDREF" H 5405 4327 50  0000 C CNN
+F 2 "" H 5400 4500 50  0001 C CNN
+F 3 "" H 5400 4500 50  0001 C CNN
+	1    5400 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 4500 5400 4350
+Wire Wire Line
+	5400 4350 5650 4350
+Wire Wire Line
+	5650 4150 5150 4150
+Wire Wire Line
+	5150 4150 5150 4950
+Wire Wire Line
+	5650 4250 5200 4250
+Wire Wire Line
+	5200 4250 5200 5050
+Text Label 3100 3850 0    50   ~ 0
+Motor_2_PWM_OC2
+Text Label 3100 3950 0    50   ~ 0
+Motor_2_Digital_Output
+Text Label 3600 4950 0    50   ~ 0
+Motor_2_Encoder_A_IC2
+Text Label 3600 5050 0    50   ~ 0
+Motor_2_Encoder_B_Digital_Input
+Wire Wire Line
+	3500 4950 5150 4950
+Wire Wire Line
+	3500 5050 5200 5050
+Text GLabel 3500 4950 0    50   Input ~ 0
+Motor_2_Encoder_A_IC2
+Text GLabel 3500 5050 0    50   Input ~ 0
+Motor_2_Encoder_B_Digital_Input
+Text GLabel 2750 3850 0    50   Input ~ 0
+Motor_2_PWM_OC2
+Text GLabel 2750 3950 0    50   Input ~ 0
+Motor_2_Digital_Output
+Connection ~ 7850 3250
+Wire Wire Line
+	7850 3250 8100 3250
+$EndSCHEMATC

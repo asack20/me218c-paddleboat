@@ -1,0 +1,110 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 5 7
+Title "ME 218b Team 3 Project Schematic"
+Date ""
+Rev "v1"
+Comp "Drafted by Ryan Brandt"
+Comment1 "Checkpoint 1"
+Comment2 "Teammates:  Andrew Sack and Afshan Chandani"
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power:+15V #PWR050
+U 1 1 623D118F
+P 5900 2400
+F 0 "#PWR050" H 5900 2250 50  0001 C CNN
+F 1 "+15V" H 5915 2573 50  0000 C CNN
+F 2 "" H 5900 2400 50  0001 C CNN
+F 3 "" H 5900 2400 50  0001 C CNN
+	1    5900 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR051
+U 1 1 623D18CE
+P 5500 3500
+F 0 "#PWR051" H 5500 3350 50  0001 C CNN
+F 1 "+3.3V" H 5515 3673 50  0000 C CNN
+F 2 "" H 5500 3500 50  0001 C CNN
+F 3 "" H 5500 3500 50  0001 C CNN
+	1    5500 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR049
+U 1 1 623D2238
+P 5050 2400
+F 0 "#PWR049" H 5050 2250 50  0001 C CNN
+F 1 "+5V" H 5065 2573 50  0000 C CNN
+F 2 "" H 5050 2400 50  0001 C CNN
+F 3 "" H 5050 2400 50  0001 C CNN
+	1    5050 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GNDREF #PWR?
+U 1 1 623D80C9
+P 5350 3900
+AR Path="/623D80C9" Ref="#PWR?"  Part="1" 
+AR Path="/621CC060/623D80C9" Ref="#PWR052"  Part="1" 
+F 0 "#PWR052" H 5350 3650 50  0001 C CNN
+F 1 "GNDREF" H 5355 3727 50  0000 C CNN
+F 2 "" H 5350 3900 50  0001 C CNN
+F 3 "" H 5350 3900 50  0001 C CNN
+	1    5350 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 623D80CF
+P 5700 3900
+AR Path="/623D80CF" Ref="#PWR?"  Part="1" 
+AR Path="/621CC060/623D80CF" Ref="#PWR053"  Part="1" 
+F 0 "#PWR053" H 5700 3650 50  0001 C CNN
+F 1 "GND" H 5705 3727 50  0000 C CNN
+F 2 "" H 5700 3900 50  0001 C CNN
+F 3 "" H 5700 3900 50  0001 C CNN
+	1    5700 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5350 3900 5700 3900
+$Comp
+L ME218_BaseLib:SW-DPST SW6
+U 1 1 623D830A
+P 5500 2750
+F 0 "SW6" V 5454 2938 50  0000 L CNN
+F 1 "SW-DPST" V 5545 2938 50  0000 L CNN
+F 2 "" H 5500 2750 50  0001 C CNN
+F 3 "" H 5500 2750 50  0001 C CNN
+	1    5500 2750
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5400 2550 5050 2550
+Wire Wire Line
+	5050 2550 5050 2400
+Wire Wire Line
+	5600 2550 5900 2550
+Wire Wire Line
+	5900 2550 5900 2400
+Wire Wire Line
+	4050 2950 5400 2950
+Text Label 6050 2950 0    50   ~ 0
+Battery_Voltage_From_Power_Distribution_Board
+Wire Wire Line
+	5600 2950 7850 2950
+Wire Wire Line
+	5500 3500 7850 3500
+Text Label 4050 2950 0    50   ~ 0
+5V_from_Power_Distribution_Board
+Text Label 6050 3500 0    50   ~ 0
+3_3V_from_Power_Distribution_Board
+Text Notes 4600 3800 0    50   ~ 0
+Note that grounds are only connected at a single point
+$EndSCHEMATC

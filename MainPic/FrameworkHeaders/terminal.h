@@ -19,7 +19,7 @@ extern "C" {
 #define goHome() printf("\x1b[1,1H")
 #define clrLine() printf("\x1b[K")
     
-#define XMIT_BUFFER_SIZE 1024
+#define XMIT_BUFFER_SIZE 4096
     
 // map the generic functions for testing the serial port to actual functions
 // for this platform.

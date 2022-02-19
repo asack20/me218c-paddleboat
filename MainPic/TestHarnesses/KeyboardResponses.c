@@ -529,7 +529,7 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
               case '6':
               {
                 Find_BeaconState_t CurrentFind_BeaconState;
-                CurrentFind_BeaconState = QueryGameHSM();
+                CurrentFind_BeaconState = QueryFind_Beacon();
                 char StateChar[40];
                 
                 switch (CurrentFind_BeaconState)

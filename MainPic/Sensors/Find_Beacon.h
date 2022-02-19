@@ -35,6 +35,7 @@ bool InitFind_Beacon(uint8_t Priority);
 bool PostFind_Beacon(ES_Event_t ThisEvent);
 ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent);
 Find_BeaconState_t QueryFind_Beacon(void);
+TeamIdentity_t QueryTeamIdentity(void);
 
 #endif /* Find_Beacon_H */
 
