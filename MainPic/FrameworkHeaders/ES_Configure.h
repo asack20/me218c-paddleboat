@@ -284,7 +284,9 @@ typedef enum
   SPI_TASK_COMPLETE,
   SPI_TASK_FAILED,
   SPI_RESET,
-  GAME_TIMEOUT
+  GAME_TIMEOUT,
+  BUMP_OCCURRED,
+  MOTORS_STOPPED
 }ES_EventType_t;
 
 /****************************************************************************/

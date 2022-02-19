@@ -39,6 +39,8 @@
 #include "RobotTopHSM.h"
 #include "GameHSM.h"
 #include "StartupHSM.h"
+#include "../Sensors/Find_Beacon.h"
+#include "../SPI/SPILeaderSM.h"
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
@@ -433,6 +435,11 @@ static ES_Event_t DuringRobotActiveState( ES_Event_t Event)
         RunGameHSM(Event);
         // repeat for any concurrently running state machines
         // now do any local exit functionality
+        ES_Event_t NewEvent;
+        NewEvent.EventType = GIVE_UP;
+        PostFind_Beacon(NewEvent);
+        NewEvent.EventType = SPI_RESET;
+        PostSPILeaderSM(NewEvent);
       
     }else
     // do the 'during' function for this state

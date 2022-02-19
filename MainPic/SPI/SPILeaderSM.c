@@ -27,6 +27,7 @@
 #include "ES_Framework.h"
 #include "terminal.h"
 #include "SPILeaderSM.h"
+#include "../HSM/RobotTopHSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_SPI_HAL.h"
 #include "ES_Events.h" 
@@ -45,6 +46,7 @@
 */
 
 bool InitializeSPI(void);
+ES_Event_t DecodeDrive2MainCommand(uint16_t);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -176,21 +178,33 @@ ES_Event_t RunSPILeaderSM(ES_Event_t ThisEvent)
         case SPILeaderReceiveState:
         {
             if (ThisEvent.EventType == SPI_RESPONSE_RECEIVED){
-                if (ThisEvent.EventParam == 0x1111){
-                    ES_Event_t NewEvent;
-                    NewEvent.EventType   = SPI_TASK_COMPLETE;
-                    printf("Success, posting to service\r\n");
-                    CurrentState = SPILeaderSendState;
+                ES_Event_t NewEvent;
+                NewEvent = DecodeDrive2MainCommand(ThisEvent.EventParam);
+                
+                //Post an event if it isn't NO_EVENT
+                if (NewEvent.EventType != ES_NO_EVENT) {
+                    PostRobotTopHSM(NewEvent);
                 }
-                else if (ThisEvent.EventParam == 0xAAAA){
-                    ES_Event_t NewEvent;
-                    NewEvent.EventType   = SPI_TASK_FAILED;
-                    printf("Failure, posting to service\r\n");
-                    CurrentState = SPILeaderSendState;
-                }
+                
+                
+                //Afshan's SPI code
+//                if (ThisEvent.EventParam == 0x1111){
+//                    ES_Event_t NewEvent;
+//                    NewEvent.EventType   = SPI_TASK_COMPLETE;
+//                    printf("Success, posting to service\r\n");
+//                    CurrentState = SPILeaderSendState;
+//                }
+//                else if (ThisEvent.EventParam == 0xAAAA){
+//                    ES_Event_t NewEvent;
+//                    NewEvent.EventType   = SPI_TASK_FAILED;
+//                    printf("Failure, posting to service\r\n");
+//                    CurrentState = SPILeaderSendState;
+//                }
             }
-            if (ThisEvent.EventType == ES_TIMEOUT){
-                SPIOperate_SPI1_Send16(0x2222);
+            if ((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == SPITimer)){
+                SPI_MOSI_Command_t NewMOSICommand;
+                NewMOSICommand.Name = SPI_POLL;
+                SPIOperate_SPI1_Send16(NewMOSICommand.FullCommand);
                 ES_Timer_InitTimer(SPITimer,SPI_TIME);
             }
             if (ThisEvent.EventType == SEND_SPI_COMMAND){
@@ -268,4 +282,42 @@ bool CheckSPIRBF(void)
         PostSPILeaderSM(ThisEvent);
         return true;
     }
+}
+
+ES_Event_t DecodeDrive2MainCommand(uint16_t InputCommand) {
+    ES_Event_t ReturnEvent;
+    ReturnEvent.EventType = ES_NO_EVENT;
+    SPI_MISO_Command_t CommandCopy;
+    CommandCopy.FullCommand = InputCommand;
+    SPI_MISO_Event_Name_t CurrentCommandName;
+    
+    CurrentCommandName = CommandCopy.CommandBits.Name;
+    switch (CurrentCommandName) {
+        case SPI_STILL_WORKING:
+            ReturnEvent.EventType = ES_NO_EVENT;
+            break;
+        case SPI_DRIVE_GOAL_REACHED:
+            ReturnEvent.EventType = DRIVE_GOAL_REACHED;
+            break;
+            
+        case SPI_BUMP_SUCCESS:
+            ReturnEvent.EventType = BUMP_OCCURRED;
+            break;
+            
+        case SPI_TAPE_SUCCESS:
+            ReturnEvent.EventType = TAPE_FOUND;
+            break;
+            
+        case SPI_STOP_ACKNOWLEDGED:
+            ReturnEvent.EventType = MOTORS_STOPPED;
+            break;
+            
+        case SPI_BEACON_ACKNOWLEDGED:
+            ReturnEvent.EventType = ES_NO_EVENT;
+            break;
+            
+        default:
+            break;
+    }
+    return ReturnEvent; 
 }

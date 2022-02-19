@@ -59,6 +59,7 @@
 #include "StartupHSM.h"
 #include "RobotTopHSM.h"
 #include "../Sensors/Find_Beacon.h"
+#include "../SPI/SPILeaderSM.h"
 #include "terminal.h"
 #include "dbprintf.h"
 #include <string.h>
@@ -132,6 +133,16 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   NewEvent.EventType = FIND_BEACON;
                   NewEvent.EventParam = DetermineTeam;
                   PostFind_Beacon(NewEvent);
+                  
+                  SPI_MOSI_Command_t NewCommand;
+                  NewCommand.Name = SPI_DRIVE_DISTANCE;
+                  NewCommand.DriveType = Forward_CW;
+                  NewCommand.Direction = Rotation;
+                  NewCommand.Speed = Low;
+                  //NewCommand.Data = ;
+                  NewEvent.EventType = SEND_SPI_COMMAND;
+                  NewEvent.EventParam = NewCommand.FullCommand;
+                  PostSPILeaderSM(NewEvent);
                   
                   NextState = FIND_BEACON_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
