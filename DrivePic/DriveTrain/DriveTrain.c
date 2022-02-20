@@ -29,19 +29,15 @@
 #include "DriveTrain.h"
 #include "MotorControlDriver.h"
 #include "../HALs/PIC32PortHAL.h"
+#include "../SPI/SPIFollowerSM.h"
 #include <xc.h>
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 // Command Tuning
-#define FULL_DUTY_CYCLE 1000 // Duty cycle for 100% speed
-#define HALF_DUTY_CYCLE 500 // Duty cycle for 50% speed
-#define ROT_DUTY_CYCLE 1000 // Duty cycle used for rotating
-#define LOW_SPEED 200
-#define HIGH_SPEED 1000
+#define DRIVE_DEBUG
 
-#define ROT_90_TIME 1500 // time in ms required to rotate 90 degrees
-#define ROT_45_TIME 750 // time in ms required to rotate 45 degrees
+#define SWEEP_CW_ANGLE 10
 
 /*----------------------------- Module Types ------------------------------*/
 /*---------------------------- Module Functions ---------------------------*/
@@ -52,10 +48,12 @@
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static DriveTrainState_t CurrentState;
-static bool MotorsActive; // true if motors are moving in any way. False if stopped
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+
+// Speed (RPM*10)corresponding to Stopped, Low, Medium, High respectively
+const uint16_t Speeds[] = {0, 100, 300, 500};
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -147,120 +145,158 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
     
     ES_Event_t PostEvent;
     
+    // Drive Stop has same behavior in every state
+    if (DRIVE_STOP == ThisEvent.EventType)
+    {
+        MotorControl_StopMotors();
+        CurrentState = DriveStoppedState;
+        
+        PostEvent.EventType = STOP_ACKNOWLEDGED;
+        PostSPIList(PostEvent);
+    }
+    
+    else {
     switch (CurrentState)
     {
-        case DriveInitState:
+        case (DriveInitState):
         {
-            if (ThisEvent.EventType == ES_INIT)
+            if (ES_INIT == ThisEvent.EventType)
             {
-                MotorControl_StopMotors(); // make sure motors are off
-                CurrentState = DriveReadyState;
+                MotorControl_StopMotors();
+                CurrentState = DriveStoppedState;
             }
         } break;
-        case DriveReadyState:
+        
+        // Main state where new motions start
+        case (DriveStoppedState):
         {
             switch (ThisEvent.EventType)
             {
-                case DRIVE_STOP_MOTORS:
+                case DRIVE_DISTANCE:
                 {
-                    MotorControl_StopMotors();
-                    CurrentState = DriveReadyState;
-                } break;
-               
-                case DRIVE_ROTATE_CW90:
-                {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
-                    DriveTrain_StopAfterDelay(ROT_90_TIME);
-                    CurrentState = DriveBusyState;
-                } break;
-                
-                case DRIVE_ROTATE_CW45:
-                {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
-                    DriveTrain_StopAfterDelay(ROT_45_TIME);
-                    CurrentState = DriveBusyState;
-                } break;
-
-                case DRIVE_ROTATE_CCW90:
-                {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
-                    DriveTrain_StopAfterDelay(ROT_90_TIME);
-                    CurrentState = DriveBusyState;
+                    // Parse SPI Event struct
+                    SPI_MOSI_Command_t SPICommand = (SPI_MOSI_Command_t) ThisEvent.EventParam;
+                    if (SPICommand.DriveType == Translation)
+                    {
+                        // Call Motor Control function with correct params
+                        MotorControl_DriveStraight(SPICommand.Direction, Speeds[SPICommand.Speed], SPICommand.Data);
+#ifdef DRIVE_DEBUG
+                        printf("DriveDebug: Starting Drive Straight Distance \r\n");
+#endif
+                    }
+                    else if (SPICommand.DriveType == Rotation)
+                    {
+                        // Call Motor Control function with correct params
+                        MotorControl_DriveTurn(SPICommand.Direction, Speeds[SPICommand.Speed], SPICommand.Data);
+#ifdef DRIVE_DEBUG
+                        printf("DriveDebug: Starting Drive Turn Distance \r\n");
+#endif
+                    }
+                    else
+                    {
+                        printf("Error: Invalid Drive Type: %u", SPICommand.DriveType);
+                    }
+                    
+                    CurrentState = DriveDistanceState;
                 } break;
                 
-                case DRIVE_ROTATE_CCW45:
+                case DRIVE_UNTIL_BUMP:
                 {
-                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Backward_Dir, ROT_DUTY_CYCLE);
-                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, ROT_DUTY_CYCLE);
-                    DriveTrain_StopAfterDelay(ROT_45_TIME);
-                    CurrentState = DriveBusyState;                   
-                } break;
-                
-                case DRIVE_FORWARD_HALF:
-                {
-                    MotorControl_DriveStraight(_Forward_Dir, LOW_SPEED, 0);
-                    CurrentState = DriveReadyState;
+                    // Drive Backwards at slow speed
+                    MotorControl_DriveStraight(_Backward_Dir, Speeds[Low], 0);
+#ifdef DRIVE_DEBUG
+                    printf("DriveDebug: Starting Drive Until Bump\r\n");
+#endif
+                    CurrentState = DriveUntilBumpState;
                 } break; 
-                case DRIVE_FORWARD_FULL:
+                
+                case DRIVE_TAPE_ALIGN:
                 {
-                    MotorControl_DriveStraight(_Forward_Dir, HIGH_SPEED, 0);
-                    CurrentState = DriveReadyState;
+                    // Drive Forwards at slow speed
+                    MotorControl_DriveStraight(_Forward_Dir, Speeds[Low], 0);
+#ifdef DRIVE_DEBUG
+                    printf("DriveDebug: Starting Drive Tape Align\r\n");
+#endif
+                    CurrentState = DriveUntilFirstTapeDetectState;
                 } break;
                 
-                case DRIVE_BACKWARD_HALF:
+                case DRIVE_BEACON_SWEEP:
                 {
-                    MotorControl_DriveStraight(_Backward_Dir, LOW_SPEED, 0);
-                    CurrentState = DriveReadyState;
+                    // Turn CLockwise by SWEEP_CW_ANGLE at slow speed
+                    MotorControl_DriveStraight(_Clockwise_Turn, Speeds[Low], SWEEP_CW_ANGLE);
+#ifdef DRIVE_DEBUG
+                    printf("DriveDebug: Starting Drive Clockwise Sweep\r\n");
+#endif
+                    CurrentState = DriveClockwiseSweepState;
                 } break;
                 
-                case DRIVE_BACKWARD_FULL:
-                {
-                    MotorControl_DriveStraight(_Backward_Dir, HIGH_SPEED, 0);
-                    CurrentState = DriveReadyState;
-                } break;
-                
-                case DRIVE_ROTATE_CWINF:
-                {
-                    MotorControl_DriveTurn(_Clockwise_Turn, LOW_SPEED, 0);
-                    CurrentState = DriveReadyState;
-                } break;
-                
-                case DRIVE_ROTATE_CCWINF:
-                {
-                    MotorControl_DriveTurn(_CounterClockwise_Turn, LOW_SPEED, 0);
-                    CurrentState = DriveReadyState;
-                } break;
-                default:
-                {
-                } break;
             }
         } break;
-        case DriveBusyState:
+        
+        case (DriveDistanceState):
         {
-            if (DRIVE_STOP_MOTORS == ThisEvent.EventType)
+            if (DRIVE_GOAL_REACHED == ThisEvent.EventType)
             {
+                // stop motors
                 MotorControl_StopMotors();
-                CurrentState = DriveReadyState;
-            }
-            else if (ES_TIMEOUT == ThisEvent.EventType)
-            {
-                MotorControl_StopMotors();
-                CurrentState = DriveReadyState;
-                // Post DRIVE_COMMAND_COMPLETE to distrolist
-            }
-            else
-            {
-                // add event to deferral queue
-                printf("DriveTrain: Currently busy. Unable to accept new command \r\n");
+                // Post DRIVE_GOAL_REACHED to SPI
+                PostEvent.EventType = DRIVE_GOAL_REACHED;
+                PostSPIList(PostEvent);
+                
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: DriveDistanceState DRIVE_GOAL_REACHED\r\n");
+#endif
             }
         } break;
+        
+        case (DriveUntilBumpState):
+        {
+            if (BUMP_FOUND == ThisEvent.EventType)
+            {
+                // stop motors
+                MotorControl_StopMotors();
+                
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: DriveUntilBump BUMP_FOUND\r\n");
+#endif
+            }
+        } break;
+        
+        // Tape Detect
+        case (DriveUntilFirstTapeDetectState):
+        {
+            
+        } break;
+        
+        case (DriveTapeSquareUpState):
+        {
+            
+        } break;
+        
+        case (DriveClockwiseSweepState):
+        {
+            
+        } break;
+        
+        case (DriveCounterClockwiseSweepState):
+        {
+            
+        } break;
+        
+        case (DriveBeaconWaitState):
+        {
+            
+        } break;
+        
+        case (DriveUndoRotateState):
+        {
+            
+        } break;
+        
         default:
           ;
     }                                   // end switch on Current State
-    
+    }
     return ReturnEvent;
 }
 
@@ -287,26 +323,6 @@ DriveTrainState_t QueryDriveTrain(void)
     return CurrentState;
 }
 
-/****************************************************************************
- * Function
- *      DriveTrain_StopAfterDelay   
- *      
- * Parameters
- *      uint16_t DelayMS - Time in ms to delay for
- * Return
- *      void
- * Description
- *      Sets timer for correct amount of time which generates timout to stop
- *		motors after it expires
-****************************************************************************/
-void DriveTrain_StopAfterDelay(uint16_t DelayMS)
-{
-    // Set Timer for DelayMS time
-    ES_Timer_InitTimer(DRIVETRAIN_TIMER, DelayMS);
-	// Update Current state    
-    CurrentState = DriveBusyState;
-}
-	
 /***************************************************************************
  private functions
  ***************************************************************************/

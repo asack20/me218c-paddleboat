@@ -22,6 +22,7 @@
                 <sourceRootElem>HALs</sourceRootElem>
                 <sourceRootElem>SensorInterfacing</sourceRootElem>
                 <sourceRootElem>CommandService</sourceRootElem>
+                <sourceRootElem>SPI</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

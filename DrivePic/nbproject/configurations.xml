@@ -50,6 +50,7 @@
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
       <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
       <itemPath>DriveTrain/MotorControlDriver.h</itemPath>
+      <itemPath>SPI/SPIFollowerSM.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -84,6 +85,7 @@
     <Elem>HALs</Elem>
     <Elem>SensorInterfacing</Elem>
     <Elem>CommandService</Elem>
+    <Elem>SPI</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

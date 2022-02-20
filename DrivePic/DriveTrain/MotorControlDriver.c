@@ -10,6 +10,9 @@
 #include "terminal.h"
 #include "MotorControlDriver.h"
 #include "../HALs/PIC32PortHAL.h"
+#include "DriveTrain.h"
+#include "ES_Configure.h"
+#include "ES_Events.h"
 #include <xc.h>
 #include <sys/attribs.h>
 #include <string.h>
@@ -86,6 +89,11 @@ static Encoder_t LeftEncoder;
 static Encoder_t RightEncoder;
 static ControlState_t LeftControl;
 static ControlState_t RightControl;
+
+static bool LeftDriveGoalActive;
+static bool RightDriveGoalActive;
+static bool LeftDriveGoalReached;
+static bool RightDriveGoalReached;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -140,6 +148,11 @@ bool InitMotorControlDriver(void)
     memset(&RightEncoder, 0, sizeof(RightEncoder));
     memset(&LeftControl, 0, sizeof(LeftControl));
     memset(&RightControl, 0, sizeof(RightControl));
+    
+    LeftDriveGoalActive = 0;
+    RightDriveGoalActive = 0;
+    LeftDriveGoalReached = 0;
+    RightDriveGoalReached = 0;
     
     puts("...Done Initializing MotorControl\r\n");
  
@@ -218,6 +231,12 @@ void MotorControl_StopMotors(void)
     // Cancel any tick goal
     LeftControl.TargetTickCount = 0;
     RightControl.TargetTickCount = 0;
+    
+    // Reset Drive Goals
+    LeftDriveGoalActive = 0;
+    LeftDriveGoalReached = 0;
+    RightDriveGoalActive = 0;
+    RightDriveGoalReached = 0;
 
 }
 
@@ -344,10 +363,20 @@ void MotorControl_SetTickGoal(MotorControl_Motor_t WhichMotor, uint32_t NumTicks
     if (_Left_Motor == WhichMotor)
     {
         LeftControl.TargetTickCount = NumTicks; 
+        
+        // reset DriveReached
+        LeftDriveGoalReached = false;
+        // if NumTicks nonzero set to active
+        LeftDriveGoalActive = (NumTicks != 0);
     }
     else if (_Right_Motor == WhichMotor)
     {
-        RightControl.TargetTickCount = NumTicks;       
+        RightControl.TargetTickCount = NumTicks;
+        
+        // reset DriveReached
+        RightDriveGoalReached = false;
+        // if NumTicks nonzero set to active
+        RightDriveGoalActive = (NumTicks != 0);
     }   
 }
 
@@ -806,7 +835,8 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void)
         {
             // stop motor
             LeftControl.TargetRPM = 0;
-            // TODO: Post a target reached event
+            //Set DriveGoalReached to true
+            LeftDriveGoalReached = true;
             // Reset TargetTickCount
             LeftControl.TargetTickCount = 0;
         }
@@ -872,11 +902,37 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void)
         {
             // stop motor
             RightControl.TargetRPM = 0;
-            // TODO: Post a target reached event
+            //Set DriveGoalReached to true
+            LeftDriveGoalReached = true;
             // Reset TargetTickCount
             RightControl.TargetTickCount = 0;
         }
-    }    
+    } 
+    
+    // Check Drive Goal status for event posting
+    bool DriveGoalReached = false;
+    // if either are active
+    if (LeftDriveGoalActive || RightDriveGoalActive)
+    {
+        // If either are active and not reached, its false. Else, true
+        DriveGoalReached = !((LeftDriveGoalActive && !LeftDriveGoalReached) || 
+                (RightDriveGoalActive && !RightDriveGoalReached));
+    }
+    // Post event if reached
+    if (DriveGoalReached)
+    {
+        ES_Event_t PostEvent;
+        PostEvent.EventType = DRIVE_GOAL_REACHED;
+        PostDriveTrain(PostEvent);
+        
+        // Clear all flags
+        LeftDriveGoalActive = false;
+        LeftDriveGoalReached = false;
+        RightDriveGoalActive = false;
+        RightDriveGoalReached = false;
+    }
+    
+    // reenable interrupts
     __builtin_enable_interrupts();
 }
 

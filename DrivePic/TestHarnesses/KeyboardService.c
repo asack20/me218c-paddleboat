@@ -21,6 +21,7 @@
 #include "KeyboardService.h"
 #include "../DriveTrain/DriveTrain.h"
 #include "../DriveTrain/MotorControlDriver.h"
+#include "../SPI/SPIFollowerSM.h"
 #include "../FrameworkHeaders/ES_Timers.h"
 
 
@@ -31,6 +32,11 @@
 #define SMALL_TICK_TARGET 50
 #define BIG_TICK_TARGET 5*TICKS_PER_ROT
 #define LOG_TIME 10 // ms
+
+#define LOW_SPEED 100
+#define HIGH_SPEED 500
+#define EVENT_DISTANCE 50
+#define EVENT_ANGLE 90
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
@@ -48,6 +54,7 @@ static MotorControl_Direction_t LeftDirection;
 static MotorControl_Direction_t RightDirection;
 static uint16_t LeftSpeed;
 static uint16_t RightSpeed;
+static SPI_Speed_t EventSpeed;
 
 static bool LeftLog;
 static bool RightLog;
@@ -85,6 +92,8 @@ bool InitKeyboardService(uint8_t Priority)
     
     LeftLog = false;
     RightLog = false;
+    
+    EventSpeed = Low;
 
     return true;
 }
@@ -151,72 +160,134 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 {
                     PrintInstructions();
                 } break;
+
                 case 'q':
                 {
-                    printf("KeyboardService: posting DRIVE_STOP_MOTORS (CG: 0x00) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_STOP_MOTORS;
+                    printf("KeyboardService: posting DRIVE_STOP to DriveTrain\n\r");
+                    PostEvent.EventType = DRIVE_STOP;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'w':
                 {
-                    printf("KeyboardService: posting DRIVE_ROTATE_CW90 (CG: 0x02) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_ROTATE_CW90;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Forward %u cm\n\r", EVENT_DISTANCE);
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = EVENT_DISTANCE;
+                    SPICommand.Direction = _Forward_Dir;
+                    SPICommand.DriveType = Translation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'e':
                 {
-                    printf("KeyboardService: posting DRIVE_ROTATE_CW45 (CG: 0x03) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_ROTATE_CW45;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Backward %u cm\n\r", EVENT_DISTANCE);
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = EVENT_DISTANCE;
+                    SPICommand.Direction = _Backward_Dir;
+                    SPICommand.DriveType = Translation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'r':
                 {
-                    printf("KeyboardService: posting DRIVE_ROTATE_CCW90 (CG: 0x04) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_ROTATE_CCW90;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Clockwise %u degrees\n\r", EVENT_DISTANCE);
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = EVENT_DISTANCE;
+                    SPICommand.Direction = _Clockwise_Turn;
+                    SPICommand.DriveType = Rotation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 't':
                 {
-                    printf("KeyboardService: posting DRIVE_ROTATE_CCW45 (CG: 0x05) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_ROTATE_CCW45;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain CounterClockwise %u degrees\n\r", EVENT_DISTANCE);
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = EVENT_DISTANCE;
+                    SPICommand.Direction = _CounterClockwise_Turn;
+                    SPICommand.DriveType = Rotation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'y':
                 {
-                    printf("KeyboardService: posting DRIVE_FORWARD_HALF (CG: 0x08) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_FORWARD_HALF;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Forward Infinite\n\r");
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = 0;
+                    SPICommand.Direction = _Forward_Dir;
+                    SPICommand.DriveType = Translation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'u':
                 {
-                    printf("KeyboardService: posting DRIVE_FORWARD_FULL (CG: 0x09) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_FORWARD_FULL;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Backward Infinite\n\r");
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = 0;
+                    SPICommand.Direction = _Backward_Dir;
+                    SPICommand.DriveType = Translation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'i':
                 {
-                    printf("KeyboardService: posting DRIVE_BACKWARD_HALF (CG: 0x10) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_BACKWARD_HALF;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Clockwise Infinite\n\r");
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = 0;
+                    SPICommand.Direction = _Clockwise_Turn;
+                    SPICommand.DriveType = Rotation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'o':
                 {
-                    printf("KeyboardService: posting DRIVE_BACKWARD_FULL (CG: 0x11) to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_BACKWARD_FULL ;
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain CounterClockwise Infinite\n\r");
+                    SPI_MOSI_Command_t SPICommand;
+                    SPICommand.Data = 0;
+                    SPICommand.Direction = _CounterClockwise_Turn;
+                    SPICommand.DriveType = Rotation;
+                    SPICommand.Speed = EventSpeed;
+                    SPICommand.Name = SPI_DRIVE_DISTANCE;
+                    PostEvent.EventType = DRIVE_DISTANCE;
+                    PostEvent.EventParam = SPICommand.FullCommand;
                     PostDriveTrain(PostEvent);
                 } break;
                 case 'p':
                 {
-                    printf("KeyboardService: posting DRIVE_ROTATE_CWINF to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_ROTATE_CWINF ;
-                    PostDriveTrain(PostEvent);
+                    printf("KeyboardService: Setting EventSpeed to Low\n\r");
+                    EventSpeed = Low;
                 } break;
                 case '[':
                 {
-                    printf("KeyboardService: posting DRIVE_ROTATE_CCWINF to DriveTrain\n\r");
-                    PostEvent.EventType = DRIVE_ROTATE_CCWINF ;
-                    PostDriveTrain(PostEvent);
+                    printf("KeyboardService: Setting EventSpeed to Medium\n\r");
+                    EventSpeed = Medium;
                 } break;
+                
+                case ']':
+                {
+                    printf("KeyboardService: Setting EventSpeed to High\n\r");
+                    EventSpeed = High;
+                } break;
+                
                 case 'a':
                 {
                     if(!LeftLog && !RightLog)
@@ -405,17 +476,19 @@ void PrintInstructions(void)
 {
     printf( "\n\n---------------------------------------------------------\r\n");
     printf( "Press '?' to print Key Press meanings again\n\r");
-    printf( "Press 'q' to post DRIVE_STOP_MOTORS (CG: 0x00)\n\r");
-    printf( "Press 'w' to post DRIVE_ROTATE_CW90 (CG: 0x02)\n\r");
-    printf( "Press 'e' to post DRIVE_ROTATE_CW45 (CG: 0x03)\n\r");
-    printf( "Press 'r' to post DRIVE_ROTATE_CCW90 (CG: 0x04)\n\r");
-    printf( "Press 't' to post DRIVE_ROTATE_CCW45 (CG: 0x05)\n\r");
-    printf( "Press 'y' to post DRIVE_FORWARD_HALF (CG: 0x08)\n\r");
-    printf( "Press 'u' to post DRIVE_FORWARD_FULL (CG: 0x09)\n\r");
-    printf( "Press 'i' to post DRIVE_BACKWARD_HALF (CG: 0x10)\n\r");
-    printf( "Press 'o' to post DRIVE_BACKWARD_FULL (CG: 0x11)\n\r");
-    printf( "Press 'p' to post DRIVE_ROTATE_CWINF \n\r");
-    printf( "Press '[' to post DRIVE_ROTATE_CCWINF \n\r\n");
+    printf( "\n\n------------DriveTrain Events--------------\r\n");
+    printf( "Press 'q' to STOP Driving\n\r");
+    printf( "Press 'w' to Drive Forward %u cm\n\r", EVENT_DISTANCE);
+    printf( "Press 'e' to Drive Backward %u cm\n\r", EVENT_DISTANCE);
+    printf( "Press 'r' to Turn Clockwise %u degrees\n\r", EVENT_ANGLE);
+    printf( "Press 't' to Turn Counterclockwise %u degrees\n\n\r", EVENT_ANGLE);
+    printf( "Press 'y' to Drive Forward Infinite\n\r");
+    printf( "Press 'u' to Drive Backward Infinite\n\r");
+    printf( "Press 'i' to Turn Clockwise Infinite\n\r");
+    printf( "Press 'o' to CounterClockwise Infinite\n\n\r");
+    printf( "Press 'p' to set speed to Low \n\r");
+    printf( "Press '[' to set speed Medium \r\n");
+    printf( "Press ']' to set speed High \n\r\n");
     
     printf( "\n\n------------Closed Loop--------------\r\n");
     printf( "Press 'a' to DISABLE Closed Loop Control \n\r");

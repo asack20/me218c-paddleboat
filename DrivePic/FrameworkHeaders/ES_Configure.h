@@ -261,18 +261,21 @@ typedef enum
     /* User-defined events start here */
     ES_NEW_KEY,               /* signals a new key received from terminal */
     /* DriveTrain Events */
-    DRIVE_COMMAND_COMPLETE,
-    DRIVE_STOP_MOTORS,
-    DRIVE_ROTATE_CW90,
-    DRIVE_ROTATE_CW45,
-    DRIVE_ROTATE_CCW90,
-    DRIVE_ROTATE_CCW45,
-    DRIVE_FORWARD_HALF,
-    DRIVE_FORWARD_FULL,
-    DRIVE_BACKWARD_HALF,
-    DRIVE_BACKWARD_FULL,
-    DRIVE_ROTATE_CWINF,
-    DRIVE_ROTATE_CCWINF,
+    DRIVE_STOP,
+    DRIVE_DISTANCE,
+    DRIVE_UNTIL_BUMP,
+    DRIVE_TAPE_ALIGN,
+    DRIVE_BEACON_SWEEP,
+    DRIVE_UNDO_ROTATE,
+    DRIVE_GOAL_REACHED,
+    /* SPI RESPONSES*/
+    STOP_ACKNOWLEDGED,
+    BEACON_ACKNOWLEDGED,
+    BEACON_FOUND,
+    /* SENSORS*/
+    TAPE_FOUND,
+    BUMP_FOUND
+           
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -304,6 +307,8 @@ typedef enum
 #if NUM_DIST_LISTS > 7
 #define DIST_LIST7 PostTemplateFSM
 #endif
+
+#define PostSPIList ES_PostList00
 
 /****************************************************************************/
 // This is the list of event checking functions
