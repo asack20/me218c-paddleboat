@@ -195,9 +195,9 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 'r':
                 {
-                    printf("KeyboardService: posting Drive_Distance to DriveTrain Clockwise %u degrees\n\r", EVENT_DISTANCE);
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain Clockwise %u degrees\n\r", EVENT_ANGLE);
                     SPI_MOSI_Command_t SPICommand;
-                    SPICommand.Data = EVENT_DISTANCE;
+                    SPICommand.Data = EVENT_ANGLE;
                     SPICommand.Direction = _Clockwise_Turn;
                     SPICommand.DriveType = Rotation;
                     SPICommand.Speed = EventSpeed;
@@ -208,9 +208,9 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 't':
                 {
-                    printf("KeyboardService: posting Drive_Distance to DriveTrain CounterClockwise %u degrees\n\r", EVENT_DISTANCE);
+                    printf("KeyboardService: posting Drive_Distance to DriveTrain CounterClockwise %u degrees\n\r", EVENT_ANGLE);
                     SPI_MOSI_Command_t SPICommand;
-                    SPICommand.Data = EVENT_DISTANCE;
+                    SPICommand.Data = EVENT_ANGLE;
                     SPICommand.Direction = _CounterClockwise_Turn;
                     SPICommand.DriveType = Rotation;
                     SPICommand.Speed = EventSpeed;

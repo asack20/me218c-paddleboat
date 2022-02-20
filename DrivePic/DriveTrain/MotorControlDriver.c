@@ -833,6 +833,7 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void)
         // target reached
         if (LeftEncoder.TickCount >= LeftControl.TargetTickCount)
         {
+            printf("Left Drive Goal Reached \r\n");
             // stop motor
             LeftControl.TargetRPM = 0;
             //Set DriveGoalReached to true
@@ -900,37 +901,15 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void)
         // target reached
         if (RightEncoder.TickCount >= RightControl.TargetTickCount)
         {
+            printf("Right Drive Goal Reached \r\n");
             // stop motor
             RightControl.TargetRPM = 0;
             //Set DriveGoalReached to true
-            LeftDriveGoalReached = true;
+            RightDriveGoalReached = true;
             // Reset TargetTickCount
             RightControl.TargetTickCount = 0;
         }
     } 
-    
-    // Check Drive Goal status for event posting
-    bool DriveGoalReached = false;
-    // if either are active
-    if (LeftDriveGoalActive || RightDriveGoalActive)
-    {
-        // If either are active and not reached, its false. Else, true
-        DriveGoalReached = !((LeftDriveGoalActive && !LeftDriveGoalReached) || 
-                (RightDriveGoalActive && !RightDriveGoalReached));
-    }
-    // Post event if reached
-    if (DriveGoalReached)
-    {
-        ES_Event_t PostEvent;
-        PostEvent.EventType = DRIVE_GOAL_REACHED;
-        PostDriveTrain(PostEvent);
-        
-        // Clear all flags
-        LeftDriveGoalActive = false;
-        LeftDriveGoalReached = false;
-        RightDriveGoalActive = false;
-        RightDriveGoalReached = false;
-    }
     
     // reenable interrupts
     __builtin_enable_interrupts();
@@ -964,6 +943,30 @@ void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void)
     // Right Motor Control Law.
     UpdateControlLaw(&RightControl, &RightEncoder);
     MotorControl_SetMotorDutyCycle(_Right_Motor, RightControl.TargetDirection, (uint16_t)RightControl.RequestedDutyCycle);
+    
+    // Check Drive Goal status for event posting
+    bool DriveGoalReached = false;
+    // if either are active
+    if (LeftDriveGoalActive || RightDriveGoalActive)
+    {
+        // If either are active and not reached, its false. Else, true
+        DriveGoalReached = !((LeftDriveGoalActive && !LeftDriveGoalReached) || 
+                (RightDriveGoalActive && !RightDriveGoalReached));
+    }
+    // Post event if reached
+    if (DriveGoalReached)
+    {
+        printf("MotorControl: Posting DRIVE_GOAL_REACHED\n\r");
+        ES_Event_t PostEvent;
+        PostEvent.EventType = DRIVE_GOAL_REACHED;
+        PostDriveTrain(PostEvent);
+        
+        // Clear all flags
+        LeftDriveGoalActive = false;
+        LeftDriveGoalReached = false;
+        RightDriveGoalActive = false;
+        RightDriveGoalReached = false;
+    }
 }
 
 /****************************************************************************
