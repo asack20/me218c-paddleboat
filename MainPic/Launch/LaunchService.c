@@ -45,10 +45,10 @@
 #define FLAG_DOWN_DC 1250
 #define RELOAD_OUT_DC 5200
 #define RELOAD_IN_DC 6300
-#define LATCH_ENGAGE_DC 6250
-#define LATCH_RELEASE_DC 1250
-#define TENSION_ENGAGE_DC 6250
-#define TENSION_RELEASE_DC 2500
+#define LATCH_ENGAGE_DC 1250
+#define LATCH_RELEASE_DC 6250
+#define TENSION_ENGAGE_DC 3200
+#define TENSION_RELEASE_DC 6000
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
