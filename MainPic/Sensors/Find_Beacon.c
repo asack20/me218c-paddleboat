@@ -26,7 +26,9 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include <sys/attribs.h>
+#include "../HSM/RobotTopHSM.h"
 #include "Find_Beacon.h"
+#include "../SPI/SPILeaderSM.h"
 #include "../HALs/PIC32_AD_Lib.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "terminal.h"
@@ -242,6 +244,20 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 
                 //PostEvent.EventType = DRIVE_STOP_MOTORS;
                 //PostDriveTrain(PostEvent);
+                ES_Event_t NewEvent;
+                SPI_MOSI_Command_t NewCommand;
+                NewCommand.Name = SPI_STOP;
+                //NewCommand.DriveType = ;
+                //NewCommand.Direction = ;
+                //NewCommand.Speed = ;
+                //NewCommand.Data = ;
+                NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = NewCommand.FullCommand;
+                PostSPILeaderSM(NewEvent);
+                
+                NewEvent.EventType = BEACON_FOUND;
+                NewEvent.EventParam = 0;
+                PostRobotTopHSM(NewEvent);
                 
                 //send success message
                 DB_printf("Beacon found\r\n");
