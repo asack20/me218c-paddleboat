@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "../SensorInterfacing/Find_Beacon.h"
+#define SERV_2_HEADER "../SPI/SPIFollowerSM.h"
 // the name of the Init function
-#define SERV_2_INIT InitFind_Beacon
+#define SERV_2_INIT InitSPIFollowerSM
 // the name of the run function
-#define SERV_2_RUN RunFind_Beacon
+#define SERV_2_RUN SPIFollowerSM
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -263,7 +263,25 @@ typedef enum
     SPI_COMMAND_RECEIVED,
     SPI_TASK_COMPLETE,
     SPI_TASK_FAILED,
-    SPI_RESET
+    SPI_RESET,
+  /* DriveTrain Events */
+    DRIVE_STOP,
+    DRIVE_DISTANCE,
+    DRIVE_UNTIL_BUMP,
+    DRIVE_TAPE_ALIGN,
+    DRIVE_BEACON_SWEEP,
+    DRIVE_UNDO_ROTATE,
+    DRIVE_GOAL_REACHED,
+    /* SPI RESPONSES*/
+    STOP_ACKNOWLEDGED,
+    BEACON_ACKNOWLEDGED,
+    BEACON_FOUND,
+    /* SENSORS*/
+    TAPE_FOUND,
+    BUMP_FOUND
+           
+
+
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -296,10 +314,11 @@ typedef enum
 #define DIST_LIST7 PostTemplateFSM
 #endif
 
+#define PostSPIList ES_PostList00
+
 /****************************************************************************/
 // This is the list of event checking functions
 #define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF
-
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
 // corresponding timer expires. All 16 must be defined. If you are not using
@@ -322,7 +341,7 @@ typedef enum
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC TIMER_UNUSED
+#define TIMER15_RESP_FUNC PostKeyboardService
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -330,6 +349,8 @@ typedef enum
 // definitions for the response functions to make it easier to check that
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
+
+#define KEYBOARD_TIMER 15
 
 
 #endif /* ES_CONFIGURE_H */

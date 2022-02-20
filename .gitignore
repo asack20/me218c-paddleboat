@@ -55,3 +55,4 @@ Thumbs.db
 */nbproject/Makefile*
 */.generated_files/*
 */nbproject/private/*
+.generated_files/
