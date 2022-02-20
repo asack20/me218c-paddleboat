@@ -315,9 +315,9 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
               
               case 'P':
               {
-                puts("Posting SPI_RESPONSE_RECEIVED Event to SPILeaderSM with a param of 0x1111 \r\n");
+                puts("Posting SPI_RESPONSE_RECEIVED Event to SPILeaderSM with a param of 0x1000 \r\n");
                 NewEvent.EventType = SPI_RESPONSE_RECEIVED;
-                NewEvent.EventParam = 0xAAAA;
+                NewEvent.EventParam = 0x1000;
                 PostSPILeaderSM(NewEvent);
               }
               break;
@@ -554,6 +554,43 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 }
                 puts("Querying BeaconSM:\r");
                 DB_printf("BeaconSM is in state %s\r\n\n",StateChar);
+              }
+              break;
+              
+              case '8':
+              {
+                SPILeaderSMState_t CurrentSPILeaderSMState;
+                CurrentSPILeaderSMState = QuerySPILeaderSM();
+                char StateChar[40];
+                
+                switch (CurrentSPILeaderSMState)
+                {
+                    case SPILeaderInitState:
+                    {
+                        strcpy(StateChar,"Init");
+                    }
+                    break;
+                    
+                    case SPILeaderSendState:
+                    {
+                        strcpy(StateChar,"SendState");
+                    }
+                    break;
+                    
+                    case SPILeaderReceiveState:
+                    {
+                        strcpy(StateChar,"ReceiveState");
+                    }
+                    break;
+                            
+                    default:
+                    {
+                        strcpy(StateChar,"Not in a valid state - ERROR");
+                    }
+                    break;
+                }
+                puts("Querying SPILeaderSM:\r");
+                DB_printf("SPILeaderSM is in state %s\r\n\n",StateChar);
               }
               break;
               

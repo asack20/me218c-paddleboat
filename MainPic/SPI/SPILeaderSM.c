@@ -30,6 +30,8 @@
 #include "../HSM/RobotTopHSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_SPI_HAL.h"
+#include "terminal.h"
+#include "dbprintf.h"
 #include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
@@ -47,6 +49,7 @@
 
 bool InitializeSPI(void);
 ES_Event_t DecodeDrive2MainCommand(uint16_t);
+bool IsStillWorking(uint16_t);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -185,6 +188,10 @@ ES_Event_t RunSPILeaderSM(ES_Event_t ThisEvent)
                 if (NewEvent.EventType != ES_NO_EVENT) {
                     PostRobotTopHSM(NewEvent);
                 }
+                //If the response is anything other than Still_Working, go back to send state
+                if (!IsStillWorking(ThisEvent.EventParam)) {
+                    CurrentState = SPILeaderSendState;
+                }
                 
                 
                 //Afshan's SPI code
@@ -320,4 +327,19 @@ ES_Event_t DecodeDrive2MainCommand(uint16_t InputCommand) {
             break;
     }
     return ReturnEvent; 
+}
+
+bool IsStillWorking(uint16_t InputCommand) {
+    bool ReturnVal = false;
+    if ((InputCommand & 0xF000) == 0xF000){
+        ReturnVal = true;
+    }
+    if (!InputCommand) {
+        puts("--------------------------------------\r\n");
+        puts("WARNING - SPI RETURNING ALL 0\r\n");
+        puts("COMMS ERROR\r\n");
+        puts("--------------------------------------\r\n");
+        ReturnVal = true;
+    }
+    return ReturnVal;
 }

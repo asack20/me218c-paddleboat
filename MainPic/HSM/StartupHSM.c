@@ -136,10 +136,10 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   
                   SPI_MOSI_Command_t NewCommand;
                   NewCommand.Name = SPI_DRIVE_DISTANCE;
-                  NewCommand.DriveType = Forward_CW;
-                  NewCommand.Direction = Rotation;
+                  NewCommand.DriveType = Rotation;
+                  NewCommand.Direction = Forward_CW;
                   NewCommand.Speed = Low;
-                  //NewCommand.Data = ;
+                  NewCommand.Data = 0;
                   NewEvent.EventType = SEND_SPI_COMMAND;
                   NewEvent.EventParam = NewCommand.FullCommand;
                   PostSPILeaderSM(NewEvent);

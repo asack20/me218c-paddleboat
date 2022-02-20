@@ -57,6 +57,7 @@
    next lower level in the hierarchy that are sub-machines to this machine
 */
 #include "CycleHSM.h"
+#include "../SPI/SPILeaderSM.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 // define constants for the states for this machine
@@ -123,9 +124,14 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
                   // Execute action function for state one : event one
                    puts("Shot position reached\r");
                    puts("Take aim\r\n");
-                  NextState = CYCLE_AIM_STATE;//Decide what the next state will be
+                   puts("State machine CUT OFF here for checkpoint 3\r\n");
+                   //This is commented out for checkpoint 3
+                  //NextState = CYCLE_AIM_STATE;//Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
-                  MakeTransition = true; //mark that we are taking a transition
+                  
+                  MakeTransition = false; 
+                   
+                  // MakeTransition = true; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   EntryEventKind.EventType = ES_ENTRY;
                   // optionally, consume or re-map this event for the upper
@@ -341,6 +347,17 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
         ShotCount = 0;
         
         puts("Begin driving forward\r\n");
+        
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Translation;
+        NewCommand.Direction = Forward_CW;
+        NewCommand.Speed = Low;
+        NewCommand.Data = 0;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
