@@ -57,11 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "../TestHarnesses/KeyboardService.h"
+#define SERV_1_HEADER "../DriveTrain/DriveTrain.h"
 // the name of the Init function
-#define SERV_1_INIT InitKeyboardService
+#define SERV_1_INIT InitDriveTrain
 // the name of the run function
-#define SERV_1_RUN RunKeyboardService
+#define SERV_1_RUN RunDriveTrain
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "../SPI/SPIFollowerSM.h"
+#define SERV_2_HEADER "../TestHarnesses/KeyboardService.h"
 // the name of the Init function
-#define SERV_2_INIT InitSPIFollowerSM
+#define SERV_2_INIT InitKeyboardService
 // the name of the run function
-#define SERV_2_RUN SPIFollowerSM
+#define SERV_2_RUN RunKeyboardService
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -260,10 +260,6 @@ typedef enum
     ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
     /* User-defined events start here */
     ES_NEW_KEY,               /* signals a new key received from terminal */
-    SPI_COMMAND_RECEIVED,
-    SPI_TASK_COMPLETE,
-    SPI_TASK_FAILED,
-    SPI_RESET,
   /* DriveTrain Events */
     DRIVE_STOP,
     DRIVE_DISTANCE,
@@ -273,6 +269,10 @@ typedef enum
     DRIVE_UNDO_ROTATE,
     DRIVE_GOAL_REACHED,
     /* SPI RESPONSES*/
+    SPI_COMMAND_RECEIVED,
+    SPI_TASK_COMPLETE,
+    SPI_TASK_FAILED,
+    SPI_RESET,
     STOP_ACKNOWLEDGED,
     BEACON_ACKNOWLEDGED,
     BEACON_FOUND,
