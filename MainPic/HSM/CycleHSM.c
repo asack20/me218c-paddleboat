@@ -353,8 +353,8 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
         NewCommand.Name = SPI_DRIVE_DISTANCE;
         NewCommand.DriveType = Translation;
         NewCommand.Direction = Forward_CW;
-        NewCommand.Speed = Low;
-        NewCommand.Data = 0;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = 100;
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);

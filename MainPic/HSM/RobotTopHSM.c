@@ -51,6 +51,7 @@
 #define ONE_SEC 1000
 #define ONE_MIN (ONE_SEC * 60)
 #define EIGHTEEN_SEC (ONE_SEC * 18)
+#define DELAYTIME ONE_SEC
 
 /*---------------------------- Module Functions ---------------------------*/
 static ES_Event_t DuringRobotInitState( ES_Event_t Event);
@@ -159,6 +160,18 @@ ES_Event_t RunRobotTopHSM( ES_Event_t CurrentEvent )
          {
             switch (CurrentEvent.EventType)
             {
+               case ES_TIMEOUT:
+                   
+                   if (CurrentEvent.EventParam == StartupDelayTimer)
+                   {
+                        //Entry Action:  Post ROBOT_INIT_COMPLETE
+                        ES_Event_t NewEvent = {ROBOT_INIT_COMPLETE,0};
+                        PostRobotTopHSM(NewEvent);
+                        puts("Initialization Complete\r\n");
+                   }
+                   
+                   break;
+                
                case ROBOT_INIT_COMPLETE : //If event is event one
                   // Execute action function for state one : event one
                   NextState = ROBOT_INACTIVE_STATE;//Decide what the next state will be
@@ -339,12 +352,15 @@ static ES_Event_t DuringRobotInitState( ES_Event_t Event)
         // implement any entry actions required for this state machine
         
         //Entry Action:  Initialize All Hardware
-        puts("Entering RobotInitState - Initializing All Hardware (To Be Implemented)\r");
-        
-        //Entry Action:  Post ROBOT_INIT_COMPLETE
-        ES_Event_t NewEvent = {ROBOT_INIT_COMPLETE,0};
-        PostRobotTopHSM(NewEvent);
-        puts("Initialization Complete\r\n");
+        puts("Entering RobotInitState - Initializing All Hardware (To Be Implemented)\r\n");
+        puts("Start 1 second delay\r\n");
+                
+        ES_Timer_InitTimer(StartupDelayTimer,DELAYTIME);
+                
+//        //Entry Action:  Post ROBOT_INIT_COMPLETE
+//        ES_Event_t NewEvent = {ROBOT_INIT_COMPLETE,0};
+//        PostRobotTopHSM(NewEvent);
+//        puts("Initialization Complete\r\n");
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
