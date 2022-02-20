@@ -29,13 +29,14 @@
 #include "SPIFollowerSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_SPI_HAL.h"
+#include "../DriveTrain/DriveTrain.h"
 #include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
 #include <proc/p32mx170f256b.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-
+#define SPI_DEBUG
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -46,6 +47,7 @@
 */
 
 bool InitializeSPI(void);
+void DecodeSPICommand(SPI_MOSI_Command_t SPICommand);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -144,6 +146,8 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
     ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
     ES_Event_t PostEvent;
     
+    SPI_MISO_Command_t SPICommand;
+    
     switch (CurrentState)
     {
         case SPIFollowerInitState:        // If current state is initial  State
@@ -166,19 +170,47 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         case SPIFollowerReceiveState:
         {
             if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
-                //Interpret command and post it out
+                // Decode and post event to framework
+                DecodeSPICommand((SPI_MOSI_Command_t) ThisEvent.EventParam);
+#ifdef SPI_DEBUG
                 printf("Command Received: %x\r\n", ThisEvent.EventParam);
+#endif
             }
-            else if (ThisEvent.EventType == SPI_TASK_COMPLETE){
-                SendData = 0x1111;
-                printf("Complete\r\n");
+            else if (ThisEvent.EventType == STOP_ACKNOWLEDGED){
+                SPICommand.CommandBits.Name = SPI_STOP_ACKNOWLEDGED;
+                SendData = SPICommand.FullCommand;
+#ifdef SPI_DEBUG
+                printf("SPI Follower: Stop Acknowledged\r\n");
+#endif
+                
             }
-            else if (ThisEvent.EventType == SPI_TASK_FAILED){
-                SendData = 0xAAAA;
-                printf("Failed\r\n");
+            else if (ThisEvent.EventType == DRIVE_GOAL_REACHED){
+                SPICommand.CommandBits.Name = SPI_DRIVE_GOAL_REACHED;
+                SendData = SPICommand.FullCommand;
+#ifdef SPI_DEBUG
+                printf("SPI Follower: Drive Goal Reached\r\n");
+#endif                
             }
-            else if (ThisEvent.EventType == SPI_RESET){
-                SendData = 0xFFFF;
+            else if (ThisEvent.EventType == BUMP_FOUND){
+                SPICommand.CommandBits.Name = SPI_BUMP_SUCCESS;
+                SendData = SPICommand.FullCommand;
+#ifdef SPI_DEBUG
+                printf("SPI Follower: BUMP Success\r\n");
+#endif                
+            }
+            else if (ThisEvent.EventType == TAPE_FOUND){
+                SPICommand.CommandBits.Name = SPI_TAPE_SUCCESS;
+                SendData = SPICommand.FullCommand;
+#ifdef SPI_DEBUG
+                printf("SPI Follower: TAPE Success\r\n");
+#endif                
+            }
+            else if (ThisEvent.EventType == BEACON_ACKNOWLEDGED){
+                SPICommand.CommandBits.Name = SPI_BEACON_ACKNOWLEDGED;
+                SendData = SPICommand.FullCommand;
+#ifdef SPI_DEBUG
+                printf("SPI Follower: Beacon Acknowledged\r\n");
+#endif                
             }
         }break;
         default:
@@ -250,11 +282,99 @@ bool CheckSPIRBF(void)
     if (SPI1STATbits.SPIRBF) {
         //printf("%x\r\n",SendData);
         SPIOperate_SPI1_Send16(SendData);
-        SendData = 0xFFFF;
+        SPI_MISO_Command_t SPICommand;
+        SPICommand.CommandBits.Name = SPI_STILL_WORKING;
+        SendData = SPICommand.FullCommand;
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_COMMAND_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
         PostSPIFollowerSM(ThisEvent);
         return true;
+    }
+}
+
+/****************************************************************************
+ * Function
+ *      DecodeSPICommand
+ *      
+ * Parameters
+ *      SPI_MOSI_Command_t SPICommand - Command struct to be decoded
+ * Return
+ *      void
+ * Description
+ *      Takes 16bit val cast to a struct, decodes it and posts correct event to
+ *      Framework
+****************************************************************************/
+void DecodeSPICommand(SPI_MOSI_Command_t SPICommand)
+{
+    ES_Event_t PostEvent;
+    
+    switch (SPICommand.Name)
+    {
+        case SPI_POLL:
+        {
+            // Do nothing
+        } break;
+        
+        case SPI_STOP:
+        {
+            // post to drive train
+            PostEvent.EventType = DRIVE_STOP;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+            // TODO: Post to all services
+        } break;
+        
+        case SPI_DRIVE_DISTANCE:
+        {
+            // post to drive train
+            PostEvent.EventType = DRIVE_DISTANCE;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+            // TODO: Post to all services
+        } break;
+        
+        case SPI_DRIVE_UNTIL_BUMP:
+        {
+            // post to drive train
+            PostEvent.EventType = DRIVE_UNTIL_BUMP;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+            // TODO: Post to Bump Service
+        } break;
+        
+        case SPI_DO_TAPE_ALIGN:
+        {
+            // post to drive train
+            PostEvent.EventType = DRIVE_TAPE_ALIGN;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+            // TODO: Post to Tape Service
+        } break;
+        
+        case SPI_DO_BEACON_SWEEP:
+        {
+            // post to drive train
+            PostEvent.EventType = DRIVE_BEACON_SWEEP;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+        } break;
+        
+        case SPI_BEACON_FOUND:
+        {
+            // post to drive train
+            PostEvent.EventType = BEACON_FOUND;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+        } break;
+        
+        case SPI_UNDO_ROTATE:
+        {
+            // post to drive train
+            PostEvent.EventType = DRIVE_UNDO_ROTATE;
+            PostEvent.EventParam = SPICommand.FullCommand;
+            PostDriveTrain(PostEvent);
+        } break;
+                
     }
 }

@@ -290,7 +290,7 @@ typedef enum
 // services are on that distribution list.
 #define NUM_DIST_LISTS 1
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostKeyboardService
+#define DIST_LIST0 PostKeyboardService, PostSPIFollowerSM
 #endif
 #if NUM_DIST_LISTS > 1
 #define DIST_LIST1 PostFind_Tape
