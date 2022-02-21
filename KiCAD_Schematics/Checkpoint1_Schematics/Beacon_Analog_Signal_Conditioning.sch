@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 4 7
+Sheet 1 1
 Title "ME 218b Team 3 Project Schematic"
 Date ""
 Rev "v1"
@@ -235,57 +235,12 @@ F 3 "" H 4400 3750 50  0000 C CNN
 	1    4350 3550
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:+5V #PWR038
-U 1 1 61E4D0CB
-P 7100 2650
-F 0 "#PWR038" H 7100 2500 50  0001 C CNN
-F 1 "+5V" H 7115 2823 50  0000 C CNN
-F 2 "" H 7100 2650 50  0001 C CNN
-F 3 "" H 7100 2650 50  0001 C CNN
-	1    7100 2650
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	8000 3250 8200 3250
 Wire Wire Line
 	7600 3250 7700 3250
-Connection ~ 7600 3250
 Wire Wire Line
 	7600 3850 7600 3250
-Wire Wire Line
-	7100 3250 7100 3350
-Connection ~ 7100 3250
-Wire Wire Line
-	7100 3250 7600 3250
-Wire Wire Line
-	7100 3650 7100 3750
-Wire Wire Line
-	7100 3050 7100 3250
-Wire Wire Line
-	7100 2650 7100 2750
-$Comp
-L ME218_BaseLib:Res1 R4
-U 1 1 623811DC
-P 7100 3500
-F 0 "R4" H 7168 3546 50  0000 L CNN
-F 1 "100k" H 7168 3455 50  0000 L CNN
-F 2 "" V 7140 3490 50  0001 C CNN
-F 3 "" H 7100 3500 50  0001 C CNN
-	1    7100 3500
-	1    0    0    -1  
-$EndComp
-$Comp
-L ME218_BaseLib:Res1 R1
-U 1 1 623811DB
-P 7100 2900
-F 0 "R1" H 7168 2946 50  0000 L CNN
-F 1 "100k" H 7168 2855 50  0000 L CNN
-F 2 "" V 7140 2890 50  0001 C CNN
-F 3 "" H 7100 2900 50  0001 C CNN
-	1    7100 2900
-	1    0    0    -1  
-$EndComp
 $Comp
 L ME218_BaseLib:Res1 R3
 U 1 1 623811D9
@@ -317,68 +272,6 @@ F 1 "MCP6546" H 8244 3905 50  0000 L CNN
 F 2 "" H 7850 4050 50  0001 C CNN
 F 3 "" H 7950 4150 50  0001 C CNN
 	1    7900 3950
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	4050 5550 4250 5550
-Connection ~ 4050 5550
-Wire Wire Line
-	4050 5650 4050 5550
-Wire Wire Line
-	4050 6050 4050 5950
-$Comp
-L ME218_BaseLib:Cap C1
-U 1 1 623811D4
-P 4050 5800
-F 0 "C1" H 4165 5846 50  0000 L CNN
-F 1 "1u" H 4165 5755 50  0000 L CNN
-F 2 "" H 4088 5650 50  0001 C CNN
-F 3 "" H 4050 5800 50  0001 C CNN
-	1    4050 5800
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2950 5550 2950 5250
-Connection ~ 2950 5550
-Wire Wire Line
-	2950 5550 4050 5550
-Wire Wire Line
-	2950 5600 2950 5550
-Wire Wire Line
-	2950 5900 2950 6050
-Wire Wire Line
-	2950 4800 2950 4950
-$Comp
-L ME218_BaseLib:Res1 R3
-U 1 1 61DD96B1
-P 2950 5750
-F 0 "R3" H 3018 5796 50  0000 L CNN
-F 1 "20k" H 3018 5705 50  0000 L CNN
-F 2 "" V 2990 5740 50  0001 C CNN
-F 3 "" H 2950 5750 50  0001 C CNN
-	1    2950 5750
-	1    0    0    -1  
-$EndComp
-$Comp
-L ME218_BaseLib:Res1 R2
-U 1 1 623811D2
-P 2950 5100
-F 0 "R2" H 3018 5146 50  0000 L CNN
-F 1 "10k" H 3018 5055 50  0000 L CNN
-F 2 "" V 2990 5090 50  0001 C CNN
-F 3 "" H 2950 5100 50  0001 C CNN
-	1    2950 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR01
-U 1 1 623811D0
-P 2950 4800
-F 0 "#PWR01" H 2950 4650 50  0001 C CNN
-F 1 "+5V" H 2965 4973 50  0000 C CNN
-F 2 "" H 2950 4800 50  0001 C CNN
-F 3 "" H 2950 4800 50  0001 C CNN
-	1    2950 4800
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -419,17 +312,6 @@ F 3 "" H 4450 5150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L ME218_BaseLib:MCP6294 U1
-U 1 1 6238256C
-P 4550 5450
-F 0 "U1" H 4894 5496 50  0000 L CNN
-F 1 "MCP6294" H 4894 5405 50  0000 L CNN
-F 2 "" H 4500 5550 50  0000 C CNN
-F 3 "" H 4600 5650 50  0000 C CNN
-	1    4550 5450
-	1    0    0    -1  
-$EndComp
-$Comp
 L ME218_BaseLib:Photo_NPN Q1
 U 1 1 6238256B
 P 3350 5150
@@ -460,28 +342,6 @@ Text GLabel 9150 3250 2    49   Input ~ 0
 Beacon_Detect
 Text Notes 3400 2250 0    50   ~ 0
 This topology will have to be changed to match the universal signal conditioning board and the values changed during testing.
-$Comp
-L power:GNDREF #PWR047
-U 1 1 623E673A
-P 2950 6050
-F 0 "#PWR047" H 2950 5800 50  0001 C CNN
-F 1 "GNDREF" H 2955 5877 50  0000 C CNN
-F 2 "" H 2950 6050 50  0001 C CNN
-F 3 "" H 2950 6050 50  0001 C CNN
-	1    2950 6050
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GNDREF #PWR048
-U 1 1 623EC209
-P 4050 6050
-F 0 "#PWR048" H 4050 5800 50  0001 C CNN
-F 1 "GNDREF" H 4055 5877 50  0000 C CNN
-F 2 "" H 4050 6050 50  0001 C CNN
-F 3 "" H 4050 6050 50  0001 C CNN
-	1    4050 6050
-	1    0    0    -1  
-$EndComp
 $Comp
 L power:GNDREF #PWR046
 U 1 1 623EC563
@@ -516,17 +376,6 @@ F 3 "" H 7800 4250 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:GNDREF #PWR041
-U 1 1 623EE235
-P 7100 3750
-F 0 "#PWR041" H 7100 3500 50  0001 C CNN
-F 1 "GNDREF" H 7105 3577 50  0000 C CNN
-F 2 "" H 7100 3750 50  0001 C CNN
-F 3 "" H 7100 3750 50  0001 C CNN
-	1    7100 3750
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GNDREF #PWR042
 U 1 1 623EEBCB
 P 4250 3850
@@ -537,4 +386,37 @@ F 3 "" H 4250 3850 50  0001 C CNN
 	1    4250 3850
 	1    0    0    -1  
 $EndComp
+Text Label 6550 3250 0    50   ~ 0
+2.5V
+$Comp
+L ME218_BaseLib:Res1 R4
+U 1 1 6212ADA5
+P 7250 3250
+F 0 "R4" V 7045 3250 50  0000 C CNN
+F 1 "51k" V 7136 3250 50  0000 C CNN
+F 2 "" V 7290 3240 50  0001 C CNN
+F 3 "" H 7250 3250 50  0001 C CNN
+	1    7250 3250
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	6450 3250 7100 3250
+Wire Wire Line
+	7400 3250 7600 3250
+Connection ~ 7600 3250
+Text Label 3750 5550 0    50   ~ 0
+2.5V
+$Comp
+L ME218_BaseLib:MCP6294 U1
+U 1 1 6238256C
+P 4550 5450
+F 0 "U1" H 4894 5496 50  0000 L CNN
+F 1 "MCP6294" H 4894 5405 50  0000 L CNN
+F 2 "" H 4500 5550 50  0000 C CNN
+F 3 "" H 4600 5650 50  0000 C CNN
+	1    4550 5450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3650 5550 4250 5550
 $EndSCHEMATC
