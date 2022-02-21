@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 4
+#define NUM_SERVICES 5
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -96,11 +96,11 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "TestHarnessService4.h"
+#define SERV_4_HEADER "../Launch/LaunchService.h"
 // the name of the Init function
-#define SERV_4_INIT InitTestHarnessService4
+#define SERV_4_INIT InitLaunchService
 // the name of the run function
-#define SERV_4_RUN RunTestHarnessService4
+#define SERV_4_RUN RunLaunchService
 // How big should this services Queue be?
 #define SERV_4_QUEUE_SIZE 3
 #endif
@@ -286,7 +286,16 @@ typedef enum
   SPI_RESET,
   GAME_TIMEOUT,
   BUMP_OCCURRED,
-  MOTORS_STOPPED
+  MOTORS_STOPPED,
+  FLAG_UP,
+  FLAG_DOWN,
+  RELOAD_OUT,
+  RELOAD_IN,
+  LATCH_ENGAGE,
+  LATCH_RELEASE,
+  TENSION_ENGAGE,
+  TENSION_RELEASE,
+  SERVO_RESET
 }ES_EventType_t;
 
 /****************************************************************************/
