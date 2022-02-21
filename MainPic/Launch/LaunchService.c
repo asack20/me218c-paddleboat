@@ -41,14 +41,14 @@
 #define FULL_CW ((uint16_t)(0.5*TICS_PER_MS))
 #define FULL_CCW ((uint16_t)(2.35*TICS_PER_MS))
 
-#define FLAG_UP_DC 6250
-#define FLAG_DOWN_DC 1250
-#define RELOAD_OUT_DC 5200
-#define RELOAD_IN_DC 6300
-#define LATCH_ENGAGE_DC 1250
-#define LATCH_RELEASE_DC 6250
-#define TENSION_ENGAGE_DC 3200
-#define TENSION_RELEASE_DC 6000
+#define FLAG_UP_DC 6250 //6250
+#define FLAG_DOWN_DC 1250 //1250
+#define RELOAD_OUT_DC 4800 //5200
+#define RELOAD_IN_DC 6200 //6300
+#define LATCH_ENGAGE_DC 1250 //1250
+#define LATCH_RELEASE_DC 6250 //6250
+#define TENSION_ENGAGE_DC 3200 //3200
+#define TENSION_RELEASE_DC 6000 //6000
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
