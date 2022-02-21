@@ -36,7 +36,7 @@
 #include <proc/p32mx170f256b.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-#define SPI_DEBUG
+//#define SPI_DEBUG
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function

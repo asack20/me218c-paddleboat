@@ -440,6 +440,24 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     RightLog = false;
                 } break;
                 
+                case '0':
+                {
+                    printf("KeyboardService: Moving both motors at 30 percent DC\n\r");
+                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 300);
+                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 300);
+                }break;
+                case '-':
+                {
+                    printf("KeyboardService: Moving both motors at 50 percent DC\n\r");
+                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 500);
+                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 500);
+                }break;
+                case '=':
+                {
+                    printf("KeyboardService: Moving both motors at 100 percent DC\n\r");
+                    MotorControl_SetMotorDutyCycle(_Left_Motor, _Forward_Dir, 1000);
+                    MotorControl_SetMotorDutyCycle(_Right_Motor, _Forward_Dir, 1000);
+                }break;
                 case '.':
                 {
                     printf("KeyboardService: Current Motor Details\n\r");
@@ -476,6 +494,12 @@ void PrintInstructions(void)
 {
     printf( "\n\n---------------------------------------------------------\r\n");
     printf( "Press '?' to print Key Press meanings again\n\r");
+    
+    printf( "\n\n------------Open Loop--------------\r\n");
+    printf( "Press '0' to Drive at 30 percent duty cycle\n\r");
+    printf( "Press '-' to Drive at 50 percent duty cycle\n\r");
+    printf( "Press '=' to Drive at 100 percent duty cycle\n\r");
+    
     printf( "\n\n------------DriveTrain Events--------------\r\n");
     printf( "Press 'q' to STOP Driving\n\r");
     printf( "Press 'w' to Drive Forward %u cm\n\r", EVENT_DISTANCE);
