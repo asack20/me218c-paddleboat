@@ -30,6 +30,7 @@
 #include "../Sensors/Find_Beacon.h"
 #include "../SPI/SPILeaderSM.h"
 #include "../Launch/LaunchService.h"
+#include "../HSM/CycleShootHSM.h"
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
@@ -193,7 +194,7 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                   puts("Query State of CycleHSM:                         \'4\'\r");
                   puts("Query State of DriveTrainHSM:                    \'5\'\r");
                   puts("Query State of BeaconSM:                         \'6\'\r");
-                  puts("Query State of TapeSM:                           \'7\'\r");
+                  puts("Query State of CycleShootHSM                     \'7\'\r");
                   puts("Query State of SPILeaderSM:                      \'8\'\r");
                   puts("----------------------------------------------------\r\n");
               }
@@ -629,6 +630,55 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 }
                 puts("Querying BeaconSM:\r");
                 DB_printf("BeaconSM is in state %s\r\n\n",StateChar);
+              }
+              break;
+              
+              case '7':
+              {
+                CycleShootHSMState_t CurrentCycleShootHSMState;
+                CurrentCycleShootHSMState = QueryCycleShootHSM();
+                char StateChar[40];
+                
+                switch (CurrentCycleShootHSMState)
+                {
+                    case CycleShootEntry:
+                    {
+                        strcpy(StateChar,"Entry");
+                    }
+                    break;
+                    
+                    case CycleShootTension:
+                    {
+                        strcpy(StateChar,"Tension");
+                    }
+                    break;
+                    
+                    case CycleShootFire:
+                    {
+                        strcpy(StateChar,"Fire");
+                    }
+                    break;
+                    
+                    case CycleShootRelease:
+                    {
+                        strcpy(StateChar,"Release");
+                    }
+                    break;
+                    
+                    case CycleShootSecure:
+                    {
+                        strcpy(StateChar,"Secure");
+                    }
+                    break;
+                    
+                    default:
+                    {
+                        strcpy(StateChar,"Not in a valid state - ERROR");
+                    }
+                    break;
+                }
+                puts("Querying CycleShootHSM:\r");
+                DB_printf("CycleShootHSM is in state %s\r\n\n",StateChar);
               }
               break;
               
