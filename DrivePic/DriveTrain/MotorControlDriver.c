@@ -24,7 +24,7 @@
 #define dGain 1
 #define PositionGain 0.5
 // Target RPM at the Goal Position. This is to prevent the robot from coming to a stop early
-#define PositionGainOffset 0 //(Try 2 rpm)
+#define PositionGainOffset 2 //(Try 2 rpm)
 
 #define MAX_RPM 250 // RPM measurements above this value will be ignored to reduce noise
 
