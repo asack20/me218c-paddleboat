@@ -24,6 +24,8 @@
 #define dGain 1
 #define PositionGain 0.5
 
+#define MAX_RPM 250 // RPM measurements above this value will be ignored to reduce noise
+
 // Drive Train
 #define TICKS_PER_CM 7.639 // Encoder ticks per cm of drive train distance
 #define TICKS_PER_DEGREE 1.763 // ticks per degree of drive train rotation
@@ -35,7 +37,7 @@
 #define MAX_DUTY_CYCLE 1000
 #define CONTROL_LAW_PERIOD 24999 // Set period to be 5 ms
 #define PERIOD_2_RPM 1000000 // conversion factor ((10^9*60)/(200*6*50))
-#define ZERO_SPEED_PERIOD 10000000 // Amount of ticks considered not moving (0.1rpm)
+#define ZERO_SPEED_PERIOD 1000000 // Amount of ticks considered not moving (1rpm)
 
 // Left motor ports and pins
 #define L_DIRB_PORT _Port_A
@@ -813,7 +815,10 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void)
     LeftEncoder.CurrentPeriod.TotalTime = ICTimerRollover.TotalTime - LeftEncoder.LastTime.TotalTime;
     LeftEncoder.LastTime.TotalTime = ICTimerRollover.TotalTime;
     LeftEncoder.TickCount++;
-    LeftEncoder.CurrentRPM = (float) PERIOD_2_RPM / LeftEncoder.CurrentPeriod.TotalTime;
+    
+    // Calculate RPM. Only keep if below max
+    float TempRPM = (float) PERIOD_2_RPM / LeftEncoder.CurrentPeriod.TotalTime;
+    if (TempRPM < MAX_RPM) LeftEncoder.CurrentRPM = TempRPM;
     
     // Trigger was a rising edge
     if (1 == L_ENCODER_CHA)
@@ -882,7 +887,10 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void)
     RightEncoder.CurrentPeriod.TotalTime = ICTimerRollover.TotalTime - RightEncoder.LastTime.TotalTime;
     RightEncoder.LastTime.TotalTime = ICTimerRollover.TotalTime;
     RightEncoder.TickCount++;
-    RightEncoder.CurrentRPM = (float) PERIOD_2_RPM / RightEncoder.CurrentPeriod.TotalTime;
+    
+    // Calculate RPM. Only keep if below max
+    float TempRPM = (float) PERIOD_2_RPM / RightEncoder.CurrentPeriod.TotalTime;
+    if (TempRPM < MAX_RPM) RightEncoder.CurrentRPM = TempRPM;
     
     // Trigger was a rising edge
     if (1 == R_ENCODER_CHA)
