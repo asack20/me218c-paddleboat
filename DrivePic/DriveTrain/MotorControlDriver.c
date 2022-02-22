@@ -26,6 +26,8 @@
 
 #define MAX_RPM 250 // RPM measurements above this value will be ignored to reduce noise
 
+#define TICK_DISTANCE_ERROR 3 // Number of ticks error considered at target 
+
 // Drive Train
 #define TICKS_PER_CM 7.639 // Encoder ticks per cm of drive train distance
 #define TICKS_PER_DEGREE 1.763 // ticks per degree of drive train rotation
@@ -835,8 +837,8 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void)
     // Distance handling
     if (LeftControl.TargetTickCount != 0) // Tick Target is set
     {
-        // target reached
-        if (LeftEncoder.TickCount >= LeftControl.TargetTickCount)
+        // target reached within margin of error
+        if (LeftEncoder.TickCount >= (LeftControl.TargetTickCount - TICK_DISTANCE_ERROR))
         {
             printf("Left Drive Goal Reached \r\n");
             // stop motor
@@ -907,7 +909,7 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void)
     if (RightControl.TargetTickCount != 0) // Tick Target is set
     {
         // target reached
-        if (RightEncoder.TickCount >= RightControl.TargetTickCount)
+        if (RightEncoder.TickCount >= (RightControl.TargetTickCount - TICK_DISTANCE_ERROR))
         {
             printf("Right Drive Goal Reached \r\n");
             // stop motor
