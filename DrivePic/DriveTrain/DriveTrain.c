@@ -46,7 +46,7 @@
 */
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
-// type of state variable should match htat of enum in header file
+// type of state variable should match that of enum in header file
 static DriveTrainState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
@@ -55,13 +55,15 @@ static uint8_t MyPriority;
 // Speed (RPM*10)corresponding to Stopped, Low, Medium, High respectively
 const uint16_t Speeds[] = {0, 100, 300, 500};
 
+static int16_t SweepAmount;
+
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
      InitDriveTrain
 
  Parameters
-     uint8_t : the priorty of this service
+     uint8_t : the priority of this service
 
  Returns
      bool, false if error in initialization, true otherwise
@@ -84,6 +86,8 @@ bool InitDriveTrain(uint8_t Priority)
     CurrentState = DriveInitState;
 
     InitMotorControlDriver();
+    
+    SweepAmount = 0;
     
     puts("...Done Initializing DriveTrain\r\n");
  
@@ -150,7 +154,9 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
     {
         MotorControl_StopMotors();
         CurrentState = DriveStoppedState;
-        
+#ifdef DRIVE_DEBUG
+        printf("DriveDebug: Stopping motors \r\n");
+#endif        
         PostEvent.EventType = STOP_ACKNOWLEDGED;
         PostSPIList(PostEvent);
     }
@@ -222,7 +228,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 
                 case DRIVE_BEACON_SWEEP:
                 {
-                    // Turn CLockwise by SWEEP_CW_ANGLE at slow speed
+                    // Turn Clockwise by SWEEP_CW_ANGLE at slow speed
                     MotorControl_DriveStraight(_Clockwise_Turn, Speeds[Low], SWEEP_CW_ANGLE);
 #ifdef DRIVE_DEBUG
                     printf("DriveDebug: Starting Drive Clockwise Sweep\r\n");
@@ -265,32 +271,134 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
         // Tape Detect
         case (DriveUntilFirstTapeDetectState):
         {
-            
+            CurrentState = DriveStoppedState;
+#ifdef DRIVE_DEBUG
+            printf("DriveDebug: DriveUntilFirstTapeDetectState NOT IMPLEMENTED. Returning to DriveStoppedState\r\n");
+#endif              
         } break;
         
         case (DriveTapeSquareUpState):
         {
-            
+            CurrentState = DriveStoppedState;
+#ifdef DRIVE_DEBUG
+            printf("DriveDebug: DriveTapeSquareUpState NOT IMPLEMENTED. Returning to DriveStoppedState\r\n");
+#endif  
         } break;
         
         case (DriveClockwiseSweepState):
         {
-            
+            if (BEACON_FOUND == ThisEvent.EventType)
+            {
+                MotorControl_StopMotors();
+                
+                // Store Current ticks on Left Encoder
+                Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
+                SweepAmount = LeftEncoder.TickCount;
+                
+                PostEvent.EventType = BEACON_ACKNOWLEDGED;
+                PostSPIList(PostEvent);
+                
+                CurrentState = DriveBeaconWaitState;
+                
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Beacon Found. Time to shoot\r\n");
+#endif                
+            }
+            // Beacon not found. Start moving in opposite direction
+            else if (DRIVE_GOAL_REACHED == ThisEvent.EventType)
+            {
+                MotorControl_StopMotors();
+                
+                // Store Current ticks on Left Encoder
+                Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
+                SweepAmount = LeftEncoder.TickCount;
+                
+                // Turn CounterClockwise by 360 + SWEEP_CW_ANGLE at slow speed
+                MotorControl_DriveStraight(_CounterClockwise_Turn, Speeds[Low], 360+SWEEP_CW_ANGLE);
+                
+                CurrentState = DriveCounterClockwiseSweepState;
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Beacon not Found. Starting Drive CounterClockwise Sweep\r\n");
+#endif
+            }
         } break;
         
         case (DriveCounterClockwiseSweepState):
         {
-            
+            if (BEACON_FOUND == ThisEvent.EventType)
+            {
+                MotorControl_StopMotors();
+                
+                // Store Current ticks on Left Encoder
+                Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
+                // Subtract counterclockwise from clockwise amount
+                SweepAmount -= LeftEncoder.TickCount;
+                
+                PostEvent.EventType = BEACON_ACKNOWLEDGED;
+                PostSPIList(PostEvent);
+                
+                CurrentState = DriveBeaconWaitState;
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Beacon Found. Time to shoot\r\n");
+#endif                  
+            }
+            // Beacon not found.
+            else if (DRIVE_GOAL_REACHED == ThisEvent.EventType)
+            {
+                MotorControl_StopMotors();
+                
+                // Post to SPI
+                PostEvent.EventType = DRIVE_GOAL_REACHED;
+                PostSPIList(PostEvent);
+                
+                CurrentState = DriveStoppedState;
+                
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Beacon not Found again. Abort cycle\r\n");
+#endif                 
+            }
         } break;
         
         case (DriveBeaconWaitState):
         {
-            
+            if (DRIVE_UNDO_ROTATE == ThisEvent.EventType)
+            {
+                //Overall rotation was clockwise
+                if (SweepAmount >= 0)
+                {                    
+                    // Need to convert Ticks back to angle 
+                    uint16_t Angle = (uint16_t)((float) SweepAmount / TICKS_PER_DEGREE);
+                    // Undo rotation in counterclockwise direction
+                    MotorControl_DriveTurn(_CounterClockwise_Turn, Speeds[Medium], Angle);
+                }
+                else // rotation was CCW
+                {
+                    // Need to convert Ticks back to angle (SweepAmount is negative)
+                    uint16_t Angle = (uint16_t)((float) -1* SweepAmount / TICKS_PER_DEGREE);
+                    // Undo rotation in clockwise direction
+                    MotorControl_DriveTurn(_Clockwise_Turn, Speeds[Medium], Angle);
+                }
+                CurrentState = DriveUndoRotateState;
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Shooting complete. Returning to straight orientation\r\n");
+#endif                 
+            }
         } break;
         
         case (DriveUndoRotateState):
         {
-            
+            if (DRIVE_GOAL_REACHED == ThisEvent.EventType)
+            {
+                MotorControl_StopMotors();
+                
+                PostEvent.EventType = DRIVE_GOAL_REACHED;
+                PostSPIList(PostEvent);
+                
+                CurrentState = DriveStoppedState;
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Back to original orientation. Ready to return to reload zone\r\n");
+#endif                 
+            }
         } break;
         
         default:

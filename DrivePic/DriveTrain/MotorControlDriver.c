@@ -23,14 +23,12 @@
 #define iGain 2
 #define dGain 1
 #define PositionGain 0.5
+// Target RPM at the Goal Position. This is to prevent the robot from coming to a stop early
+#define PositionGainOffset 0 //(Try 2 rpm)
 
 #define MAX_RPM 250 // RPM measurements above this value will be ignored to reduce noise
 
-#define TICK_DISTANCE_ERROR 3 // Number of ticks error considered at target 
-
-// Drive Train
-#define TICKS_PER_CM 7.639 // Encoder ticks per cm of drive train distance
-#define TICKS_PER_DEGREE 1.763 // ticks per degree of drive train rotation
+#define TICK_DISTANCE_ERROR 0 // Number of ticks error considered at target 
 
 // PWM configuration
 #define PWM_TIMER 3
@@ -1003,8 +1001,10 @@ void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder)
     if (ThisControl->TargetTickCount != 0)
     {
         // Scale target velocity based on distance to goal
-        ThisControl->ActualTargetRPM = PositionGain * 
-                (float)(ThisControl->TargetTickCount - ThisEncoder->TickCount);
+        ThisControl->ActualTargetRPM = (PositionGain * 
+                (float)(ThisControl->TargetTickCount - ThisEncoder->TickCount))
+                + PositionGainOffset; // offset the 0rpm point to beyond the goal
+                                      // to prevent issues with very low velocity motion
         
         // Bound by 0 and TargetRPM
         // Take Min of the two
