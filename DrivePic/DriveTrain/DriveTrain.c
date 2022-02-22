@@ -245,6 +245,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
             {
                 // stop motors
                 MotorControl_StopMotors();
+                CurrentState = DriveStoppedState;
                 // Post DRIVE_GOAL_REACHED to SPI
                 PostEvent.EventType = DRIVE_GOAL_REACHED;
                 PostSPIList(PostEvent);
@@ -261,6 +262,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
             {
                 // stop motors
                 MotorControl_StopMotors();
+                CurrentState = DriveStoppedState;
                 
 #ifdef DRIVE_DEBUG
                 printf("DriveDebug: DriveUntilBump BUMP_FOUND\r\n");
