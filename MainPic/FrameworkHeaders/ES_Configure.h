@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 5
+#define NUM_SERVICES 7
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -109,11 +109,11 @@
 // These are the definitions for Service 5
 #if NUM_SERVICES > 5
 // the header file with the public function prototypes
-#define SERV_5_HEADER "TestHarnessService5.h"
+#define SERV_5_HEADER "../Sensors/StartButton.h"
 // the name of the Init function
-#define SERV_5_INIT InitTestHarnessService5
+#define SERV_5_INIT InitStartButton
 // the name of the run function
-#define SERV_5_RUN RunTestHarnessService5
+#define SERV_5_RUN RunStartButton
 // How big should this services Queue be?
 #define SERV_5_QUEUE_SIZE 3
 #endif
@@ -122,11 +122,11 @@
 // These are the definitions for Service 6
 #if NUM_SERVICES > 6
 // the header file with the public function prototypes
-#define SERV_6_HEADER "TestHarnessService6.h"
+#define SERV_6_HEADER "../Sensors/ReloadButton.h"
 // the name of the Init function
-#define SERV_6_INIT InitTestHarnessService6
+#define SERV_6_INIT InitReloadButton
 // the name of the run function
-#define SERV_6_RUN RunTestHarnessService6
+#define SERV_6_RUN RunReloadButton
 // How big should this services Queue be?
 #define SERV_6_QUEUE_SIZE 3
 #endif
@@ -295,7 +295,9 @@ typedef enum
   LATCH_RELEASE,
   TENSION_ENGAGE,
   TENSION_RELEASE,
-  SERVO_RESET
+  SERVO_RESET,
+  START_BUTTON_CHANGE,
+  RELOAD_BUTTON_CHANGE
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -330,7 +332,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF
+#define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF, CheckStartButtonEvents, CheckReloadButtonEvents
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -348,8 +350,8 @@ typedef enum
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
 #define TIMER8_RESP_FUNC TIMER_UNUSED
-#define TIMER9_RESP_FUNC TIMER_UNUSED
-#define TIMER10_RESP_FUNC TIMER_UNUSED
+#define TIMER9_RESP_FUNC PostReloadButton
+#define TIMER10_RESP_FUNC PostStartButton
 #define TIMER11_RESP_FUNC PostRobotTopHSM
 #define TIMER12_RESP_FUNC PostRobotTopHSM
 #define TIMER13_RESP_FUNC PostRobotTopHSM
@@ -368,5 +370,7 @@ typedef enum
 #define StartupDelayTimer 13
 #define ReloadTimer 12
 #define ShotTimer 11
+#define StartButtonTimer 10
+#define ReloadButtonTimer 9
 
 #endif /* ES_CONFIGURE_H */
