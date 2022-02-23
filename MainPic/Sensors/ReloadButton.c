@@ -37,9 +37,9 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 
-#define START_BUTTON_PORT _Port_A //Physical pin 12
-#define START_BUTTON_PIN _Pin_4
-#define START_BUTTON_VAL PORTAbits.RA4
+#define RELOAD_BUTTON_PORT _Port_B //Physical pin 17
+#define RELOAD_BUTTON_PIN _Pin_8
+#define RELOAD_BUTTON_VAL PORTBbits.RB8
 #define DEBOUNCE_TIME 5
 
 /*----------------------------- Module Types ------------------------------*/
@@ -91,14 +91,14 @@ bool InitReloadButton(uint8_t Priority)
     // put us into the Initial PseudoState
     
     //Initialize digital input for start button
-    PortSetup_ConfigureDigitalInputs(START_BUTTON_PORT, START_BUTTON_PIN);
+    PortSetup_ConfigureDigitalInputs(RELOAD_BUTTON_PORT, RELOAD_BUTTON_PIN);
     //configure internal pull up resistor
-    PortSetup_ConfigurePullUps(START_BUTTON_PORT, START_BUTTON_PIN);
+    PortSetup_ConfigurePullUps(RELOAD_BUTTON_PORT, RELOAD_BUTTON_PIN);
     //Set LastButtonState to value read from button pin
-    LastButtonState = (bool) START_BUTTON_VAL;
+    LastButtonState = (bool) RELOAD_BUTTON_VAL;
     CurrentButtonState = LastButtonState;
     
-    CurrentState = ReloadButtonLow;
+    CurrentState = ReloadButtonHigh;
     
     puts("...Done Initializing ReloadButton\r\n");
  
@@ -162,28 +162,29 @@ ES_Event_t RunReloadButton(ES_Event_t ThisEvent)
     switch (CurrentState)
     {
         
-        case ReloadButtonLow:
-        {
-            if (ThisEvent.EventType == START_BUTTON_CHANGE){
-                ES_Timer_InitTimer(ReloadButtonTimer,DEBOUNCE_TIME);
-            }
-            if (ThisEvent.EventType == ES_TIMEOUT){
-                if(CurrentButtonState == 1){
-                    CurrentState = ReloadButtonHigh;
-                    ES_Event_t PostEvent;
-                    PostEvent.EventType = RELOAD_COMPLETE;
-                    //Post Somewhere PostReloadButton(PostEvent);
-                }
-            }           
-        }break;
         case ReloadButtonHigh:
         {
-            if (ThisEvent.EventType == START_BUTTON_CHANGE){
+            if (ThisEvent.EventType == RELOAD_BUTTON_CHANGE){
                 ES_Timer_InitTimer(ReloadButtonTimer,DEBOUNCE_TIME);
             }
             if (ThisEvent.EventType == ES_TIMEOUT){
                 if(CurrentButtonState == 0){
                     CurrentState = ReloadButtonLow;
+                    ES_Event_t PostEvent;
+                    PostEvent.EventType = RELOAD_COMPLETE;
+                    //printf("reload\r\n");
+                    PostRobotTopHSM(PostEvent);
+                }
+            }           
+        }break;
+        case ReloadButtonLow:
+        {
+            if (ThisEvent.EventType == RELOAD_BUTTON_CHANGE){
+                ES_Timer_InitTimer(ReloadButtonTimer,DEBOUNCE_TIME);
+            }
+            if (ThisEvent.EventType == ES_TIMEOUT){
+                if(CurrentButtonState == 1){
+                    CurrentState = ReloadButtonHigh;
                 }
             }
         }break;
@@ -223,7 +224,7 @@ bool CheckReloadButtonEvents(void)
     ES_Event_t PostEvent;
     
     // Set CurrentButtonState to state read from port pin
-    CurrentButtonState = (bool) START_BUTTON_VAL;
+    CurrentButtonState = (bool) RELOAD_BUTTON_VAL;
     // If the CurrentButtonState is different from the LastButtonState
     if (CurrentButtonState != LastButtonState)
     {  

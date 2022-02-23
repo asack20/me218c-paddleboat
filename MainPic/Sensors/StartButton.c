@@ -92,13 +92,11 @@ bool InitStartButton(uint8_t Priority)
     
     //Initialize digital input for start button
     PortSetup_ConfigureDigitalInputs(START_BUTTON_PORT, START_BUTTON_PIN);
-    //configure internal pull up resistor
-    PortSetup_ConfigurePullUps(START_BUTTON_PORT, START_BUTTON_PIN);
     //Set LastButtonState to value read from button pin
     LastButtonState = (bool) START_BUTTON_VAL;
     CurrentButtonState = LastButtonState;
     
-    CurrentState = StartButtonLow;
+    CurrentState = StartButtonHigh;
     
     puts("...Done Initializing StartButton\r\n");
  
@@ -162,20 +160,6 @@ ES_Event_t RunStartButton(ES_Event_t ThisEvent)
     switch (CurrentState)
     {
         
-        case StartButtonLow:
-        {
-            if (ThisEvent.EventType == START_BUTTON_CHANGE){
-                ES_Timer_InitTimer(StartButtonTimer,DEBOUNCE_TIME);
-            }
-            if (ThisEvent.EventType == ES_TIMEOUT){
-                if(CurrentButtonState == 1){
-                    CurrentState = StartButtonHigh;
-                    ES_Event_t PostEvent;
-                    PostEvent.EventType = START_BUTTON_PRESSED;
-                    //Post Somewhere PostStartButton(PostEvent);
-                }
-            }           
-        }break;
         case StartButtonHigh:
         {
             if (ThisEvent.EventType == START_BUTTON_CHANGE){
@@ -184,6 +168,21 @@ ES_Event_t RunStartButton(ES_Event_t ThisEvent)
             if (ThisEvent.EventType == ES_TIMEOUT){
                 if(CurrentButtonState == 0){
                     CurrentState = StartButtonLow;
+                    ES_Event_t PostEvent;
+                    PostEvent.EventType = START_BUTTON_PRESSED;
+                    //printf("start\r\n");
+                    PostRobotTopHSM(PostEvent);
+                }
+            }           
+        }break;
+        case StartButtonLow:
+        {
+            if (ThisEvent.EventType == START_BUTTON_CHANGE){
+                ES_Timer_InitTimer(StartButtonTimer,DEBOUNCE_TIME);
+            }
+            if (ThisEvent.EventType == ES_TIMEOUT){
+                if(CurrentButtonState == 1){
+                    CurrentState = StartButtonHigh;
                 }
             }
         }break;
