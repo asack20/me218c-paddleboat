@@ -19,9 +19,9 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 // PID constants
-#define pGain 0.5
+#define pGain 1
 #define iGain 2
-#define dGain 1
+#define dGain 0.5
 #define PositionGain 0.5
 // Target RPM at the Goal Position. This is to prevent the robot from coming to a stop early
 #define PositionGainOffset 2 //(Try 2 rpm)

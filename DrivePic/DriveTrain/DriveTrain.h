@@ -15,10 +15,6 @@
 #include "ES_Types.h"     /* gets bool type for returns */
 #include "ES_Framework.h"
 
-// Drive Train (In header to allow use in other modules)
-#define TICKS_PER_CM 7.639 // Encoder ticks per cm of drive train distance
-#define TICKS_PER_DEGREE 1.763 // ticks per degree of drive train rotation
-
 // typedefs for the states
 // State definitions for use with the query function
 typedef enum
