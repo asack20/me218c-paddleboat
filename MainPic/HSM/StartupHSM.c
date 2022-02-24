@@ -69,6 +69,10 @@
 // and any other local defines
 
 #define ENTRY_STATE STARTUP_INIT_STATE
+#define TURN_RED_ON LATBbits.LATB11 = 1
+#define TURN_RED_OFF LATBbits.LATB11 = 0
+#define TURN_BLUE_ON LATBbits.LATB15 = 1
+#define TURN_BLUE_OFF LATBbits.LATB15 = 0
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine, things like during
@@ -326,7 +330,12 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = false; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
-                  EntryEventKind.EventType = ES_ENTRY;
+                  
+                  //Comment this out if you want to progress (I did this for project preview)
+                  ReturnEvent.EventType = ES_NO_EVENT;
+                  
+                  //EntryEventKind.EventType = ES_ENTRY;
+                  
                   // optionally, consume or re-map this event for the upper
                   // level state machine
                   
@@ -498,6 +507,18 @@ static ES_Event_t DuringDetermineTeamState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        
+        TeamIdentity = QueryTeamIdentity();
+        
+        if (TeamIdentity == Red) {
+            TURN_RED_ON;
+        }
+        else if (TeamIdentity == Blue) {
+            TURN_BLUE_ON;
+        }
+        else {
+            puts("Team Identification Error\r\n");
+        }
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );

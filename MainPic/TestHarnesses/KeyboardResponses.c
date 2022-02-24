@@ -38,6 +38,11 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 
+#define TURN_RED_ON LATBbits.LATB11 = 1
+#define TURN_RED_OFF LATBbits.LATB11 = 0
+#define TURN_BLUE_ON LATBbits.LATB15 = 1
+#define TURN_BLUE_OFF LATBbits.LATB15 = 0
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
@@ -46,6 +51,8 @@
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
+static uint8_t RedState = 0;
+static uint8_t BlueState = 0;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -188,9 +195,11 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                   puts("TENSION_ENGAGE:                                  \'e\'\r");
                   puts("TENSION_RELEASE:                                 \'E\'\r");
                   puts("Drive Forward Medium Speed                       \'m\'\r");
-                  puts("Rotate at Medium Speed                           \'M\'\r");
-                  puts("Drive Backward Medium Speed                       \'n\'\r");
-                  
+                  puts("Rotate Clockwise at Medium Speed                 \'M\'\r");
+                  puts("Drive Backward Medium Speed                      \'n\'\r");
+                  puts("Rotate Counterclockwise at Medium Speed          \'N\'\r");
+                  puts("Toggle Red                                       \'j\'\r");
+                  puts("Toggle Blue                                      \'J\'\r");
                           
                   puts("Query State of RobotTopHSM:                      \'1\'\r");
                   puts("Query State of GameHSM:                          \'2\'\r");
@@ -454,8 +463,8 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 SPI_MOSI_Command_t NewCommand;
                 NewCommand.Name = SPI_DRIVE_DISTANCE;
                 NewCommand.DriveType = Rotation;
-                NewCommand.Direction = Backward_CCW;
-                NewCommand.Speed = Low;
+                NewCommand.Direction = Forward_CW;
+                NewCommand.Speed = Medium;
                 NewCommand.Data = 0;
                 NewEvent.EventType = SEND_SPI_COMMAND;
                 NewEvent.EventParam = NewCommand.FullCommand;
@@ -475,6 +484,51 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 NewEvent.EventType = SEND_SPI_COMMAND;
                 NewEvent.EventParam = NewCommand.FullCommand;
                 PostSPILeaderSM(NewEvent);
+              }
+              break;
+              
+              case 'N':
+              {
+                puts("Send Rotate Counterclockwise at Medium Speed Command to Motor PIC\r\n");
+                SPI_MOSI_Command_t NewCommand;
+                NewCommand.Name = SPI_DRIVE_DISTANCE;
+                NewCommand.DriveType = Rotation;
+                NewCommand.Direction = Backward_CCW;
+                NewCommand.Speed = Medium;
+                NewCommand.Data = 0;
+                NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = NewCommand.FullCommand;
+                PostSPILeaderSM(NewEvent);
+              }
+              break;
+              
+              case 'j':
+              {
+                  if (RedState == 0) {
+                      RedState = 1;
+                      puts("Turning on Red\r\n");
+                      TURN_RED_ON;
+                  }
+                  else {
+                      RedState = 0;
+                      puts("Turning off Red\r\n");
+                      TURN_RED_OFF;
+                  }
+              }
+              break;
+              
+              case 'J':
+              {
+                  if (BlueState == 0) {
+                      BlueState = 1;
+                      puts("Turning on Blue\r\n");
+                      TURN_BLUE_ON;
+                  }
+                  else {
+                      BlueState = 0;
+                      puts("Turning off Blue\r\n");
+                      TURN_BLUE_OFF;
+                  }
               }
               break;
               

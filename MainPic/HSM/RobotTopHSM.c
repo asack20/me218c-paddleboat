@@ -41,6 +41,7 @@
 #include "StartupHSM.h"
 #include "../Sensors/Find_Beacon.h"
 #include "../SPI/SPILeaderSM.h"
+#include "../HALs/PIC32PortHAL.h"
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
@@ -52,7 +53,12 @@
 #define ONE_MIN (ONE_SEC * 60)
 #define EIGHTEEN_SEC (ONE_SEC * 18)
 #define DELAYTIME ONE_SEC
-
+#define REDPIN _Pin_11
+#define BLUEPIN _Pin_15
+#define TURN_RED_ON LATBbits.LATB11 = 1
+#define TURN_RED_OFF LATBbits.LATB11 = 0
+#define TURN_BLUE_ON LATBbits.LATB15 = 1
+#define TURN_BLUE_OFF LATBbits.LATB15 = 0
 /*---------------------------- Module Functions ---------------------------*/
 static ES_Event_t DuringRobotInitState( ES_Event_t Event);
 static ES_Event_t DuringRobotInactiveState( ES_Event_t Event);
@@ -92,6 +98,11 @@ bool InitRobotTopHSM ( uint8_t Priority )
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;  // save our priority
+  
+  //Configure digital outputs for team color indication
+  PortSetup_ConfigureDigitalOutputs(_Port_B,REDPIN | BLUEPIN);
+  
+  
 
   ThisEvent.EventType = ES_ENTRY;
   // Start the Master State machine
@@ -439,7 +450,8 @@ static ES_Event_t DuringRobotActiveState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
-        
+        TURN_RED_OFF;
+        TURN_BLUE_OFF;
         // after that start any lower level machines that run in this state
         StartGameHSM(Event);
         // repeat the StartxxxSM() functions for concurrent state machines
