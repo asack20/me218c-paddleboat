@@ -187,7 +187,11 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                   puts("LATCH_RELEASE:                                   \'W\'\r");
                   puts("TENSION_ENGAGE:                                  \'e\'\r");
                   puts("TENSION_RELEASE:                                 \'E\'\r");
+                  puts("Drive Forward Medium Speed                       \'m\'\r");
+                  puts("Rotate at Medium Speed                           \'M\'\r");
+                  puts("Drive Backward Medium Speed                       \'n\'\r");
                   
+                          
                   puts("Query State of RobotTopHSM:                      \'1\'\r");
                   puts("Query State of GameHSM:                          \'2\'\r");
                   puts("Query State of StartupHSM:                       \'3\'\r");
@@ -282,7 +286,12 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
               
               case 'D':
               {
-                NewEvent.EventType = DRIVE_STOP_MOTORS;
+                puts("Stopping Motors\r\n");
+                SPI_MOSI_Command_t NewCommand;
+                NewCommand.Name = SPI_STOP;
+                NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = NewCommand.FullCommand;
+                PostSPILeaderSM(NewEvent);
               }
               break;
               
@@ -421,6 +430,51 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 puts("Posting TENSION_RELEASE Event to LaunchService\r\n");
                 NewEvent.EventType = TENSION_RELEASE;
                 PostLaunchService(NewEvent);
+              }
+              break;
+              
+              case 'm':
+              {
+                puts("Send Drive Forward at Medium Speed Command to Motor PIC\r\n");
+                SPI_MOSI_Command_t NewCommand;
+                NewCommand.Name = SPI_DRIVE_DISTANCE;
+                NewCommand.DriveType = Translation;
+                NewCommand.Direction = Forward_CW;
+                NewCommand.Speed = Medium;
+                NewCommand.Data = 0;
+                NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = NewCommand.FullCommand;
+                PostSPILeaderSM(NewEvent);
+              }
+              break;
+              
+              case 'M':
+              {
+                puts("Send Rotate Clockwise at Medium Speed Command to Motor PIC\r\n");
+                SPI_MOSI_Command_t NewCommand;
+                NewCommand.Name = SPI_DRIVE_DISTANCE;
+                NewCommand.DriveType = Rotation;
+                NewCommand.Direction = Backward_CCW;
+                NewCommand.Speed = Low;
+                NewCommand.Data = 0;
+                NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = NewCommand.FullCommand;
+                PostSPILeaderSM(NewEvent);
+              }
+              break;
+              
+              case 'n':
+              {
+                puts("Send Drive Backward at Medium Speed Command to Motor PIC\r\n");
+                SPI_MOSI_Command_t NewCommand;
+                NewCommand.Name = SPI_DRIVE_DISTANCE;
+                NewCommand.DriveType = Translation;
+                NewCommand.Direction = Backward_CCW;
+                NewCommand.Speed = Medium;
+                NewCommand.Data = 0;
+                NewEvent.EventType = SEND_SPI_COMMAND;
+                NewEvent.EventParam = NewCommand.FullCommand;
+                PostSPILeaderSM(NewEvent);
               }
               break;
               
