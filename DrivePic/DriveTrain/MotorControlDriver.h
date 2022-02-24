@@ -14,7 +14,7 @@
 
 // Drive Train (In header to allow use in other modules)
 #define TICKS_PER_CM 7.639 // Encoder ticks per cm of drive train distance
-#define TICKS_PER_DEGREE 1.802 // ticks per degree of drive train rotation (was 1.763)
+#define TICKS_PER_DEGREE 1.85 // ticks per degree of drive train rotation (was 1.8)(was 1.763)
 
 typedef enum
 {

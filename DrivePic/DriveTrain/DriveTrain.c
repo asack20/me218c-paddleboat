@@ -53,7 +53,7 @@ static DriveTrainState_t CurrentState;
 static uint8_t MyPriority;
 
 // Speed (RPM*10)corresponding to Stopped, Low, Medium, High respectively
-const uint16_t Speeds[] = {0, 100, 300, 500};
+const uint16_t Speeds[] = {0, 100, 300, 700};
 
 static int16_t SweepAmount;
 

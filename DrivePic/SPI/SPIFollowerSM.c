@@ -36,7 +36,7 @@
 #include <proc/p32mx170f256b.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-//#define SPI_DEBUG
+#define SPI_DEBUG
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -188,7 +188,7 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
                 SPICommand.CommandBits.Name = SPI_DRIVE_GOAL_REACHED;
                 SendData = SPICommand.FullCommand;
 #ifdef SPI_DEBUG
-                printf("SPI Follower: Drive Goal Reached\r\n");
+                printf("SPI Follower: Drive Goal Reached (%u)\r\n", SPICommand.FullCommand);
 #endif                
             }
             else if (ThisEvent.EventType == BUMP_FOUND){
