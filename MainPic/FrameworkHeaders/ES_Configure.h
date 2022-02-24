@@ -63,7 +63,7 @@
 // the name of the run function
 #define SERV_1_RUN RunRobotTopHSM
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 5
+#define SERV_1_QUEUE_SIZE 10
 #endif
 
 /****************************************************************************/
@@ -89,7 +89,7 @@
 // the name of the run function
 #define SERV_3_RUN RunSPILeaderSM
 // How big should this services Queue be?
-#define SERV_3_QUEUE_SIZE 3
+#define SERV_3_QUEUE_SIZE 10
 #endif
 
 /****************************************************************************/
@@ -102,7 +102,7 @@
 // the name of the run function
 #define SERV_4_RUN RunLaunchService
 // How big should this services Queue be?
-#define SERV_4_QUEUE_SIZE 3
+#define SERV_4_QUEUE_SIZE 10
 #endif
 
 /****************************************************************************/
@@ -345,7 +345,7 @@ typedef enum
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
-#define TIMER4_RESP_FUNC TIMER_UNUSED
+#define TIMER4_RESP_FUNC PostRobotTopHSM
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
@@ -372,5 +372,6 @@ typedef enum
 #define ShotTimer 11
 #define StartButtonTimer 10
 #define ReloadButtonTimer 9
+#define RefillButtonDelayTimer 4
 
 #endif /* ES_CONFIGURE_H */

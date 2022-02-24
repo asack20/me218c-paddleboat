@@ -171,9 +171,10 @@ ES_Event_t RunReloadButton(ES_Event_t ThisEvent)
                 if(CurrentButtonState == 0){
                     CurrentState = ReloadButtonLow;
                     ES_Event_t PostEvent;
-                    PostEvent.EventType = RELOAD_COMPLETE;
+                    PostEvent.EventType = REFILL_BUTTON_PRESSED;
                     //printf("reload\r\n");
                     PostRobotTopHSM(PostEvent);
+                    puts("Refill Button Pressed (ReloadButton.c)\r\n");
                 }
             }           
         }break;

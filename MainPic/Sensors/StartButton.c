@@ -172,6 +172,7 @@ ES_Event_t RunStartButton(ES_Event_t ThisEvent)
                     PostEvent.EventType = START_BUTTON_PRESSED;
                     //printf("start\r\n");
                     PostRobotTopHSM(PostEvent);
+                    puts("Start Button Pressed (StartButton.c)\r\n");
                 }
             }           
         }break;

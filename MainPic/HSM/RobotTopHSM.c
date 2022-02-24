@@ -40,6 +40,7 @@
 #include "GameHSM.h"
 #include "StartupHSM.h"
 #include "../Sensors/Find_Beacon.h"
+#include "../Launch/LaunchService.h"
 #include "../SPI/SPILeaderSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "ES_Port.h"
@@ -178,6 +179,10 @@ ES_Event_t RunRobotTopHSM( ES_Event_t CurrentEvent )
                         //Entry Action:  Post ROBOT_INIT_COMPLETE
                         ES_Event_t NewEvent = {ROBOT_INIT_COMPLETE,0};
                         PostRobotTopHSM(NewEvent);
+                       
+                        NewEvent.EventType = LATCH_ENGAGE;
+                        PostLaunchService(NewEvent);
+                        
                         puts("Initialization Complete\r\n");
                    }
                    
@@ -246,7 +251,7 @@ ES_Event_t RunRobotTopHSM( ES_Event_t CurrentEvent )
                   puts("The game is over.  2:18 has passed.\r\n");
                   puts("-------------------------------------\r\n");
                 
-                  NextState = ROBOT_INACTIVE_STATE;//Decide what the next state will be
+                  NextState = ROBOT_INIT_STATE;//Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
@@ -365,7 +370,17 @@ static ES_Event_t DuringRobotInitState( ES_Event_t Event)
         //Entry Action:  Initialize All Hardware
         puts("Entering RobotInitState - Initializing All Hardware (To Be Implemented)\r\n");
         puts("Start 1 second delay\r\n");
-                
+        
+        ES_Event_t NewEvent;
+        NewEvent.EventType = FLAG_DOWN;
+        PostLaunchService(NewEvent);
+        
+        NewEvent.EventType = TENSION_RELEASE;
+        PostLaunchService(NewEvent);
+        
+        NewEvent.EventType = RELOAD_IN;
+        PostLaunchService(NewEvent);
+        
         ES_Timer_InitTimer(StartupDelayTimer,DELAYTIME);
                 
 //        //Entry Action:  Post ROBOT_INIT_COMPLETE
@@ -410,6 +425,7 @@ static ES_Event_t DuringRobotInactiveState( ES_Event_t Event)
     {
         // implement any entry actions required for this state machine
         //ES_Event_t NewEvent;
+        
         //This is just for checkpoint 3 - simulate start button press
         //NewEvent.EventType = START_BUTTON_PRESSED;
         //PostRobotTopHSM(NewEvent);
@@ -466,6 +482,12 @@ static ES_Event_t DuringRobotActiveState( ES_Event_t Event)
         ES_Event_t NewEvent;
         NewEvent.EventType = GIVE_UP;
         PostFind_Beacon(NewEvent);
+        
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_STOP;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
         NewEvent.EventType = SPI_RESET;
         PostSPILeaderSM(NewEvent);
       

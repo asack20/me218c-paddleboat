@@ -59,11 +59,13 @@
 #include "GameHSM.h"
 #include "StartupHSM.h"
 #include "CycleHSM.h"
+#include "../SPI/SPILeaderSM.h"
 /*----------------------------- Module Defines ----------------------------*/
 // define constants for the states for this machine
 // and any other local defines
 
 #define ENTRY_STATE GAME_STARTUP_STATE
+#define ONE_SEC 1000
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine, things like during
@@ -181,9 +183,10 @@ ES_Event_t RunGameHSM( ES_Event_t CurrentEvent )
                case REFILL_BUTTON_PRESSED : //If event is event one
                   // Execute action function for state one : event one
                   puts("Refill button pressed - continue\r\n");
-                  NextState = GAME_CYCLE_STATE;//Decide what the next state will be
+                  ES_Timer_InitTimer(RefillButtonDelayTimer, ONE_SEC);
+                  
                   // for internal transitions, skip changing MakeTransition
-                  MakeTransition = true; //mark that we are taking a transition
+                  MakeTransition = false; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   EntryEventKind.EventType = ES_ENTRY;
                   // optionally, consume or re-map this event for the upper
@@ -191,6 +194,20 @@ ES_Event_t RunGameHSM( ES_Event_t CurrentEvent )
                   ReturnEvent.EventType = ES_NO_EVENT;
                   break;
                 // repeat cases as required for relevant events
+                  
+                case ES_TIMEOUT:
+                    if (CurrentEvent.EventParam == RefillButtonDelayTimer)
+                    {
+                        NextState = GAME_CYCLE_STATE;//Decide what the next state will be
+                        // for internal transitions, skip changing MakeTransition
+                        MakeTransition = true; //mark that we are taking a transition
+                        // if transitioning to a state with history change kind of entry
+                        EntryEventKind.EventType = ES_ENTRY;
+                        // optionally, consume or re-map this event for the upper
+                        // level state machine
+                        ReturnEvent.EventType = ES_NO_EVENT;
+                    }
+                    break;
                   
                 default:
                     break;
@@ -359,6 +376,13 @@ static ES_Event_t DuringGameRefillState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_STOP;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
