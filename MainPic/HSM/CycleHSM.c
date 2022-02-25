@@ -71,6 +71,8 @@
 #define ONE_SEC 1000
 #define HALF_SEC 500
 #define RELOADTIME HALF_SEC
+#define DISTANCETOSCORINGREGION 40
+#define EXTRAROTATIONTIME 100 //100 ms
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine, things like during
@@ -79,6 +81,7 @@
 */
 static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event);
 static ES_Event_t DuringCycleAimState( ES_Event_t Event);
+static ES_Event_t DuringCycleExtraRotation( ES_Event_t Event);
 static ES_Event_t DuringCycleReloadState( ES_Event_t Event);
 static ES_Event_t DuringCycleShootState( ES_Event_t Event);
 static ES_Event_t DuringCycleUndoRotationState( ES_Event_t Event);
@@ -166,13 +169,23 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
                case BEACON_FOUND : //If event is event one
                   // Execute action function for state one : event one
                     puts("Target acquired\r\n");
-                    ES_Event_t NewEvent;
-                    SPI_MOSI_Command_t NewCommand;
-                    NewCommand.Name = SPI_BEACON_FOUND;
-                    NewEvent.EventType = SEND_SPI_COMMAND;
-                    NewEvent.EventParam = NewCommand.FullCommand;
-                    PostSPILeaderSM(NewEvent);
+                    
+                    ES_Timer_InitTimer(ExtraFineTuneRotationTimer,EXTRAROTATIONTIME);
                   break;
+                  
+                case ES_TIMEOUT:
+                    
+                    if (CurrentEvent.EventParam == ExtraFineTuneRotationTimer) {
+                        // Execute action function for state one : event one
+                        puts("Extra rotation complete\r\n");
+                        ES_Event_t NewEvent;
+                        SPI_MOSI_Command_t NewCommand;
+                        NewCommand.Name = SPI_BEACON_FOUND;
+                        NewEvent.EventType = SEND_SPI_COMMAND;
+                        NewEvent.EventParam = NewCommand.FullCommand;
+                        PostSPILeaderSM(NewEvent);
+                    }
+                    break;
                   
                 case BEACON_ACKNOWLEDGED:
                     BeaconFound = 1;
@@ -450,7 +463,7 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
         NewCommand.DriveType = Translation;
         NewCommand.Direction = Forward_CW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = 32; //32 cm
+        NewCommand.Data = DISTANCETOSCORINGREGION; //32 cm
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
@@ -677,7 +690,7 @@ static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event)
         NewCommand.DriveType = Translation;
         NewCommand.Direction = Backward_CCW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = 32; //32 cm
+        NewCommand.Data = DISTANCETOSCORINGREGION; //32 cm
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);

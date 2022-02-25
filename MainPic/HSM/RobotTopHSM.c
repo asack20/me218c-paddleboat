@@ -215,18 +215,30 @@ ES_Event_t RunRobotTopHSM( ES_Event_t CurrentEvent )
             {
                case START_BUTTON_PRESSED : //If event is event one
                   // Execute action function for state one : event one
-                  NextState = ROBOT_ACTIVE_STATE;//Decide what the next state will be
                   
-                  //Reset MinuteCounter
-                  MinuteCounter = 0;
-                  //Set Timer for one minute
-                  if (EnableGameTimer) {
-                    ES_Timer_InitTimer(GameTimer, ONE_MIN);
-                  }
+                  ES_Timer_InitTimer(StartButtonDelayTimer, ONE_SEC);
                   // for internal transitions, skip changing MakeTransition
-                  MakeTransition = true; //mark that we are taking a transition
+                  MakeTransition = false; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   EntryEventKind.EventType = ES_ENTRY;
+                  break;
+                  
+                case ES_TIMEOUT : //If event is event one
+                  // Execute action function for state one : event one
+                    if (CurrentEvent.EventParam == StartButtonDelayTimer) {
+                        NextState = ROBOT_ACTIVE_STATE;//Decide what the next state will be
+
+                        //Reset MinuteCounter
+                        MinuteCounter = 0;
+                        //Set Timer for one minute
+                        if (EnableGameTimer) {
+                          ES_Timer_InitTimer(GameTimer, ONE_MIN);
+                        }
+                        // for internal transitions, skip changing MakeTransition
+                        MakeTransition = true; //mark that we are taking a transition
+                        // if transitioning to a state with history change kind of entry
+                        EntryEventKind.EventType = ES_ENTRY;
+                    }
                   break;
                 // repeat cases as required for relevant events
             }
@@ -425,6 +437,10 @@ static ES_Event_t DuringRobotInactiveState( ES_Event_t Event)
     {
         // implement any entry actions required for this state machine
         //ES_Event_t NewEvent;
+        
+        ES_Event_t NewEvent;
+        NewEvent.EventType = FLAG_DOWN;
+        PostLaunchService(NewEvent);
         
         //This is just for checkpoint 3 - simulate start button press
         //NewEvent.EventType = START_BUTTON_PRESSED;

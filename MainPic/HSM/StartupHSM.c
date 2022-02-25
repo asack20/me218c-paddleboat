@@ -73,6 +73,9 @@
 #define TURN_RED_OFF LATBbits.LATB11 = 0
 #define TURN_BLUE_ON LATBbits.LATB15 = 1
 #define TURN_BLUE_OFF LATBbits.LATB15 = 0
+#define ROTATETOSIDEANGLE 95
+#define ROTATETOFORWARDANGLE 90
+#define DRIVETOWALLDISTANCE 43
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine, things like during
@@ -572,7 +575,7 @@ static ES_Event_t DuringRotateToSideState( ES_Event_t Event)
         NewCommand.DriveType = Rotation;
         NewCommand.Direction = Forward_CW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = 90;
+        NewCommand.Data = ROTATETOSIDEANGLE; //was 90
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
@@ -620,7 +623,7 @@ static ES_Event_t DuringDriveToWallState( ES_Event_t Event)
         NewCommand.DriveType = Translation;
         NewCommand.Direction = Backward_CCW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = 43;
+        NewCommand.Data = DRIVETOWALLDISTANCE; //was 43
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
@@ -668,7 +671,7 @@ static ES_Event_t DuringRotateToForwardState( ES_Event_t Event)
         NewCommand.DriveType = Rotation;
         NewCommand.Direction = Backward_CCW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = 90;
+        NewCommand.Data = ROTATETOFORWARDANGLE;
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);

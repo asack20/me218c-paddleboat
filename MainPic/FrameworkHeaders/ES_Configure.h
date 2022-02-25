@@ -344,8 +344,8 @@ typedef enum
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC TIMER_UNUSED
 #define TIMER1_RESP_FUNC TIMER_UNUSED
-#define TIMER2_RESP_FUNC TIMER_UNUSED
-#define TIMER3_RESP_FUNC TIMER_UNUSED
+#define TIMER2_RESP_FUNC PostRobotTopHSM
+#define TIMER3_RESP_FUNC PostRobotTopHSM
 #define TIMER4_RESP_FUNC PostRobotTopHSM
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
@@ -374,5 +374,7 @@ typedef enum
 #define StartButtonTimer 10
 #define ReloadButtonTimer 9
 #define RefillButtonDelayTimer 4
+#define ExtraFineTuneRotationTimer 3
+#define StartButtonDelayTimer 2
 
 #endif /* ES_CONFIGURE_H */
