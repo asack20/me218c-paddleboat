@@ -468,6 +468,11 @@ static ES_Event_t DuringRobotActiveState( ES_Event_t Event)
         // implement any entry actions required for this state machine
         TURN_RED_OFF;
         TURN_BLUE_OFF;
+        
+        ES_Event_t NewEvent;
+        NewEvent.EventType = FLAG_UP;
+        PostLaunchService(NewEvent);
+        
         // after that start any lower level machines that run in this state
         StartGameHSM(Event);
         // repeat the StartxxxSM() functions for concurrent state machines

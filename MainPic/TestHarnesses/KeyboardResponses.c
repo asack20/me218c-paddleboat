@@ -693,6 +693,11 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                     }
                     break;
                     
+                    case CYCLE_UNDO_ROTATION_STATE:
+                    {
+                        strcpy(StateChar,"CycleUndoRotationState");
+                    }
+                    
                     case CYCLE_DRIVE_BACK_STATE:
                     {
                         strcpy(StateChar,"CycleDriveBackState");

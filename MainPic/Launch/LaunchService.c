@@ -42,7 +42,7 @@
 #define FULL_CCW ((uint16_t)(2.35*TICS_PER_MS))
 
 #define FLAG_UP_DC 6250 //6250
-#define FLAG_DOWN_DC 1250 //1250
+#define FLAG_DOWN_DC 3000 //1250
 #define RELOAD_OUT_DC 4800 //5200
 #define RELOAD_IN_DC 6200 //6300
 #define LATCH_ENGAGE_DC 1250 //1250

@@ -81,13 +81,16 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event);
 static ES_Event_t DuringCycleAimState( ES_Event_t Event);
 static ES_Event_t DuringCycleReloadState( ES_Event_t Event);
 static ES_Event_t DuringCycleShootState( ES_Event_t Event);
+static ES_Event_t DuringCycleUndoRotationState( ES_Event_t Event);
 static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event);
+static ES_Event_t DuringCycleStoppingState( ES_Event_t Event);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well
 static CycleHSMState_t CurrentState;
 
 static uint16_t ShotCount = 0;
+static uint8_t BeaconFound = 0;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -162,17 +165,40 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
             {
                case BEACON_FOUND : //If event is event one
                   // Execute action function for state one : event one
-                  puts("Target acquired\r");
-                  puts("Reloading\r\n");
-                  NextState = CYCLE_RELOAD_STATE;//Decide what the next state will be
-                  // for internal transitions, skip changing MakeTransition
-                  MakeTransition = true; //mark that we are taking a transition
-                  // if transitioning to a state with history change kind of entry
-                  EntryEventKind.EventType = ES_ENTRY;
-                  // optionally, consume or re-map this event for the upper
-                  // level state machine
-                  ReturnEvent.EventType = ES_NO_EVENT;
+                    puts("Target acquired\r\n");
+                    ES_Event_t NewEvent;
+                    SPI_MOSI_Command_t NewCommand;
+                    NewCommand.Name = SPI_BEACON_FOUND;
+                    NewEvent.EventType = SEND_SPI_COMMAND;
+                    NewEvent.EventParam = NewCommand.FullCommand;
+                    PostSPILeaderSM(NewEvent);
                   break;
+                  
+                case BEACON_ACKNOWLEDGED:
+                    BeaconFound = 1;
+                    
+                    NextState = CYCLE_RELOAD_STATE;//Decide what the next state will be
+                    // for internal transitions, skip changing MakeTransition
+                    MakeTransition = true; //mark that we are taking a transition
+                    // if transitioning to a state with history change kind of entry
+                    EntryEventKind.EventType = ES_ENTRY;
+                    // optionally, consume or re-map this event for the upper
+                    // level state machine
+                    ReturnEvent.EventType = ES_NO_EVENT;
+                    break;
+                          
+                case DRIVE_GOAL_REACHED:
+                    BeaconFound = 0;
+                    
+                    NextState = CYCLE_RELOAD_STATE;//Decide what the next state will be
+                    // for internal transitions, skip changing MakeTransition
+                    MakeTransition = true; //mark that we are taking a transition
+                    // if transitioning to a state with history change kind of entry
+                    EntryEventKind.EventType = ES_ENTRY;
+                    // optionally, consume or re-map this event for the upper
+                    // level state machine
+                    ReturnEvent.EventType = ES_NO_EVENT;
+                    break;
                 // repeat cases as required for relevant events
             }
          }
@@ -227,9 +253,43 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
                    }
                    else //if the shot count has been reached
                    {
-                       NextState = CYCLE_DRIVE_BACK_STATE;
+                       if (BeaconFound) {
+                           NextState = CYCLE_UNDO_ROTATION_STATE;
+                           puts("Beacon was previously found, so undoing rotation\r\n");
+                       }
+                       else{
+                           NextState = CYCLE_DRIVE_BACK_STATE;
+                           puts("Beacon was not previously found, so just go back\r\n");
+                       }
+                       
                        puts("Out of balls; drive back for refill\r\n");
                    }
+                  // for internal transitions, skip changing MakeTransition
+                  MakeTransition = true; //mark that we are taking a transition
+                  // if transitioning to a state with history change kind of entry
+                  EntryEventKind.EventType = ES_ENTRY;
+                  // optionally, consume or re-map this event for the upper
+                  // level state machine
+                  ReturnEvent.EventType = ES_NO_EVENT;
+                  break;
+                // repeat cases as required for relevant events
+            }
+         }
+       break;
+       
+       case CYCLE_UNDO_ROTATION_STATE :       // If current state is state one
+         // Execute During function for state one. ES_ENTRY & ES_EXIT are
+         // processed here allow the lower level state machines to re-map
+         // or consume the event
+         ReturnEvent = CurrentEvent = DuringCycleUndoRotationState(CurrentEvent);
+         //process any events
+         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
+         {
+            switch (CurrentEvent.EventType)
+            {
+               case DRIVE_GOAL_REACHED : //If event is event one
+                  // Execute action function for state one : event one
+                  NextState = CYCLE_DRIVE_BACK_STATE;//Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
@@ -255,9 +315,36 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
             {
                case DRIVE_GOAL_REACHED: //If event is event one
                   // Execute action function for state one : event one
-                  puts("Ready for refill\r\n");
+                  puts("Wall reached - stopping\r\n");
+                  
+                  NextState = CYCLE_STOPPING_STATE;//Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
+                  // if transitioning to a state with history change kind of entry
+                  EntryEventKind.EventType = ES_ENTRY;
+                  // optionally, consume or re-map this event for the upper
+                  // level state machine
+                  break;
+                // repeat cases as required for relevant events
+            }
+         }
+       break;
+       
+       case CYCLE_STOPPING_STATE :       // If current state is state one
+         // Execute During function for state one. ES_ENTRY & ES_EXIT are
+         // processed here allow the lower level state machines to re-map
+         // or consume the event
+         ReturnEvent = CurrentEvent = DuringCycleStoppingState(CurrentEvent);
+         //process any events
+         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
+         {
+            switch (CurrentEvent.EventType)
+            {
+               case MOTORS_STOPPED: //If event is event one
+                  // Execute action function for state one : event one
+                  puts("Ready for refill\r\n");
+                  // for internal transitions, skip changing MakeTransition
+                  MakeTransition = false; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   EntryEventKind.EventType = ES_ENTRY;
                   // optionally, consume or re-map this event for the upper
@@ -363,7 +450,7 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
         NewCommand.DriveType = Translation;
         NewCommand.Direction = Forward_CW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = 100;
+        NewCommand.Data = 32; //32 cm
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
@@ -407,10 +494,17 @@ static ES_Event_t DuringCycleAimState( ES_Event_t Event)
         
         //Added for checkpoint 4:  Post FIND_BEACON to Find_Beacon state machine
         ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DO_BEACON_SWEEP;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        
         NewEvent.EventType = FIND_BEACON;
         NewEvent.EventParam = FindKnownFrequency;
         PostFind_Beacon(NewEvent);
         
+        BeaconFound = 0;
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
         // repeat the StartxxxSM() functions for concurrent state machines
@@ -447,6 +541,8 @@ static ES_Event_t DuringCycleReloadState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        puts("Reloading\r\n");
+        
         ES_Event_t NewEvent;
         NewEvent.EventType = RELOAD_OUT;
         PostLaunchService(NewEvent);
@@ -522,6 +618,48 @@ static ES_Event_t DuringCycleShootState( ES_Event_t Event)
     return(ReturnEvent);
 }
 
+static ES_Event_t DuringCycleUndoRotationState( ES_Event_t Event)
+{
+    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
+
+    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
+    if ( (Event.EventType == ES_ENTRY) ||
+         (Event.EventType == ES_ENTRY_HISTORY) )
+    {
+        // implement any entry actions required for this state machine
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_UNDO_ROTATE;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        // after that start any lower level machines that run in this state
+        //StartLowerLevelSM( Event );
+        // repeat the StartxxxSM() functions for concurrent state machines
+        // on the lower level
+    }
+    else if ( Event.EventType == ES_EXIT )
+    {
+        // on exit, give the lower levels a chance to clean up first
+        //RunLowerLevelSM(Event);
+        // repeat for any concurrently running state machines
+        // now do any local exit functionality
+      
+    }else
+    // do the 'during' function for this state
+    {
+        // run any lower level state machine
+        // ReturnEvent = RunLowerLevelSM(Event);
+      
+        // repeat for any concurrent lower level machines
+      
+        // do any activity that is repeated as long as we are in this state
+    }
+    // return either Event, if you don't want to allow the lower level machine
+    // to remap the current event, or ReturnEvent if you do want to allow it.
+    return(ReturnEvent);
+}
+
 static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event)
 {
     ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
@@ -531,7 +669,61 @@ static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        puts("Begin driving backward\r\n");
         
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Translation;
+        NewCommand.Direction = Backward_CCW;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = 32; //32 cm
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        // after that start any lower level machines that run in this state
+        //StartLowerLevelSM( Event );
+        // repeat the StartxxxSM() functions for concurrent state machines
+        // on the lower level
+    }
+    else if ( Event.EventType == ES_EXIT )
+    {
+        // on exit, give the lower levels a chance to clean up first
+        //RunLowerLevelSM(Event);
+        // repeat for any concurrently running state machines
+        // now do any local exit functionality
+      
+    }else
+    // do the 'during' function for this state
+    {
+        // run any lower level state machine
+        // ReturnEvent = RunLowerLevelSM(Event);
+      
+        // repeat for any concurrent lower level machines
+      
+        // do any activity that is repeated as long as we are in this state
+    }
+    // return either Event, if you don't want to allow the lower level machine
+    // to remap the current event, or ReturnEvent if you do want to allow it.
+    return(ReturnEvent);
+}
+
+static ES_Event_t DuringCycleStoppingState( ES_Event_t Event)
+{
+    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
+
+    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
+    if ( (Event.EventType == ES_ENTRY) ||
+         (Event.EventType == ES_ENTRY_HISTORY) )
+    {
+        // implement any entry actions required for this state machine
+        
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_STOP;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
         // repeat the StartxxxSM() functions for concurrent state machines

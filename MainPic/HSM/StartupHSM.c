@@ -115,6 +115,8 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
    StartupHSMState_t NextState = CurrentState;
    ES_Event_t EntryEventKind = { ES_ENTRY, 0 };// default to normal entry to new state
    ES_Event_t ReturnEvent = CurrentEvent; // assume we are not consuming event
+   ES_Event_t NewEvent;
+   SPI_MOSI_Command_t NewCommand;
 
    switch ( CurrentState )
    {
@@ -133,12 +135,10 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   puts("Searching for beacon to determine team identity\r");
                   
                   // Send FIND_BEACON event to Find_Beacon state machine
-                  ES_Event_t NewEvent;
                   NewEvent.EventType = FIND_BEACON;
                   NewEvent.EventParam = DetermineTeam;
                   PostFind_Beacon(NewEvent);
                   
-                  SPI_MOSI_Command_t NewCommand;
                   NewCommand.Name = SPI_DRIVE_DISTANCE;
                   NewCommand.DriveType = Rotation;
                   NewCommand.Direction = Forward_CW;
@@ -173,12 +173,13 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
          {
             switch (CurrentEvent.EventType)
             {
-               case BEACON_FOUND : //If event is event one
+               // case BEACON_FOUND : //If event is event one
+               case MOTORS_STOPPED : //If event is event one
                   // Execute action function for state one : event one
                   puts("Beacon found\r");
                   
                   // Send STARTUP_STEP_COMPLETE event to RobotTopHSM
-                  ES_Event_t NewEvent;
+                  
                   NewEvent.EventType = STARTUP_STEP_COMPLETE;
                   PostRobotTopHSM(NewEvent);
                   
@@ -190,7 +191,29 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   // optionally, consume or re-map this event for the upper
                   // level state machine
                   ReturnEvent.EventType = ES_NO_EVENT;
-                  break;
+                break;
+                  
+                case BEACON_FOUND:
+                    NewCommand.Name = SPI_STOP;
+                    //NewCommand.DriveType = ;
+                    //NewCommand.Direction = ;
+                    //NewCommand.Speed = ;
+                    //NewCommand.Data = ;
+                    NewEvent.EventType = SEND_SPI_COMMAND;
+                    NewEvent.EventParam = NewCommand.FullCommand;
+                    PostSPILeaderSM(NewEvent);
+                    
+                    MakeTransition = false; //mark that we are taking a transition
+                  // if transitioning to a state with history change kind of entry
+                    EntryEventKind.EventType = ES_ENTRY;
+                  // optionally, consume or re-map this event for the upper
+                  // level state machine
+                    ReturnEvent.EventType = ES_NO_EVENT;
+                break;
+                
+                default:
+                    break;
+                         
                 // repeat cases as required for relevant events
             }
          }
@@ -226,11 +249,6 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   DB_printf("Team identity has been determined to be %s\r\n",TeamChar);
                   puts("Initiating rotation toward wall\r\n");
                   
-                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM (skip next step)
-                  ES_Event_t NewEvent;
-                  NewEvent.EventType = STARTUP_STEP_COMPLETE;
-                  PostRobotTopHSM(NewEvent);
-                  
                   NextState = ROTATE_TO_SIDE_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
@@ -255,15 +273,10 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
          {
             switch (CurrentEvent.EventType)
             {
-               case STARTUP_STEP_COMPLETE : //If event is event one
+               case DRIVE_GOAL_REACHED : //If event is event one
                   // Execute action function for state one : event one
                   puts("Rotation complete\r");
                   puts("Initiating movement toward wall\r\n");
-                  
-                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM (skip next step)
-                  ES_Event_t NewEvent;
-                  NewEvent.EventType = STARTUP_STEP_COMPLETE;
-                  PostRobotTopHSM(NewEvent);
                   
                   NextState = DRIVE_TO_WALL_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
@@ -289,15 +302,10 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
          {
             switch (CurrentEvent.EventType)
             {
-               case STARTUP_STEP_COMPLETE : //If event is event one
+               case DRIVE_GOAL_REACHED : //If event is event one
                   // Execute action function for state one : event one
                   puts("Wall has been reached\r");
                   puts("Initiating rotation toward front of lane\r\n"); 
-                  
-                  // Send STARTUP_STEP_COMPLETE event to RobotTopHSM (skip next step)
-                  ES_Event_t NewEvent;
-                  NewEvent.EventType = GAME_STARTUP_COMPLETE;
-                  PostRobotTopHSM(NewEvent);
                   
                   NextState = ROTATE_TO_FORWARD_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
@@ -323,7 +331,7 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
          {
             switch (CurrentEvent.EventType)
             {
-               case GAME_STARTUP_COMPLETE : //If event is event one
+               case DRIVE_GOAL_REACHED : //If event is event one
                   // Execute action function for state one : event one
                    //puts("Game startup is complete\r\n");
                   puts("Rotation complete\r\n");
@@ -331,8 +339,9 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
                   MakeTransition = false; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   
+                  ReturnEvent.EventType = GAME_STARTUP_COMPLETE;
                   //Comment this out if you want to progress (I did this for project preview)
-                  ReturnEvent.EventType = ES_NO_EVENT;
+                  //ReturnEvent.EventType = ES_NO_EVENT;
                   
                   //EntryEventKind.EventType = ES_ENTRY;
                   
@@ -557,6 +566,17 @@ static ES_Event_t DuringRotateToSideState( ES_Event_t Event)
     {
         // implement any entry actions required for this state machine
         
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Rotation;
+        NewCommand.Direction = Forward_CW;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = 90;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
         // repeat the StartxxxSM() functions for concurrent state machines
@@ -594,6 +614,17 @@ static ES_Event_t DuringDriveToWallState( ES_Event_t Event)
     {
         // implement any entry actions required for this state machine
         
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Translation;
+        NewCommand.Direction = Backward_CCW;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = 43;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
         // repeat the StartxxxSM() functions for concurrent state machines
@@ -630,6 +661,17 @@ static ES_Event_t DuringRotateToForwardState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
+        
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Rotation;
+        NewCommand.Direction = Backward_CCW;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = 90;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
         
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );

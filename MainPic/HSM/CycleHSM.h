@@ -10,7 +10,7 @@
 
 // typedefs for the states
 // State definitions for use with the query function
-typedef enum { CYCLE_DRIVE_FORWARD_STATE, CYCLE_AIM_STATE, CYCLE_RELOAD_STATE, CYCLE_SHOOT_STATE, CYCLE_DRIVE_BACK_STATE } CycleHSMState_t ;
+typedef enum { CYCLE_DRIVE_FORWARD_STATE, CYCLE_AIM_STATE, CYCLE_RELOAD_STATE, CYCLE_SHOOT_STATE, CYCLE_UNDO_ROTATION_STATE, CYCLE_DRIVE_BACK_STATE , CYCLE_STOPPING_STATE} CycleHSMState_t ;
 
 
 // Public Function Prototypes

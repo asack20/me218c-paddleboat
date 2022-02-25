@@ -37,7 +37,7 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-#define SPI_TIME 1000
+#define SPI_TIME 100
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -320,7 +320,7 @@ ES_Event_t DecodeDrive2MainCommand(uint16_t InputCommand) {
             break;
             
         case SPI_BEACON_ACKNOWLEDGED:
-            ReturnEvent.EventType = ES_NO_EVENT;
+            ReturnEvent.EventType = BEACON_ACKNOWLEDGED;
             break;
             
         default:

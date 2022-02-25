@@ -219,12 +219,14 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 //PostEvent.EventType = DRIVE_ROTATE_CCWINF;
                 //PostDriveTrain(PostEvent);
                 
+                Found = 0;
+                
                 //enable IC4 interrupts
                 EnableIC4Interrupts();
                 
                 CurrentState = Searching1;
                 
-                Found = 0;
+                
             }
             break;
             
@@ -245,16 +247,6 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 //PostEvent.EventType = DRIVE_STOP_MOTORS;
                 //PostDriveTrain(PostEvent);
                 ES_Event_t NewEvent;
-                SPI_MOSI_Command_t NewCommand;
-                NewCommand.Name = SPI_STOP;
-                //NewCommand.DriveType = ;
-                //NewCommand.Direction = ;
-                //NewCommand.Speed = ;
-                //NewCommand.Data = ;
-                NewEvent.EventType = SEND_SPI_COMMAND;
-                NewEvent.EventParam = NewCommand.FullCommand;
-                PostSPILeaderSM(NewEvent);
-                
                 NewEvent.EventType = BEACON_FOUND;
                 NewEvent.EventParam = 0;
                 PostRobotTopHSM(NewEvent);
@@ -264,6 +256,8 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 
                 //disable IC4 interrupts
                 DisableIC4Interrupts();
+                
+                Found = 0;
                 
                 CurrentState = Waiting1;
             }
@@ -280,6 +274,8 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 
                 //disable IC4 interrupts
                 DisableIC4Interrupts();
+                
+                Found = 0;
                 
                 CurrentState = Waiting1;
             }
@@ -407,7 +403,7 @@ void __ISR(_INPUT_CAPTURE_4_VECTOR, IPL7SOFT) MeasureTimingIntHandler(void) {
                 ThisEvent.EventType = BEACON_FOUND;
                 //Post EncoderPulse event to service
                 PostFind_Beacon(ThisEvent);
-
+                DB_printf("Pulse Period is %d", pulsePeriod);
                 Found = true;
             }
         }
