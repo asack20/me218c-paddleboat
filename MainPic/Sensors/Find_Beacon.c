@@ -68,7 +68,7 @@ static volatile uint32_t LastRiseTime;
 static volatile uint32_t RolloverCounter = 0;
 //	This is the rollover counter for keeping track of time after timer 2 overflows
 
-static bool FirstMeasurementFlag = 1;
+static volatile bool FirstMeasurementFlag = 1;
 //	This flag is high until a first measurement has been taken
 
 static volatile bool Found = 0;
@@ -76,7 +76,7 @@ static volatile bool Found = 0;
 static volatile uint32_t PulseMin;
 static volatile uint32_t PulseMax;
 
-static SearchType_t SearchMode = DetermineTeam;
+static volatile SearchType_t SearchMode = DetermineTeam;
 static volatile TeamIdentity_t TeamIdentity = Unknown;
 
 /*------------------------------ Module Code ------------------------------*/
@@ -189,10 +189,12 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
   {
     case Waiting1:
     {
+        Found = 0;
         switch (ThisEvent.EventType)
         {
             case FIND_BEACON:
             {
+                Found = 0;
                 //begin rotation
                 if (ThisEvent.EventParam == DetermineTeam) {
                     SearchMode = DetermineTeam;
@@ -220,7 +222,7 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 //PostDriveTrain(PostEvent);
                 
                 Found = 0;
-                
+                FirstMeasurementFlag = 1;
                 //enable IC4 interrupts
                 EnableIC4Interrupts();
                 
@@ -253,10 +255,10 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 
                 //send success message
                 DB_printf("Beacon found\r\n");
-                
+
                 //disable IC4 interrupts
                 DisableIC4Interrupts();
-                
+                FirstMeasurementFlag = 1;
                 Found = 0;
                 
                 CurrentState = Waiting1;
@@ -274,7 +276,7 @@ ES_Event_t RunFind_Beacon(ES_Event_t ThisEvent)
                 
                 //disable IC4 interrupts
                 DisableIC4Interrupts();
-                
+                FirstMeasurementFlag = 1;
                 Found = 0;
                 
                 CurrentState = Waiting1;
@@ -476,9 +478,13 @@ static bool SetupIC4(void) {
 static void EnableIC4Interrupts(void) {
   //	Set the local interrupt enable for the input capture module (IEC0SET = _IEC0_IC4IE_MASK)
   IEC0SET = _IEC0_IC4IE_MASK;
+  IFS0CLR = _IFS0_IC4IF_MASK;
+  IC4CONbits.ON = 1;
 }
 
 static void DisableIC4Interrupts(void) {
   //    Clear the local interrupt enable for the input capture module
   IEC0CLR = _IEC0_IC4IE_MASK;
+  IFS0CLR = _IFS0_IC4IF_MASK;
+  IC4CONbits.ON = 0;
 }

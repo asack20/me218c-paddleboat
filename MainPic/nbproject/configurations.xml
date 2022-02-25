@@ -891,7 +891,7 @@
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.pgmentry.voltage" value="low"/>
-        <property key="programoptions.pgmspeed" value="Med"/>
+        <property key="programoptions.pgmspeed" value="Min"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
                   value="${memories.dataflash.default}"/>
@@ -971,11 +971,11 @@
         <property key="memories.programmemory.ranges" value="1d000000-1d03ffff"/>
         <property key="memories.rww" value="true"/>
         <property key="programmerToGoFilePath"
-                  value="C:/Users/Ryan/Desktop/ME218b/Final_Project/MainPic/debug/default/default_ptg"/>
+                  value="C:/Users/Andrew/Documents/ME218B/FinalProject/Final-Project-2018B/MainPic/debug/default/default_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.pgmentry.voltage" value="low"/>
-        <property key="programoptions.pgmspeed" value="Med"/>
+        <property key="programoptions.pgmspeed" value="Min"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"
                   value="${memories.dataflash.default}"/>
