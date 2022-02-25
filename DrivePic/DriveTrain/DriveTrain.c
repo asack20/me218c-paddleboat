@@ -229,7 +229,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 case DRIVE_BEACON_SWEEP:
                 {
                     // Turn Clockwise by SWEEP_CW_ANGLE at slow speed
-                    MotorControl_DriveStraight(_Clockwise_Turn, Speeds[Low], SWEEP_CW_ANGLE);
+                    MotorControl_DriveTurn(_Clockwise_Turn, Speeds[Medium], SWEEP_CW_ANGLE);
 #ifdef DRIVE_DEBUG
                     printf("DriveDebug: Starting Drive Clockwise Sweep\r\n");
 #endif
@@ -316,7 +316,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 SweepAmount = LeftEncoder.TickCount;
                 
                 // Turn CounterClockwise by 360 + SWEEP_CW_ANGLE at slow speed
-                MotorControl_DriveStraight(_CounterClockwise_Turn, Speeds[Low], 360+SWEEP_CW_ANGLE);
+                MotorControl_DriveTurn(_CounterClockwise_Turn, Speeds[Medium], 360+SWEEP_CW_ANGLE);
                 
                 CurrentState = DriveCounterClockwiseSweepState;
 #ifdef DRIVE_DEBUG
@@ -370,6 +370,9 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 {                    
                     // Need to convert Ticks back to angle 
                     uint16_t Angle = (uint16_t)((float) SweepAmount / TICKS_PER_DEGREE);
+#ifdef DRIVE_DEBUG
+                    printf("DriveDebug: Undoing Sweep by %d degrees CCW\r\n", Angle);
+#endif 
                     // Undo rotation in counterclockwise direction
                     MotorControl_DriveTurn(_CounterClockwise_Turn, Speeds[Medium], Angle);
                 }
@@ -377,6 +380,9 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 {
                     // Need to convert Ticks back to angle (SweepAmount is negative)
                     uint16_t Angle = (uint16_t)((float) -1* SweepAmount / TICKS_PER_DEGREE);
+#ifdef DRIVE_DEBUG
+                    printf("DriveDebug: Undoing Sweep by %d degrees CW\r\n", Angle);
+#endif 
                     // Undo rotation in clockwise direction
                     MotorControl_DriveTurn(_Clockwise_Turn, Speeds[Medium], Angle);
                 }
