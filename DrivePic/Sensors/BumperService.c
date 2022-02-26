@@ -82,7 +82,7 @@ bool InitBumperService(uint8_t Priority)
     
     // Configure Pin as digital input with pullup
     PortSetup_ConfigureDigitalInputs(BUMPER_PORT, BUMPER_PIN);
-    PortSetup_ConfigurePullUps(BUMPER_PIN, BUMPER_PIN);
+    PortSetup_ConfigurePullUps(BUMPER_PORT, BUMPER_PIN);
 
     return true;
 }
@@ -137,6 +137,7 @@ ES_Event_t RunBumperService(ES_Event_t ThisEvent)
         {
             if (DRIVE_UNTIL_BUMP == ThisEvent.EventType)
             {
+                printf("Bumper: Starting DRIVE_UNTIL_BUMP\n");
                 CurrentState = BumperActiveState;
                 EventCheckerActive = true;
             }
@@ -148,6 +149,7 @@ ES_Event_t RunBumperService(ES_Event_t ThisEvent)
             // repost event to other services and return to idle
             if (BUMP_FOUND == ThisEvent.EventType)
             {
+                printf("Bumper: BUMP_FOUND\n");
                 PostDriveTrain(ThisEvent);
                 PostSPIList(ThisEvent);
                 CurrentState = BumperIdleState;
@@ -156,6 +158,7 @@ ES_Event_t RunBumperService(ES_Event_t ThisEvent)
             // go to idle state
             else if (DRIVE_STOP == ThisEvent.EventType)
             {
+                printf("Bumper: DRIVE_STOP received\n");
                 CurrentState = BumperIdleState;
                 EventCheckerActive = false;
             }
@@ -195,6 +198,7 @@ bool Check4Bump(void) {
     if (EventCheckerActive) {
         // pressed is low
         if (BUMPER_VAL == 0) {
+            printf("Bumper: Bump triggered\n");
             ES_Event_t PostEvent;
             PostEvent.EventType = BUMP_FOUND;
             PostBumperService(PostEvent);

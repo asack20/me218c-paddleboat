@@ -462,7 +462,11 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 {
                     printf("KeyboardService: Current Motor Details\n\r");
                     PrintMotorDetails();
-                } break;       
+                } break;                 
+                case '\\':
+                {
+                    printf("KeyboardService: Current Bumper Status is %d\r\n", PORTBbits.RB15);
+                } break;
                 default:
                 {
                     printf("KeyboardService: No Event bound to %c. Press '?' to see list of valid keys.\r\n", (char) ThisEvent.EventParam);
@@ -547,6 +551,7 @@ void PrintInstructions(void)
             
     printf( "Press '.' to Print Current Motor Details\n\r");
     printf( "---------------------------------------------------------\r\n\n");
+    printf( "Press '\' to Print Bumper Status\n\r");
 }
 
 /****************************************************************************
