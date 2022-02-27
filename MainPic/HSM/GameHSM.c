@@ -60,6 +60,7 @@
 #include "StartupHSM.h"
 #include "CycleHSM.h"
 #include "../SPI/SPILeaderSM.h"
+#include "../ProjectHeaders/RehomeSM.h"
 /*----------------------------- Module Defines ----------------------------*/
 // define constants for the states for this machine
 // and any other local defines
@@ -75,6 +76,7 @@
 static ES_Event_t DuringGameStartupState( ES_Event_t Event);
 static ES_Event_t DuringGameCycleState( ES_Event_t Event);
 static ES_Event_t DuringGameRefillState( ES_Event_t Event);
+static ES_Event_t DuringGameRehomeState( ES_Event_t Event);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well
@@ -208,6 +210,47 @@ ES_Event_t RunGameHSM( ES_Event_t CurrentEvent )
                         ReturnEvent.EventType = ES_NO_EVENT;
                     }
                     break;
+                    
+                case START_BUTTON_PRESSED:
+                    NextState = GAME_REHOME_STATE;//Decide what the next state will be
+                    // for internal transitions, skip changing MakeTransition
+                    MakeTransition = true; //mark that we are taking a transition
+                    // if transitioning to a state with history change kind of entry
+                    EntryEventKind.EventType = ES_ENTRY;
+                    // optionally, consume or re-map this event for the upper
+                    // level state machine
+                    ReturnEvent.EventType = ES_NO_EVENT;
+                    break;
+                  
+                default:
+                    break;
+            }
+         }
+       break;
+       
+       case GAME_REHOME_STATE :       // If current state is state one
+         // Execute During function for state one. ES_ENTRY & ES_EXIT are
+         // processed here allow the lower level state machines to re-map
+         // or consume the event
+         ReturnEvent = CurrentEvent = DuringGameRehomeState(CurrentEvent);
+         //process any events
+         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
+         {
+            switch (CurrentEvent.EventType)
+            {
+               case REHOME_DONE : //If event is event one
+                  // Execute action function for state one : event one
+                  puts("Rehome done - continue\r\n");
+                  NextState = GAME_REFILL_STATE;//Decide what the next state will be
+                  // for internal transitions, skip changing MakeTransition
+                  MakeTransition = true; //mark that we are taking a transition
+                  // if transitioning to a state with history change kind of entry
+                  EntryEventKind.EventType = ES_ENTRY;
+                  // optionally, consume or re-map this event for the upper
+                  // level state machine
+                  ReturnEvent.EventType = ES_NO_EVENT;
+                  break;
+                // repeat cases as required for relevant events
                   
                 default:
                     break;
@@ -401,6 +444,43 @@ static ES_Event_t DuringGameRefillState( ES_Event_t Event)
     {
         // run any lower level state machine
         // ReturnEvent = RunLowerLevelSM(Event);
+      
+        // repeat for any concurrent lower level machines
+      
+        // do any activity that is repeated as long as we are in this state
+    }
+    // return either Event, if you don't want to allow the lower level machine
+    // to remap the current event, or ReturnEvent if you do want to allow it.
+    return(ReturnEvent);
+}
+
+static ES_Event_t DuringGameRehomeState( ES_Event_t Event)
+{
+    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
+
+    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
+    if ( (Event.EventType == ES_ENTRY) ||
+         (Event.EventType == ES_ENTRY_HISTORY) )
+    {
+        // implement any entry actions required for this state machine
+        
+        // after that start any lower level machines that run in this state
+        StartRehomeSM( Event );
+        // repeat the StartxxxSM() functions for concurrent state machines
+        // on the lower level
+    }
+    else if ( Event.EventType == ES_EXIT )
+    {
+        // on exit, give the lower levels a chance to clean up first
+        RunRehomeSM(Event);
+        // repeat for any concurrently running state machines
+        // now do any local exit functionality
+      
+    }else
+    // do the 'during' function for this state
+    {
+        // run any lower level state machine
+        ReturnEvent = RunRehomeSM(Event);
       
         // repeat for any concurrent lower level machines
       

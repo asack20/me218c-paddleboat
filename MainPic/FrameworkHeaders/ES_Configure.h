@@ -298,7 +298,8 @@ typedef enum
   TENSION_RELEASE,
   SERVO_RESET,
   START_BUTTON_CHANGE,
-  RELOAD_BUTTON_CHANGE
+  RELOAD_BUTTON_CHANGE,
+  REHOME_DONE
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -343,7 +344,7 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC TIMER_UNUSED
-#define TIMER1_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC PostRobotTopHSM
 #define TIMER2_RESP_FUNC PostRobotTopHSM
 #define TIMER3_RESP_FUNC PostRobotTopHSM
 #define TIMER4_RESP_FUNC PostRobotTopHSM
@@ -376,5 +377,6 @@ typedef enum
 #define RefillButtonDelayTimer 4
 #define ExtraFineTuneRotationTimer 3
 #define StartButtonDelayTimer 2
+#define RehomeButtonDelayTimer 1
 
 #endif /* ES_CONFIGURE_H */

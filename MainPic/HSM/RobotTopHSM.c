@@ -255,7 +255,7 @@ ES_Event_t RunRobotTopHSM( ES_Event_t CurrentEvent )
          //process any events
          if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
          {
-            if ((CurrentEvent.EventType == START_BUTTON_PRESSED) || (CurrentEvent.EventType == GAME_TIMEOUT))
+            if ((CurrentEvent.EventType == GAME_TIMEOUT))
             {
                   //If event is event one
                   // Execute action function for state one : event one

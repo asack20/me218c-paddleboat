@@ -1,6 +1,6 @@
 /****************************************************************************
  Module
-   CycleHSM.c
+   RehomeSM.c
 
  Revision
    2.0.1
@@ -56,49 +56,46 @@
 /* include header files for this state machine as well as any machines at the
    next lower level in the hierarchy that are sub-machines to this machine
 */
-#include "CycleHSM.h"
-#include "../SPI/SPILeaderSM.h"
+#include "RehomeSM.h"
+#include "../HSM/RobotTopHSM.h"
 #include "../Sensors/Find_Beacon.h"
-#include "../Launch/LaunchService.h"
-#include "CycleShootHSM.h"
+#include "../SPI/SPILeaderSM.h"
+#include "terminal.h"
+#include "dbprintf.h"
+#include <string.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 // define constants for the states for this machine
 // and any other local defines
 
-#define ENTRY_STATE CYCLE_DRIVE_FORWARD_STATE
-#define SHOTNUM 3
+#define ENTRY_STATE REHOME_INIT_STATE
+#define ROTATETOSIDEANGLE 90
+#define ROTATETOFORWARDANGLE 90
+#define DRIVETOWALLDISTANCE 43
+#define MOVEFROMWALLDISTANCE 5
 #define ONE_SEC 1000
-#define HALF_SEC 500
-#define RELOADTIME HALF_SEC
-#define DISTANCETOSCORINGREGION 48
-#define EXTRAROTATIONTIME 1 //100 ms
+
+
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine, things like during
    functions, entry & exit functions.They should be functions relevant to the
    behavior of this state machine
 */
-static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event);
-static ES_Event_t DuringCycleAimState( ES_Event_t Event);
-static ES_Event_t DuringCycleExtraRotation( ES_Event_t Event);
-static ES_Event_t DuringCycleReloadState( ES_Event_t Event);
-static ES_Event_t DuringCycleShootState( ES_Event_t Event);
-static ES_Event_t DuringCycleUndoRotationState( ES_Event_t Event);
-static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event);
-static ES_Event_t DuringCycleStoppingState( ES_Event_t Event);
+static ES_Event_t DuringRehomeInitState( ES_Event_t Event);
+static ES_Event_t DuringRehomeRotateToSideState( ES_Event_t Event);
+static ES_Event_t DuringRehomeDriveToWallState( ES_Event_t Event);
+static ES_Event_t DuringRehomeMoveFromWallState( ES_Event_t Event);
+static ES_Event_t DuringRehomeRotateToForwardState( ES_Event_t Event);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well
-static CycleHSMState_t CurrentState;
-
-static uint16_t ShotCount = 0;
-static uint8_t BeaconFound = 0;
+static RehomeState_t CurrentState;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
-    RunCycleHSM
+    RunRehomeSM
 
  Parameters
    ES_Event_t: the event to process
@@ -113,126 +110,34 @@ static uint8_t BeaconFound = 0;
  Author
    J. Edward Carryer, 2/11/05, 10:45AM
 ****************************************************************************/
-ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
+ES_Event_t RunRehomeSM( ES_Event_t CurrentEvent )
 {
    bool MakeTransition = false;/* are we making a state transition? */
-   CycleHSMState_t NextState = CurrentState;
+   RehomeState_t NextState = CurrentState;
    ES_Event_t EntryEventKind = { ES_ENTRY, 0 };// default to normal entry to new state
    ES_Event_t ReturnEvent = CurrentEvent; // assume we are not consuming event
+   ES_Event_t NewEvent;
+   SPI_MOSI_Command_t NewCommand;
 
    switch ( CurrentState )
-   {
-       case CYCLE_DRIVE_FORWARD_STATE :       // If current state is state one
+   {   
+       case REHOME_INIT_STATE :       // If current state is state one
          // Execute During function for state one. ES_ENTRY & ES_EXIT are
          // processed here allow the lower level state machines to re-map
          // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleDriveForwardState(CurrentEvent);
+         ReturnEvent = CurrentEvent = DuringRehomeInitState(CurrentEvent);
          //process any events
          if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
          {
             switch (CurrentEvent.EventType)
             {
-               case DRIVE_GOAL_REACHED : //If event is event one
+               case ES_TIMEOUT : //If event is event one
                   // Execute action function for state one : event one
-                   puts("Shot position reached\r");
-                   puts("Take aim\r\n");
-                   
-                   
-                  NextState = CYCLE_AIM_STATE;//Decide what the next state will be
-                  // for internal transitions, skip changing MakeTransition
-                  
-                  //MakeTransition = false; 
-                   
-                  MakeTransition = true; //mark that we are taking a transition
-                  // if transitioning to a state with history change kind of entry
-                  EntryEventKind.EventType = ES_ENTRY;
-                  // optionally, consume or re-map this event for the upper
-                  // level state machine
-                  ReturnEvent.EventType = ES_NO_EVENT;
-                  break;
-                // repeat cases as required for relevant events
-            }
-         }
-       break;
-      // repeat state pattern as required for other states
-       
-       case CYCLE_AIM_STATE :       // If current state is state one
-         // Execute During function for state one. ES_ENTRY & ES_EXIT are
-         // processed here allow the lower level state machines to re-map
-         // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleAimState(CurrentEvent);
-         //process any events
-         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
-         {
-            switch (CurrentEvent.EventType)
-            {
-               case BEACON_FOUND : //If event is event one
-                  // Execute action function for state one : event one
-                    puts("Target acquired\r\n");
-                    
-                    ES_Timer_InitTimer(ExtraFineTuneRotationTimer,EXTRAROTATIONTIME);
-                  break;
-                  
-                case ES_TIMEOUT:
-                    
-                    if (CurrentEvent.EventParam == ExtraFineTuneRotationTimer) {
-                        // Execute action function for state one : event one
-                        puts("Extra rotation complete\r\n");
-                        ES_Event_t NewEvent;
-                        SPI_MOSI_Command_t NewCommand;
-                        NewCommand.Name = SPI_BEACON_FOUND;
-                        NewEvent.EventType = SEND_SPI_COMMAND;
-                        NewEvent.EventParam = NewCommand.FullCommand;
-                        PostSPILeaderSM(NewEvent);
-                    }
-                    break;
-                  
-                case BEACON_ACKNOWLEDGED:
-                    BeaconFound = 1;
-                    
-                    NextState = CYCLE_RELOAD_STATE;//Decide what the next state will be
-                    // for internal transitions, skip changing MakeTransition
-                    MakeTransition = true; //mark that we are taking a transition
-                    // if transitioning to a state with history change kind of entry
-                    EntryEventKind.EventType = ES_ENTRY;
-                    // optionally, consume or re-map this event for the upper
-                    // level state machine
-                    ReturnEvent.EventType = ES_NO_EVENT;
-                    break;
-                          
-                case DRIVE_GOAL_REACHED:
-                    BeaconFound = 0;
-                    
-                    NextState = CYCLE_RELOAD_STATE;//Decide what the next state will be
-                    // for internal transitions, skip changing MakeTransition
-                    MakeTransition = true; //mark that we are taking a transition
-                    // if transitioning to a state with history change kind of entry
-                    EntryEventKind.EventType = ES_ENTRY;
-                    // optionally, consume or re-map this event for the upper
-                    // level state machine
-                    ReturnEvent.EventType = ES_NO_EVENT;
-                    break;
-                // repeat cases as required for relevant events
-            }
-         }
-       break;
-       
-       case CYCLE_RELOAD_STATE :       // If current state is state one
-         // Execute During function for state one. ES_ENTRY & ES_EXIT are
-         // processed here allow the lower level state machines to re-map
-         // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleReloadState(CurrentEvent);
-         //process any events
-         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
-         {
-            switch (CurrentEvent.EventType)
-            {
-               case ES_TIMEOUT: //If event is event one
-                   
-                   if (CurrentEvent.EventParam == ReloadTimer) {
-                        // Execute action function for state one : event one
-                        puts("Fire at will\r\n");
-                        NextState = CYCLE_SHOOT_STATE;//Decide what the next state will be
+                   if (CurrentEvent.EventParam == RehomeButtonDelayTimer) {
+                        puts("Rehome Button Pressed\r");
+                        puts("Initiating rotation\r\n");
+
+                        NextState = REHOME_ROTATE_TO_SIDE_STATE;  //Decide what the next state will be
                         // for internal transitions, skip changing MakeTransition
                         MakeTransition = true; //mark that we are taking a transition
                         // if transitioning to a state with history change kind of entry
@@ -247,54 +152,11 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
          }
        break;
        
-       case CYCLE_SHOOT_STATE :       // If current state is state one
+       case REHOME_ROTATE_TO_SIDE_STATE :       // If current state is state one
          // Execute During function for state one. ES_ENTRY & ES_EXIT are
          // processed here allow the lower level state machines to re-map
          // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleShootState(CurrentEvent);
-         //process any events
-         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
-         {
-            switch (CurrentEvent.EventType)
-            {
-               case SHOT_COMPLETE: //If event is event one
-                  // Execute action function for state one : event one
-                   ShotCount++;
-                   if (ShotCount<SHOTNUM) {
-                        NextState = CYCLE_RELOAD_STATE;//Decide what the next state will be
-                        puts("Reloading...\r\n");
-                   }
-                   else //if the shot count has been reached
-                   {
-                       if (BeaconFound) {
-                           NextState = CYCLE_UNDO_ROTATION_STATE;
-                           puts("Beacon was previously found, so undoing rotation\r\n");
-                       }
-                       else{
-                           NextState = CYCLE_DRIVE_BACK_STATE;
-                           puts("Beacon was not previously found, so just go back\r\n");
-                       }
-                       
-                       puts("Out of balls; drive back for refill\r\n");
-                   }
-                  // for internal transitions, skip changing MakeTransition
-                  MakeTransition = true; //mark that we are taking a transition
-                  // if transitioning to a state with history change kind of entry
-                  EntryEventKind.EventType = ES_ENTRY;
-                  // optionally, consume or re-map this event for the upper
-                  // level state machine
-                  ReturnEvent.EventType = ES_NO_EVENT;
-                  break;
-                // repeat cases as required for relevant events
-            }
-         }
-       break;
-       
-       case CYCLE_UNDO_ROTATION_STATE :       // If current state is state one
-         // Execute During function for state one. ES_ENTRY & ES_EXIT are
-         // processed here allow the lower level state machines to re-map
-         // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleUndoRotationState(CurrentEvent);
+         ReturnEvent = CurrentEvent = DuringRehomeRotateToSideState(CurrentEvent);
          //process any events
          if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
          {
@@ -302,7 +164,10 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
             {
                case DRIVE_GOAL_REACHED : //If event is event one
                   // Execute action function for state one : event one
-                  NextState = CYCLE_DRIVE_BACK_STATE;//Decide what the next state will be
+                  puts("Rotation complete\r");
+                  puts("Initiating movement toward wall\r\n");
+                  
+                  NextState = REHOME_DRIVE_TO_WALL_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
@@ -316,53 +181,90 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
          }
        break;
        
-       case CYCLE_DRIVE_BACK_STATE :       // If current state is state one
+       case REHOME_DRIVE_TO_WALL_STATE :       // If current state is state one
          // Execute During function for state one. ES_ENTRY & ES_EXIT are
          // processed here allow the lower level state machines to re-map
          // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleDriveBackState(CurrentEvent);
+         ReturnEvent = CurrentEvent = DuringRehomeDriveToWallState(CurrentEvent);
          //process any events
          if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
          {
             switch (CurrentEvent.EventType)
             {
-               case BUMP_OCCURRED: //If event is event one
+               case BUMP_OCCURRED : //If event is event one
                   // Execute action function for state one : event one
-                  puts("Wall reached - stopping\r\n");
+                  puts("Wall has been reached\r");
                   
-                  NextState = CYCLE_STOPPING_STATE;//Decide what the next state will be
+                  NextState = REHOME_MOVE_FROM_WALL_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
                   MakeTransition = true; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   EntryEventKind.EventType = ES_ENTRY;
                   // optionally, consume or re-map this event for the upper
                   // level state machine
+                  ReturnEvent.EventType = ES_NO_EVENT;
                   break;
                 // repeat cases as required for relevant events
             }
          }
        break;
        
-       case CYCLE_STOPPING_STATE :       // If current state is state one
+       case REHOME_MOVE_FROM_WALL_STATE :       // If current state is state one
          // Execute During function for state one. ES_ENTRY & ES_EXIT are
          // processed here allow the lower level state machines to re-map
          // or consume the event
-         ReturnEvent = CurrentEvent = DuringCycleStoppingState(CurrentEvent);
+         ReturnEvent = CurrentEvent = DuringRehomeMoveFromWallState(CurrentEvent);
          //process any events
          if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
          {
             switch (CurrentEvent.EventType)
             {
-               case MOTORS_STOPPED: //If event is event one
+               case DRIVE_GOAL_REACHED : //If event is event one
                   // Execute action function for state one : event one
-                  puts("Ready for refill\r\n");
+                  puts("Moved away from wall\r");
+                  puts("Initiating rotation toward front of lane\r\n"); 
+                  
+                  NextState = REHOME_ROTATE_TO_FORWARD_STATE;  //Decide what the next state will be
                   // for internal transitions, skip changing MakeTransition
-                  MakeTransition = false; //mark that we are taking a transition
+                  MakeTransition = true; //mark that we are taking a transition
                   // if transitioning to a state with history change kind of entry
                   EntryEventKind.EventType = ES_ENTRY;
                   // optionally, consume or re-map this event for the upper
                   // level state machine
-                  ReturnEvent.EventType = GAME_CYCLE_COMPLETE;
+                  ReturnEvent.EventType = ES_NO_EVENT;
+                  break;
+                // repeat cases as required for relevant events
+            }
+         }
+       break;
+       
+       case REHOME_ROTATE_TO_FORWARD_STATE :       // If current state is state one
+         // Execute During function for state one. ES_ENTRY & ES_EXIT are
+         // processed here allow the lower level state machines to re-map
+         // or consume the event
+         ReturnEvent = CurrentEvent = DuringRehomeRotateToForwardState(CurrentEvent);
+         //process any events
+         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
+         {
+            switch (CurrentEvent.EventType)
+            {
+               case DRIVE_GOAL_REACHED : //If event is event one
+                  // Execute action function for state one : event one
+                   //puts("Game startup is complete\r\n");
+                  puts("Rotation complete\r\n");
+                  // for internal transitions, skip changing MakeTransition
+                  MakeTransition = false; //mark that we are taking a transition
+                  // if transitioning to a state with history change kind of entry
+                  
+                  ReturnEvent.EventType = REHOME_DONE;
+                  //Comment this out if you want to progress (I did this for project preview)
+                  //ReturnEvent.EventType = ES_NO_EVENT;
+                  
+                  //EntryEventKind.EventType = ES_ENTRY;
+                  
+                  // optionally, consume or re-map this event for the upper
+                  // level state machine
+                  
                   break;
                 // repeat cases as required for relevant events
             }
@@ -377,19 +279,19 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
     {
        //   Execute exit function for current state
        CurrentEvent.EventType = ES_EXIT;
-       RunCycleHSM(CurrentEvent);
+       RunRehomeSM(CurrentEvent);
 
        CurrentState = NextState; //Modify state variable
 
        //   Execute entry function for new state
        // this defaults to ES_ENTRY
-       RunCycleHSM(EntryEventKind);
+       RunRehomeSM(EntryEventKind);
      }
      return(ReturnEvent);
 }
 /****************************************************************************
  Function
-     StartCycleHSM
+     StartRehomeSM
 
  Parameters
      None
@@ -404,7 +306,7 @@ ES_Event_t RunCycleHSM( ES_Event_t CurrentEvent )
  Author
      J. Edward Carryer, 2/18/99, 10:38AM
 ****************************************************************************/
-void StartCycleHSM ( ES_Event_t CurrentEvent )
+void StartRehomeSM ( ES_Event_t CurrentEvent )
 {
    // to implement entry to a history state or directly to a substate
    // you can modify the initialization of the CurrentState variable
@@ -415,18 +317,18 @@ void StartCycleHSM ( ES_Event_t CurrentEvent )
         CurrentState = ENTRY_STATE;
    }
    // call the entry function (if any) for the ENTRY_STATE
-   RunCycleHSM(CurrentEvent);
+   RunRehomeSM(CurrentEvent);
 }
 
 /****************************************************************************
  Function
-     QueryCycleHSM
+     QueryRehomeSM
 
  Parameters
      None
 
  Returns
-     TemplateState_t The current state of the Template state machine
+     RehomeState_t The current state of the Template state machine
 
  Description
      returns the current state of the Template state machine
@@ -435,7 +337,7 @@ void StartCycleHSM ( ES_Event_t CurrentEvent )
  Author
      J. Edward Carryer, 2/11/05, 10:38AM
 ****************************************************************************/
-CycleHSMState_t QueryCycleHSM ( void )
+RehomeState_t QueryRehomeSM ( void )
 {
    return(CurrentState);
 }
@@ -444,7 +346,7 @@ CycleHSMState_t QueryCycleHSM ( void )
  private functions
  ***************************************************************************/
 
-static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
+static ES_Event_t DuringRehomeInitState( ES_Event_t Event)
 {
     ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
 
@@ -453,17 +355,53 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
-        ShotCount = 0;
+        puts("Rehome button pressed\r\n");
+        ES_Timer_InitTimer(RehomeButtonDelayTimer,ONE_SEC);
         
-        puts("Begin driving forward\r\n");
+        // after that start any lower level machines that run in this state
+        //StartLowerLevelSM( Event );
+        // repeat the StartxxxSM() functions for concurrent state machines
+        // on the lower level
+    }
+    else if ( Event.EventType == ES_EXIT )
+    {
+        // on exit, give the lower levels a chance to clean up first
+        //RunLowerLevelSM(Event);
+        // repeat for any concurrently running state machines
+        // now do any local exit functionality
+      
+    }else
+    // do the 'during' function for this state
+    {
+        // run any lower level state machine
+        // ReturnEvent = RunLowerLevelSM(Event);
+      
+        // repeat for any concurrent lower level machines
+      
+        // do any activity that is repeated as long as we are in this state
+    }
+    // return either Event, if you don't want to allow the lower level machine
+    // to remap the current event, or ReturnEvent if you do want to allow it.
+    return(ReturnEvent);
+}
+
+static ES_Event_t DuringRehomeRotateToSideState( ES_Event_t Event)
+{
+    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
+
+    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
+    if ( (Event.EventType == ES_ENTRY) ||
+         (Event.EventType == ES_ENTRY_HISTORY) )
+    {
+        // implement any entry actions required for this state machine
         
         ES_Event_t NewEvent;
         SPI_MOSI_Command_t NewCommand;
         NewCommand.Name = SPI_DRIVE_DISTANCE;
-        NewCommand.DriveType = Translation;
+        NewCommand.DriveType = Rotation;
         NewCommand.Direction = Forward_CW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = DISTANCETOSCORINGREGION; //32 cm
+        NewCommand.Data = ROTATETOSIDEANGLE; //was 90
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
@@ -495,7 +433,7 @@ static ES_Event_t DuringCycleDriveForwardState( ES_Event_t Event)
     return(ReturnEvent);
 }
 
-static ES_Event_t DuringCycleAimState( ES_Event_t Event)
+static ES_Event_t DuringRehomeDriveToWallState( ES_Event_t Event)
 {
     ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
 
@@ -504,185 +442,6 @@ static ES_Event_t DuringCycleAimState( ES_Event_t Event)
          (Event.EventType == ES_ENTRY_HISTORY) )
     {
         // implement any entry actions required for this state machine
-        
-        //Added for checkpoint 4:  Post FIND_BEACON to Find_Beacon state machine
-        ES_Event_t NewEvent;
-        SPI_MOSI_Command_t NewCommand;
-        NewCommand.Name = SPI_DO_BEACON_SWEEP;
-        NewEvent.EventType = SEND_SPI_COMMAND;
-        NewEvent.EventParam = NewCommand.FullCommand;
-        PostSPILeaderSM(NewEvent);
-        
-        NewEvent.EventType = FIND_BEACON;
-        NewEvent.EventParam = FindKnownFrequency;
-        PostFind_Beacon(NewEvent);
-        
-        BeaconFound = 0;
-        // after that start any lower level machines that run in this state
-        //StartLowerLevelSM( Event );
-        // repeat the StartxxxSM() functions for concurrent state machines
-        // on the lower level
-    }
-    else if ( Event.EventType == ES_EXIT )
-    {
-        // on exit, give the lower levels a chance to clean up first
-        //RunLowerLevelSM(Event);
-        // repeat for any concurrently running state machines
-        // now do any local exit functionality
-      
-    }else
-    // do the 'during' function for this state
-    {
-        // run any lower level state machine
-        // ReturnEvent = RunLowerLevelSM(Event);
-      
-        // repeat for any concurrent lower level machines
-      
-        // do any activity that is repeated as long as we are in this state
-    }
-    // return either Event, if you don't want to allow the lower level machine
-    // to remap the current event, or ReturnEvent if you do want to allow it.
-    return(ReturnEvent);
-}
-
-static ES_Event_t DuringCycleReloadState( ES_Event_t Event)
-{
-    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
-
-    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
-    if ( (Event.EventType == ES_ENTRY) ||
-         (Event.EventType == ES_ENTRY_HISTORY) )
-    {
-        // implement any entry actions required for this state machine
-        puts("Reloading\r\n");
-        
-        ES_Event_t NewEvent;
-        NewEvent.EventType = RELOAD_OUT;
-        PostLaunchService(NewEvent);
-        
-        ES_Timer_InitTimer(ReloadTimer,RELOADTIME);
-        
-        // after that start any lower level machines that run in this state
-        //StartLowerLevelSM( Event );
-        // repeat the StartxxxSM() functions for concurrent state machines
-        // on the lower level
-    }
-    else if ( Event.EventType == ES_EXIT )
-    {
-        
-        ES_Event_t NewEvent;
-        NewEvent.EventType = RELOAD_IN;
-        PostLaunchService(NewEvent);
-        
-        // on exit, give the lower levels a chance to clean up first
-        //RunLowerLevelSM(Event);
-        // repeat for any concurrently running state machines
-        // now do any local exit functionality
-      
-    }else
-    // do the 'during' function for this state
-    {
-        // run any lower level state machine
-        // ReturnEvent = RunLowerLevelSM(Event);
-      
-        // repeat for any concurrent lower level machines
-      
-        // do any activity that is repeated as long as we are in this state
-    }
-    // return either Event, if you don't want to allow the lower level machine
-    // to remap the current event, or ReturnEvent if you do want to allow it.
-    return(ReturnEvent);
-}
-
-static ES_Event_t DuringCycleShootState( ES_Event_t Event)
-{
-    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
-
-    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
-    if ( (Event.EventType == ES_ENTRY) ||
-         (Event.EventType == ES_ENTRY_HISTORY) )
-    {
-        // implement any entry actions required for this state machine
-        
-        // after that start any lower level machines that run in this state
-        StartCycleShootHSM( Event );
-        // repeat the StartxxxSM() functions for concurrent state machines
-        // on the lower level
-    }
-    else if ( Event.EventType == ES_EXIT )
-    {
-        // on exit, give the lower levels a chance to clean up first
-        RunCycleShootHSM(Event);
-        // repeat for any concurrently running state machines
-        // now do any local exit functionality
-      
-    }else
-    // do the 'during' function for this state
-    {
-        // run any lower level state machine
-        ReturnEvent = RunCycleShootHSM(Event);
-      
-        // repeat for any concurrent lower level machines
-      
-        // do any activity that is repeated as long as we are in this state
-    }
-    // return either Event, if you don't want to allow the lower level machine
-    // to remap the current event, or ReturnEvent if you do want to allow it.
-    return(ReturnEvent);
-}
-
-static ES_Event_t DuringCycleUndoRotationState( ES_Event_t Event)
-{
-    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
-
-    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
-    if ( (Event.EventType == ES_ENTRY) ||
-         (Event.EventType == ES_ENTRY_HISTORY) )
-    {
-        // implement any entry actions required for this state machine
-        ES_Event_t NewEvent;
-        SPI_MOSI_Command_t NewCommand;
-        NewCommand.Name = SPI_UNDO_ROTATE;
-        NewEvent.EventType = SEND_SPI_COMMAND;
-        NewEvent.EventParam = NewCommand.FullCommand;
-        PostSPILeaderSM(NewEvent);
-        // after that start any lower level machines that run in this state
-        //StartLowerLevelSM( Event );
-        // repeat the StartxxxSM() functions for concurrent state machines
-        // on the lower level
-    }
-    else if ( Event.EventType == ES_EXIT )
-    {
-        // on exit, give the lower levels a chance to clean up first
-        //RunLowerLevelSM(Event);
-        // repeat for any concurrently running state machines
-        // now do any local exit functionality
-      
-    }else
-    // do the 'during' function for this state
-    {
-        // run any lower level state machine
-        // ReturnEvent = RunLowerLevelSM(Event);
-      
-        // repeat for any concurrent lower level machines
-      
-        // do any activity that is repeated as long as we are in this state
-    }
-    // return either Event, if you don't want to allow the lower level machine
-    // to remap the current event, or ReturnEvent if you do want to allow it.
-    return(ReturnEvent);
-}
-
-static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event)
-{
-    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
-
-    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
-    if ( (Event.EventType == ES_ENTRY) ||
-         (Event.EventType == ES_ENTRY_HISTORY) )
-    {
-        // implement any entry actions required for this state machine
-        puts("Begin driving backward\r\n");
         
         ES_Event_t NewEvent;
         SPI_MOSI_Command_t NewCommand;
@@ -690,6 +449,7 @@ static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event)
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
+        
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
         // repeat the StartxxxSM() functions for concurrent state machines
@@ -717,7 +477,7 @@ static ES_Event_t DuringCycleDriveBackState( ES_Event_t Event)
     return(ReturnEvent);
 }
 
-static ES_Event_t DuringCycleStoppingState( ES_Event_t Event)
+static ES_Event_t DuringRehomeMoveFromWallState( ES_Event_t Event)
 {
     ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
 
@@ -729,10 +489,63 @@ static ES_Event_t DuringCycleStoppingState( ES_Event_t Event)
         
         ES_Event_t NewEvent;
         SPI_MOSI_Command_t NewCommand;
-        NewCommand.Name = SPI_STOP;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Translation;
+        NewCommand.Direction = Forward_CW;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = MOVEFROMWALLDISTANCE; //was 43
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);
+        
+        // after that start any lower level machines that run in this state
+        //StartLowerLevelSM( Event );
+        // repeat the StartxxxSM() functions for concurrent state machines
+        // on the lower level
+    }
+    else if ( Event.EventType == ES_EXIT )
+    {
+        // on exit, give the lower levels a chance to clean up first
+        //RunLowerLevelSM(Event);
+        // repeat for any concurrently running state machines
+        // now do any local exit functionality
+      
+    }else
+    // do the 'during' function for this state
+    {
+        // run any lower level state machine
+        // ReturnEvent = RunLowerLevelSM(Event);
+      
+        // repeat for any concurrent lower level machines
+      
+        // do any activity that is repeated as long as we are in this state
+    }
+    // return either Event, if you don't want to allow the lower level machine
+    // to remap the current event, or ReturnEvent if you do want to allow it.
+    return(ReturnEvent);
+}
+
+static ES_Event_t DuringRehomeRotateToForwardState( ES_Event_t Event)
+{
+    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
+
+    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
+    if ( (Event.EventType == ES_ENTRY) ||
+         (Event.EventType == ES_ENTRY_HISTORY) )
+    {
+        // implement any entry actions required for this state machine
+        
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_DISTANCE;
+        NewCommand.DriveType = Rotation;
+        NewCommand.Direction = Backward_CCW;
+        NewCommand.Speed = Medium;
+        NewCommand.Data = ROTATETOFORWARDANGLE;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        
         // after that start any lower level machines that run in this state
         //StartLowerLevelSM( Event );
         // repeat the StartxxxSM() functions for concurrent state machines

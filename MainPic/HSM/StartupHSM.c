@@ -73,9 +73,10 @@
 #define TURN_RED_OFF LATBbits.LATB11 = 0
 #define TURN_BLUE_ON LATBbits.LATB15 = 1
 #define TURN_BLUE_OFF LATBbits.LATB15 = 0
-#define ROTATETOSIDEANGLE 95
+#define ROTATETOSIDEANGLE 90
 #define ROTATETOFORWARDANGLE 90
 #define DRIVETOWALLDISTANCE 43
+#define MOVEFROMWALLDISTANCE 5
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine, things like during
@@ -87,6 +88,7 @@ static ES_Event_t DuringFindBeaconState( ES_Event_t Event);
 static ES_Event_t DuringDetermineTeamState( ES_Event_t Event);
 static ES_Event_t DuringRotateToSideState( ES_Event_t Event);
 static ES_Event_t DuringDriveToWallState( ES_Event_t Event);
+static ES_Event_t DuringMoveFromWallState( ES_Event_t Event);
 static ES_Event_t DuringRotateToForwardState( ES_Event_t Event);
 
 /*---------------------------- Module Variables ---------------------------*/
@@ -305,9 +307,37 @@ ES_Event_t RunStartupHSM( ES_Event_t CurrentEvent )
          {
             switch (CurrentEvent.EventType)
             {
-               case DRIVE_GOAL_REACHED : //If event is event one
+               case BUMP_OCCURRED : //If event is event one
                   // Execute action function for state one : event one
                   puts("Wall has been reached\r");
+                  
+                  NextState = MOVE_FROM_WALL_STATE;  //Decide what the next state will be
+                  // for internal transitions, skip changing MakeTransition
+                  MakeTransition = true; //mark that we are taking a transition
+                  // if transitioning to a state with history change kind of entry
+                  EntryEventKind.EventType = ES_ENTRY;
+                  // optionally, consume or re-map this event for the upper
+                  // level state machine
+                  ReturnEvent.EventType = ES_NO_EVENT;
+                  break;
+                // repeat cases as required for relevant events
+            }
+         }
+       break;
+       
+       case MOVE_FROM_WALL_STATE :       // If current state is state one
+         // Execute During function for state one. ES_ENTRY & ES_EXIT are
+         // processed here allow the lower level state machines to re-map
+         // or consume the event
+         ReturnEvent = CurrentEvent = DuringMoveFromWallState(CurrentEvent);
+         //process any events
+         if ( CurrentEvent.EventType != ES_NO_EVENT ) //If an event is active
+         {
+            switch (CurrentEvent.EventType)
+            {
+               case DRIVE_GOAL_REACHED : //If event is event one
+                  // Execute action function for state one : event one
+                  puts("Moved away from wall\r");
                   puts("Initiating rotation toward front of lane\r\n"); 
                   
                   NextState = ROTATE_TO_FORWARD_STATE;  //Decide what the next state will be
@@ -619,11 +649,55 @@ static ES_Event_t DuringDriveToWallState( ES_Event_t Event)
         
         ES_Event_t NewEvent;
         SPI_MOSI_Command_t NewCommand;
+        NewCommand.Name = SPI_DRIVE_UNTIL_BUMP;
+        NewEvent.EventType = SEND_SPI_COMMAND;
+        NewEvent.EventParam = NewCommand.FullCommand;
+        PostSPILeaderSM(NewEvent);
+        
+        // after that start any lower level machines that run in this state
+        //StartLowerLevelSM( Event );
+        // repeat the StartxxxSM() functions for concurrent state machines
+        // on the lower level
+    }
+    else if ( Event.EventType == ES_EXIT )
+    {
+        // on exit, give the lower levels a chance to clean up first
+        //RunLowerLevelSM(Event);
+        // repeat for any concurrently running state machines
+        // now do any local exit functionality
+      
+    }else
+    // do the 'during' function for this state
+    {
+        // run any lower level state machine
+        // ReturnEvent = RunLowerLevelSM(Event);
+      
+        // repeat for any concurrent lower level machines
+      
+        // do any activity that is repeated as long as we are in this state
+    }
+    // return either Event, if you don't want to allow the lower level machine
+    // to remap the current event, or ReturnEvent if you do want to allow it.
+    return(ReturnEvent);
+}
+
+static ES_Event_t DuringMoveFromWallState( ES_Event_t Event)
+{
+    ES_Event_t ReturnEvent = Event; // assume no re-mapping or consumption
+
+    // process ES_ENTRY, ES_ENTRY_HISTORY & ES_EXIT events
+    if ( (Event.EventType == ES_ENTRY) ||
+         (Event.EventType == ES_ENTRY_HISTORY) )
+    {
+        // implement any entry actions required for this state machine
+        
+        ES_Event_t NewEvent;
+        SPI_MOSI_Command_t NewCommand;
         NewCommand.Name = SPI_DRIVE_DISTANCE;
         NewCommand.DriveType = Translation;
-        NewCommand.Direction = Backward_CCW;
+        NewCommand.Direction = Forward_CW;
         NewCommand.Speed = Medium;
-        NewCommand.Data = DRIVETOWALLDISTANCE; //was 43
+        NewCommand.Data = MOVEFROMWALLDISTANCE; //was 43
         NewEvent.EventType = SEND_SPI_COMMAND;
         NewEvent.EventParam = NewCommand.FullCommand;
         PostSPILeaderSM(NewEvent);

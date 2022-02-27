@@ -37,7 +37,7 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-#define SPI_TIME 100
+#define SPI_TIME 20
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function

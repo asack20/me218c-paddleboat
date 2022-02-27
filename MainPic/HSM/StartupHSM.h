@@ -10,7 +10,7 @@
 
 // typedefs for the states
 // State definitions for use with the query function
-typedef enum { STARTUP_INIT_STATE, FIND_BEACON_STATE, DETERMINE_TEAM_STATE, ROTATE_TO_SIDE_STATE, DRIVE_TO_WALL_STATE, ROTATE_TO_FORWARD_STATE } StartupHSMState_t ;
+typedef enum { STARTUP_INIT_STATE, FIND_BEACON_STATE, DETERMINE_TEAM_STATE, ROTATE_TO_SIDE_STATE, DRIVE_TO_WALL_STATE, MOVE_FROM_WALL_STATE, ROTATE_TO_FORWARD_STATE } StartupHSMState_t ;
 
 
 // Public Function Prototypes

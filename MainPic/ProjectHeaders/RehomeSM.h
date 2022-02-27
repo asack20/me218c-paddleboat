@@ -4,20 +4,20 @@
  3/17/09  Fixed prototpyes to use Event_t
  ****************************************************************************/
 
-#ifndef GameHSM_H
-#define GameHSM_H
+#ifndef RehomeSM_H
+#define RehomeSM_H
 
 
 // typedefs for the states
 // State definitions for use with the query function
-typedef enum { GAME_STARTUP_STATE, GAME_CYCLE_STATE, GAME_REFILL_STATE, GAME_REHOME_STATE } GameHSMState_t ;
+typedef enum { REHOME_INIT_STATE, REHOME_ROTATE_TO_SIDE_STATE, REHOME_DRIVE_TO_WALL_STATE, REHOME_MOVE_FROM_WALL_STATE, REHOME_ROTATE_TO_FORWARD_STATE } RehomeState_t ;
 
 
 // Public Function Prototypes
 
-ES_Event_t RunGameHSM( ES_Event_t CurrentEvent );
-void StartGameHSM( ES_Event_t CurrentEvent );
-GameHSMState_t QueryGameHSM ( void );
+ES_Event_t RunRehomeSM( ES_Event_t CurrentEvent );
+void StartRehomeSM ( ES_Event_t CurrentEvent );
+RehomeState_t QueryRehomeSM ( void );
 
-#endif /*GameHSM_H */
+#endif /*Rehome_H */
 
