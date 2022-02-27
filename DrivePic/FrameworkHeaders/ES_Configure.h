@@ -326,7 +326,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC PostBumperService
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -351,6 +351,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define KEYBOARD_TIMER 15
+#define BUMPER_TIMER 0
 
 
 #endif /* ES_CONFIGURE_H */

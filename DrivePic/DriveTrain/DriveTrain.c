@@ -37,7 +37,8 @@
 // Command Tuning
 #define DRIVE_DEBUG
 
-#define SWEEP_CW_ANGLE 30
+#define SWEEP_CW_ANGLE 360 // for CW only // was 30 with ccw rotate
+#define SWEEP_OVERROTATE_ANGLE 3 // degrees
 
 /*----------------------------- Module Types ------------------------------*/
 /*---------------------------- Module Functions ---------------------------*/
@@ -290,37 +291,48 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
         case (DriveClockwiseSweepState):
         {
             if (BEACON_FOUND == ThisEvent.EventType)
-            {
-                MotorControl_StopMotors();
-                
+            {     
                 // Store Current ticks on Left Encoder
                 Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
                 SweepAmount = LeftEncoder.TickCount;
                 
-                PostEvent.EventType = BEACON_ACKNOWLEDGED;
-                PostSPIList(PostEvent);
-                
-                CurrentState = DriveBeaconWaitState;
+                // Start overrotate
+                MotorControl_DriveTurn(_Clockwise_Turn, Speeds[Low], SWEEP_OVERROTATE_ANGLE);
+
+                CurrentState = DriveOverRotateState;
                 
 #ifdef DRIVE_DEBUG
                 printf("DriveDebug: Beacon Found. Time to shoot\r\n");
 #endif                
             }
-            // Beacon not found. Start moving in opposite direction
+            // Beacon not found. Stop moving
             else if (DRIVE_GOAL_REACHED == ThisEvent.EventType)
             {
                 MotorControl_StopMotors();
                 
-                // Store Current ticks on Left Encoder
-                Encoder_t LeftEncoder = MotorControl_GetEncoder(_Left_Motor);
-                SweepAmount = LeftEncoder.TickCount;
+                // Post to SPI
+                PostEvent.EventType = DRIVE_GOAL_REACHED;
+                PostSPIList(PostEvent);
                 
-                // Turn CounterClockwise by 360 + SWEEP_CW_ANGLE at slow speed
-                MotorControl_DriveTurn(_CounterClockwise_Turn, Speeds[Low], 360+SWEEP_CW_ANGLE);
-                
-                CurrentState = DriveCounterClockwiseSweepState;
+                CurrentState = DriveStoppedState;
 #ifdef DRIVE_DEBUG
                 printf("DriveDebug: Beacon not Found. Starting Drive CounterClockwise Sweep\r\n");
+#endif
+            }
+        } break;
+        
+        case (DriveOverRotateState):
+        {
+            if (DRIVE_GOAL_REACHED == ThisEvent.EventType) // overrotate complete
+            {
+                MotorControl_StopMotors();
+                
+                PostEvent.EventType = BEACON_ACKNOWLEDGED;
+                PostSPIList(PostEvent);
+                
+                CurrentState = DriveBeaconWaitState;
+#ifdef DRIVE_DEBUG
+                printf("DriveDebug: Over Rotate complete\r\n");
 #endif
             }
         } break;
@@ -369,7 +381,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 if (SweepAmount >= 0)
                 {                    
                     // Need to convert Ticks back to angle 
-                    uint16_t Angle = (uint16_t)((float) SweepAmount / TICKS_PER_DEGREE);
+                    uint16_t Angle = (uint16_t)((float) SweepAmount / TICKS_PER_DEGREE) + SWEEP_OVERROTATE_ANGLE;
 #ifdef DRIVE_DEBUG
                     printf("DriveDebug: Undoing Sweep by %d degrees CCW\r\n", Angle);
 #endif 

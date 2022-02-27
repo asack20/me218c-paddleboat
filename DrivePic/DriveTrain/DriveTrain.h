@@ -21,7 +21,7 @@ typedef enum
 {
     DriveInitState, DriveStoppedState, DriveDistanceState, DriveUntilBumpState,
     DriveUntilFirstTapeDetectState, DriveTapeSquareUpState, 
-    DriveClockwiseSweepState, DriveCounterClockwiseSweepState,
+    DriveClockwiseSweepState, DriveCounterClockwiseSweepState, DriveOverRotateState,
     DriveBeaconWaitState, DriveUndoRotateState
 }DriveTrainState_t;
 

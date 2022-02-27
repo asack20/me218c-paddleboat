@@ -37,6 +37,7 @@
 #define BUMPER_PORT _Port_B //Physical pin 26
 #define BUMPER_PIN _Pin_15
 #define BUMPER_VAL PORTBbits.RB15
+#define BUMPER_TIMEOUT 5000 // 5 sec
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -130,7 +131,7 @@ ES_Event_t RunBumperService(ES_Event_t ThisEvent)
 {
     ES_Event_t ReturnEvent;
     ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-  
+    ES_Event_t PostEvent;
     switch (CurrentState)
     {
         case BumperIdleState:
@@ -140,6 +141,8 @@ ES_Event_t RunBumperService(ES_Event_t ThisEvent)
                 printf("Bumper: Starting DRIVE_UNTIL_BUMP\n");
                 CurrentState = BumperActiveState;
                 EventCheckerActive = true;
+                // start timer for timeout
+                ES_Timer_InitTimer(BUMPER_TIMER, BUMPER_TIMEOUT);
             }
         }
         break;
@@ -150,15 +153,28 @@ ES_Event_t RunBumperService(ES_Event_t ThisEvent)
             if (BUMP_FOUND == ThisEvent.EventType)
             {
                 printf("Bumper: BUMP_FOUND\n");
-                PostDriveTrain(ThisEvent);
-                PostSPIList(ThisEvent);
+                PostEvent.EventType = BUMP_FOUND;
+                PostDriveTrain(PostEvent);
+                PostSPIList(PostEvent);
                 CurrentState = BumperIdleState;
                 EventCheckerActive = false;
+                ES_Timer_StopTimer(BUMPER_TIMER); // cancel active timer
             }
             // go to idle state
             else if (DRIVE_STOP == ThisEvent.EventType)
             {
                 printf("Bumper: DRIVE_STOP received\n");
+                CurrentState = BumperIdleState;
+                EventCheckerActive = false;
+                ES_Timer_StopTimer(BUMPER_TIMER); // cancel active timer
+            }
+            // Timeout exceeded
+            else if (ES_TIMEOUT == ThisEvent.EventType)
+            {
+                printf("Bumper: BUMPER Timeout Reached\n");
+                PostEvent.EventType = BUMP_FOUND;
+                PostDriveTrain(PostEvent);
+                PostSPIList(PostEvent);
                 CurrentState = BumperIdleState;
                 EventCheckerActive = false;
             }
