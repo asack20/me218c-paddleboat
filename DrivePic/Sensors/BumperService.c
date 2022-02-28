@@ -37,7 +37,7 @@
 #define BUMPER_PORT _Port_B //Physical pin 26
 #define BUMPER_PIN _Pin_15
 #define BUMPER_VAL PORTBbits.RB15
-#define BUMPER_TIMEOUT 5000 // 5 sec
+#define BUMPER_TIMEOUT 4000 // 4 sec
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions

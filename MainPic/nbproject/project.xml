@@ -17,7 +17,6 @@
                 <sourceRootElem>SPI</sourceRootElem>
                 <sourceRootElem>Launch</sourceRootElem>
                 <sourceRootElem>HSM</sourceRootElem>
-                <sourceRootElem>Sensors</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
