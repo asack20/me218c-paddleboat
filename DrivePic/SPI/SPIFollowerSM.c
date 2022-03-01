@@ -30,6 +30,7 @@
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_SPI_HAL.h"
 #include "../DriveTrain/DriveTrain.h"
+#include "../Sensors/BumperService.h"
 #include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
@@ -188,7 +189,7 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
                 SPICommand.CommandBits.Name = SPI_DRIVE_GOAL_REACHED;
                 SendData = SPICommand.FullCommand;
 #ifdef SPI_DEBUG
-                printf("SPI Follower: Drive Goal Reached\r\n");
+                printf("SPI Follower: Drive Goal Reached (%u)\r\n", SPICommand.FullCommand);
 #endif                
             }
             else if (ThisEvent.EventType == BUMP_FOUND){
@@ -322,6 +323,7 @@ void DecodeSPICommand(SPI_MOSI_Command_t SPICommand)
             PostEvent.EventType = DRIVE_STOP;
             PostEvent.EventParam = SPICommand.FullCommand;
             PostDriveTrain(PostEvent);
+            PostBumperService(PostEvent);
             // TODO: Post to all services
         } break;
         
@@ -331,7 +333,6 @@ void DecodeSPICommand(SPI_MOSI_Command_t SPICommand)
             PostEvent.EventType = DRIVE_DISTANCE;
             PostEvent.EventParam = SPICommand.FullCommand;
             PostDriveTrain(PostEvent);
-            // TODO: Post to all services
         } break;
         
         case SPI_DRIVE_UNTIL_BUMP:
@@ -340,7 +341,7 @@ void DecodeSPICommand(SPI_MOSI_Command_t SPICommand)
             PostEvent.EventType = DRIVE_UNTIL_BUMP;
             PostEvent.EventParam = SPICommand.FullCommand;
             PostDriveTrain(PostEvent);
-            // TODO: Post to Bump Service
+            PostBumperService(PostEvent);
         } break;
         
         case SPI_DO_TAPE_ALIGN:

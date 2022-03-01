@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 3
+#define NUM_SERVICES 4
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -83,11 +83,11 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "../SensorInterfacing/Find_Tape.h"
+#define SERV_3_HEADER "../Sensors/BumperService.h"
 // the name of the Init function
-#define SERV_3_INIT InitFind_Tape
+#define SERV_3_INIT InitBumperService
 // the name of the run function
-#define SERV_3_RUN RunFind_Tape
+#define SERV_3_RUN RunBumperService
 // How big should this services Queue be?
 #define SERV_3_QUEUE_SIZE 3
 #endif
@@ -318,7 +318,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF
+#define EVENT_CHECK_LIST Check4Keystroke, CheckSPIRBF, Check4Bump
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
 // corresponding timer expires. All 16 must be defined. If you are not using
@@ -326,7 +326,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC PostBumperService
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -351,6 +351,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define KEYBOARD_TIMER 15
+#define BUMPER_TIMER 0
 
 
 #endif /* ES_CONFIGURE_H */

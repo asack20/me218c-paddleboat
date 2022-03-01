@@ -51,6 +51,7 @@
       <itemPath>SPI/SPIFollowerSM.h</itemPath>
       <itemPath>DriveTrain/DriveTrain.h</itemPath>
       <itemPath>DriveTrain/MotorControlDriver.h</itemPath>
+      <itemPath>Sensors/BumperService.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -69,6 +70,7 @@
       <itemPath>SPI/SPIFollowerSM.c</itemPath>
       <itemPath>DriveTrain/DriveTrain.c</itemPath>
       <itemPath>DriveTrain/MotorControlDriver.c</itemPath>
+      <itemPath>Sensors/BumperService.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -88,6 +90,7 @@
     <Elem>CommandService</Elem>
     <Elem>//testarossa/Users$/afshanc/FinalProject218B/DrivePic/SPI</Elem>
     <Elem>SPI</Elem>
+    <Elem>Sensors</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
