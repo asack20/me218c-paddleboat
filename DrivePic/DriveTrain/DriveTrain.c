@@ -209,7 +209,7 @@ ES_Event_t RunDriveTrain(ES_Event_t ThisEvent)
                 
                 case DRIVE_UNTIL_BUMP:
                 {
-                    // Drive Backwards at slow speed
+                    // Drive Backwards at Medium speed
                     MotorControl_DriveStraight(_Backward_Dir, Speeds[Medium], 0);
 #ifdef DRIVE_DEBUG
                     printf("DriveDebug: Starting Drive Until Bump\r\n");

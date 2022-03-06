@@ -244,6 +244,23 @@ SPIFollowerSMState_t QuerySPIFollowerSM(void)
     return CurrentState;
 }
 
+/****************************************************************************
+ Function
+ InitializeSPI
+
+ Parameters
+     None
+
+ Returns
+ True if successful, else false
+
+ Description
+ Initializes SPI module as follower
+ Notes
+
+ Author
+ Andrew Sack
+****************************************************************************/
 bool InitializeSPI(void)
 {
     bool ReturnVal = true;
@@ -278,6 +295,23 @@ bool InitializeSPI(void)
     return ReturnVal;
 }
 
+/****************************************************************************
+ Function
+ CheckSPIRBF
+
+ Parameters
+     None
+
+ Returns
+ True if something read from buffer
+
+ Description
+ Check if something is in SPI buffer and if so, post an event
+ Notes
+
+ Author
+ Andrew Sack
+****************************************************************************/
 bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
