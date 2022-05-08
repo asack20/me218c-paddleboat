@@ -48,8 +48,8 @@
       <itemPath>HALs/PIC32PortHAL.h</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
       <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
-      <itemPath>DriveTrain/DriveTrain.h</itemPath>
-      <itemPath>DriveTrain/MotorControlDriver.h</itemPath>
+      <itemPath>DriveTrain/Propulsion.h</itemPath>
+      <itemPath>Propulsion/MotorControlDriver.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -65,8 +65,8 @@
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
       <itemPath>ProjectSource/PIC32_AD_Lib.c</itemPath>
-      <itemPath>DriveTrain/DriveTrain.c</itemPath>
-      <itemPath>DriveTrain/MotorControlDriver.c</itemPath>
+      <itemPath>DriveTrain/Propulsion.c</itemPath>
+      <itemPath>Propulsion/MotorControlDriver.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -87,6 +87,7 @@
     <Elem>//testarossa/Users$/afshanc/FinalProject218B/DrivePic/SPI</Elem>
     <Elem>SPI</Elem>
     <Elem>Sensors</Elem>
+    <Elem>Propulsion</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -245,13 +246,37 @@
         <property key="save-temps" value="false"/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
-      <item path="DriveTrain/DriveTrain.c" ex="true" overriding="false">
+      <item path="DriveTrain/Propulsion.c" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
-      <item path="DriveTrain/DriveTrain.h" ex="true" overriding="false">
-      </item>
-      <item path="DriveTrain/MotorControlDriver.c" ex="true" overriding="false">
-      </item>
-      <item path="DriveTrain/MotorControlDriver.h" ex="true" overriding="false">
+      <item path="DriveTrain/Propulsion.h" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <item path="ProjectHeaders/TestHarnessService0.h" ex="false" overriding="false">
         <C32>
@@ -767,8 +792,36 @@
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
       <item path="TestHarnesses/KeyboardService.c" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <item path="TestHarnesses/KeyboardService.h" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <Tool>
         <property key="ADC 1" value="true"/>

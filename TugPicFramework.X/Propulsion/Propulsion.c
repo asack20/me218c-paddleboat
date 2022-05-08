@@ -26,7 +26,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "terminal.h"
-#include "DriveTrain.h"
+#include "Propulsion.h"
 #include "MotorControlDriver.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../SPI/SPIFollowerSM.h"

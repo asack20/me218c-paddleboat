@@ -10,7 +10,6 @@
 #include "terminal.h"
 #include "MotorControlDriver.h"
 #include "../HALs/PIC32PortHAL.h"
-#include "DriveTrain.h"
 #include "ES_Configure.h"
 #include "ES_Events.h"
 #include <xc.h>
@@ -18,6 +17,8 @@
 #include <string.h>
 
 /*----------------------------- Module Defines ----------------------------*/
+// #define USE_CLOSED_LOOP // uncomment to enable closed loop code 
+
 // PID constants
 #define pGain 1
 #define iGain 2
@@ -77,12 +78,13 @@ static void InitLeftEncoder(void);
 static void InitRightEncoder(void);
 static void InitControlLaw(void);
 
+#ifdef USE_CLOSED_LOOP
 void __ISR(_TIMER_2_VECTOR, IPL6SOFT) Timer2Handler(void);
 void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void);
 void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL7SOFT) LeftEncoderHandler(void);
 void __ISR(_INPUT_CAPTURE_2_VECTOR, IPL7SOFT) RightEncoderHandler(void);
 void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder);
-
+#endif
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 static bool MotorsActive; // true if motors are moving in any way. False if stopped
@@ -125,11 +127,13 @@ bool InitMotorControlDriver(void)
     // Call sub-init functions
     InitPWMTimer();
     InitLeftMotor();
-    InitRightMotor();
+    InitRightMotor(); 
+#ifdef USE_CLOSED_LOOP
     InitInputCapture();
     InitLeftEncoder();
     InitRightEncoder();
     InitControlLaw();
+#endif
     
     //enable global interrupts (built in)
     __builtin_enable_interrupts();
@@ -137,11 +141,14 @@ bool InitMotorControlDriver(void)
     // Enable SFRS
     OC1CONbits.ON = 1;
     OC2CONbits.ON = 1;
+    T3CONbits.ON = 1;
+#ifdef USE_CLOSED_LOOP
     IC1CONbits.ON = 1;
     IC2CONbits.ON = 1;
     T2CONbits.ON = 1;
-    T3CONbits.ON = 1;
     T4CONbits.ON = 0; // Control law timer. Not turning on for now
+#endif   
+    
     
     // Init Variables to 0
     MotorsActive = 0;
@@ -734,6 +741,7 @@ static void InitControlLaw(void)
     //Clear timer to 0 
     TMR4 = 0;
 }
+#ifdef USE_CLOSED_LOOP
 /****************************************************************************
  Function
  Timer2Handler
@@ -964,11 +972,12 @@ void __ISR(_TIMER_4_VECTOR, IPL4SOFT) ControlLawHandler(void)
     // Post event if reached
     if (DriveGoalReached)
     {
+#ifdef USE_CLOSED_LOOP
         printf("MotorControl: Posting DRIVE_GOAL_REACHED\n\r");
         ES_Event_t PostEvent;
         PostEvent.EventType = DRIVE_GOAL_REACHED;
         PostDriveTrain(PostEvent);
-        
+#endif        
         // Clear all flags
         LeftDriveGoalActive = false;
         LeftDriveGoalReached = false;
@@ -1036,3 +1045,4 @@ void UpdateControlLaw(ControlState_t *ThisControl, Encoder_t *ThisEncoder)
     } 
     ThisControl->LastError = ThisControl->RPMError; // update
 }
+#endif

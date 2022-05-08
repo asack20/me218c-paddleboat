@@ -28,6 +28,7 @@
 /*----------------------------- Include Files -----------------------------*/
 // This module
 #include "../ProjectHeaders/TestHarnessService0.h"
+#include "../Propulsion/MotorControlDriver.h"
 
 // debugging printf()
 
