@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "../ProjectHeaders/TestHarnessService0.h"
+#define SERV_0_HEADER "../Propulsion/Propulsion.h"
 // the name of the Init function
-#define SERV_0_INIT InitTestHarnessService0
+#define SERV_0_INIT InitPropulsion
 // the name of the run function
-#define SERV_0_RUN RunTestHarnessService0
+#define SERV_0_RUN RunPropulsion
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -260,11 +260,13 @@ typedef enum
     ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
     /* User-defined events start here */
     ES_NEW_KEY,               /* signals a new key received from terminal */
-    /* SPI RESPONSES*/
-    SPI_COMMAND_RECEIVED,
-    SPI_TASK_COMPLETE,
-    SPI_TASK_FAILED,
-    SPI_RESET,
+    /* Propulsion */
+    PROPULSION_SET_THRUST,
+    PROPULSION_REFUEL,
+    WAIT_TO_PAIR,
+    PAIRING_BUTTON_PRESSED,
+    PAIRING_COMPLETE
+    /**/
 
 
 
@@ -274,7 +276,7 @@ typedef enum
 // These are the definitions for the Distribution lists. Each definition
 // should be a comma separated list of post functions to indicate which
 // services are on that distribution list.
-#define NUM_DIST_LISTS 1
+#define NUM_DIST_LISTS 0
 #if NUM_DIST_LISTS > 0
 #define DIST_LIST0 PostTestHarnessService0
 #endif
@@ -312,7 +314,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostTestHarnessService0
+#define TIMER0_RESP_FUNC PostPropulsion
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -336,7 +338,7 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define SERVICE0_TIMER 0
+#define FUEL_TIMER 0
 
 
 #endif /* ES_CONFIGURE_H */

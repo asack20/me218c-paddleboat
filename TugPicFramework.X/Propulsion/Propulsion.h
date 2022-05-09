@@ -1,14 +1,14 @@
 /**************************************************************************** 
- * File:   DriveTrain.h
- * FSM to interface with 2-motor PWM drive train
+ * File:   Propulsion.h
+ * FSM to interface with 2-motor PWM drive train and control fuel level
  * 
  * Author: Andrew Sack
  * 
- * Created on January 28, 2022, 10:07 PM
+ * Created on May 8, 2022, 06:21 PM
  ***************************************************************************/
 
-#ifndef DriveTrain_H
-#define DriveTrain_H
+#ifndef Propulsion_H
+#define Propulsion_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -19,19 +19,16 @@
 // State definitions for use with the query function
 typedef enum
 {
-    DriveInitState, DriveStoppedState, DriveDistanceState, DriveUntilBumpState,
-    DriveUntilFirstTapeDetectState, DriveTapeSquareUpState, 
-    DriveClockwiseSweepState, DriveCounterClockwiseSweepState, DriveOverRotateState,
-    DriveBeaconWaitState, DriveUndoRotateState
-}DriveTrainState_t;
+    FuelEmptyState, FuelFullState 
+}PropulsionState_t;
 
 // Public Function Prototypes
 
-bool InitDriveTrain(uint8_t Priority);
-bool PostDriveTrain(ES_Event_t ThisEvent);
-ES_Event_t RunDriveTrain(ES_Event_t ThisEvent);
-DriveTrainState_t QueryDriveTrain(void);
+bool InitPropulsion(uint8_t Priority);
+bool PostPropulsion(ES_Event_t ThisEvent);
+ES_Event_t RunPropulsion(ES_Event_t ThisEvent);
+PropulsionState_t QueryPropulsion(void);
+uint8_t Propulsion_GetFuelLevel(void);
 
-
-#endif /* DriveTrain_H */
+#endif /* Propulsion_H */
 
