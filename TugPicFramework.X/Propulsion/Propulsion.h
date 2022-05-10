@@ -15,6 +15,24 @@
 #include "ES_Types.h"     /* gets bool type for returns */
 #include "ES_Framework.h"
 
+// Data structure for arcade drive control scheme
+typedef union {
+    struct {
+        int8_t X; // LSB
+        int8_t Yaw;   
+    };
+    uint16_t Total;
+} ArcadeControl_t;
+
+// Data structure for tank drive control scheme
+typedef union {
+    struct {
+        int8_t Left; // LSB
+        int8_t Right;   
+    };
+    uint16_t Total;
+} TankControl_t;
+
 // typedefs for the states
 // State definitions for use with the query function
 typedef enum

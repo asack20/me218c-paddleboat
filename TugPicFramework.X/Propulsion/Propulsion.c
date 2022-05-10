@@ -32,13 +32,19 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
-// Command Tuning
+#define LEFT_MIN_DUTY_CYCLE 0 // Duty cycle at which the left motor starts moving
+#define RIGHT_MIN_DUTY_CYCLE 0 // Duty cycle at which the right motor starts moving
+#define FULL_FUEL 255 
+
+#define FUEL_BURN_TIME 200 // msec = 5 Hz
 
 /*----------------------------- Module Types ------------------------------*/
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
+void SetThrust(ArcadeControl_t input);
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match that of enum in header file
@@ -49,8 +55,6 @@ static uint8_t MyPriority;
 
 static float FuelLevel;
 static float FuelBurnRate;
-static int8_t LeftThrust;
-static int8_t RightThrust;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -81,7 +85,11 @@ bool InitPropulsion(uint8_t Priority)
     CurrentState = FuelEmptyState;
 
     InitMotorControlDriver();
+    MotorControl_StopMotors();
     
+    // Start Fuel as full and burn rate as 0
+    FuelLevel = FULL_FUEL;
+    FuelBurnRate = 0;
     
     puts("...Done Initializing Propulsion\r\n");
  
@@ -147,12 +155,74 @@ ES_Event_t RunPropulsion(ES_Event_t ThisEvent)
     {
         case (FuelEmptyState):
         {
-            ;
+            switch (ThisEvent.EventParam)
+            {
+                case (PROPULSION_REFUEL):
+                {
+                    FuelLevel = FULL_FUEL;
+                    CurrentState = FuelFullState;
+                    // Start fuel burning timer
+                    ES_Timer_InitTimer(FUEL_TIMER, FUEL_BURN_TIME);
+                } break;
+                case (PAIRING_COMPLETE):
+                {
+                    FuelLevel = FULL_FUEL;
+                    CurrentState = FuelFullState;
+                    // Start fuel burning timer
+                    ES_Timer_InitTimer(FUEL_TIMER, FUEL_BURN_TIME);
+                } break;
+                case (WAIT_TO_PAIR):
+                {
+                    // Disable Motors when pairing
+                    MotorControl_StopMotors();
+                    FuelBurnRate = 0;
+                } break;
+                default:
+                    ;
+            }
         } break;
         
         case (FuelFullState):
         {
-            ;
+            switch (ThisEvent.EventParam)
+            {
+                case (PROPULSION_SET_THRUST):
+                {
+                    SetThrust((ArcadeControl_t) ThisEvent.EventParam);
+                } break;
+                case (ES_TIMEOUT):
+                {
+                    // Make sure it is correct timer
+                    if (ThisEvent.EventParam == FUEL_TIMER)
+                    {
+                        FuelLevel -= FuelBurnRate; // Decrement Fuel
+                        
+                        if (FuelLevel > 0)
+                        {
+                            // Restart fuel burning timer
+                            ES_Timer_InitTimer(FUEL_TIMER, FUEL_BURN_TIME);
+                        }
+                        else
+                        {
+                            // Stop motors and go to FuelEmpty State
+                            MotorControl_StopMotors();
+                            FuelBurnRate = 0;
+                            CurrentState = FuelEmptyState;
+                        }
+                    }
+                } break;
+                case (WAIT_TO_PAIR):
+                {
+                    // Disable Motors when pairing
+                    MotorControl_StopMotors();
+                    FuelBurnRate = 0;
+                    CurrentState = FuelEmptyState;
+                    // Stop fuel burning timer
+                    ES_Timer_StopTimer(FUEL_TIMER);
+                } break;
+                default:
+                    ;
+            }
         } break;
         
         default:
@@ -206,3 +276,7 @@ uint8_t Propulsion_GetFuelLevel(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
+void SetThrust(ArcadeControl_t input)
+{
+    
+}
