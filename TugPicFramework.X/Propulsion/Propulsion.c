@@ -32,6 +32,8 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
+#define DEBUG_PRINT // define to enable debug message printing
+
 #define LEFT_MIN_DUTY_CYCLE 0 // Duty cycle at which the left motor starts moving
 #define RIGHT_MIN_DUTY_CYCLE 0 // Duty cycle at which the right motor starts moving
 #define MAX_DUTY_CYCLE 1000 // Max duty cycle input
@@ -319,6 +321,7 @@ void SetThrust(ArcadeControl_t input)
     {
         if (input.Yaw >= 0) // 1st quadrant
         {
+            // NOTE: Doesn't Currently account for Min duty cycle calibration
             LeftThrust = Signed_SetMotorDutyCycle(_Left_Motor, maximum * THRUST_SCALE );
             RightThrust = Signed_SetMotorDutyCycle(_Right_Motor, difference * THRUST_SCALE );
         }
@@ -346,6 +349,11 @@ void SetThrust(ArcadeControl_t input)
     float MaxThrust = 2*MAX_DUTY_CYCLE - LEFT_MIN_DUTY_CYCLE - RIGHT_MIN_DUTY_CYCLE;
     float ThrustFraction = (float) ((LeftThrust-LEFT_MIN_DUTY_CYCLE) + (RightThrust-RIGHT_MIN_DUTY_CYCLE)) / MaxThrust;
     FuelBurnRate = ThrustFraction * FUEL_BURN_PER_SEC * FUEL_BURN_TIME / ONE_SEC;
+    
+#ifdef DEBUG_PRINT
+    printf("X: %d, Yaw: %d, Left: %u, Right %u, Fuel: %0.3f, Burn: %0.5f\r\n", 
+            input.X, input.Yaw, LeftThrust, RightThrust, FuelLevel, FuelBurnRate);
+#endif
 }
 
 /* Signed_SetMotorDutyCycle

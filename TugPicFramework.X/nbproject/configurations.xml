@@ -759,7 +759,7 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
-      <item path="TestHarnesses/KeyboardService.c" ex="true" overriding="false">
+      <item path="TestHarnesses/KeyboardService.c" ex="false" overriding="false">
         <C32>
         </C32>
         <C32-AR>
@@ -775,7 +775,7 @@
         <C32Global>
         </C32Global>
       </item>
-      <item path="TestHarnesses/KeyboardService.h" ex="true" overriding="false">
+      <item path="TestHarnesses/KeyboardService.h" ex="false" overriding="false">
         <C32>
         </C32>
         <C32-AR>
