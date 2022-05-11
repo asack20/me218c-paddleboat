@@ -51,6 +51,7 @@
       <itemPath>SPI/SPIFollowerSM.h</itemPath>
       <itemPath>HALs/DM_Display_2.h</itemPath>
       <itemPath>ProjectHeaders/GasconService.h</itemPath>
+      <itemPath>ProjectHeaders/AnalogChecker.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -69,6 +70,7 @@
       <itemPath>HALs/DM_Display_2.c</itemPath>
       <itemPath>SPI/SPIFollowerSM.c</itemPath>
       <itemPath>ProjectSource/GasconService.c</itemPath>
+      <itemPath>ProjectSource/AnalogChecker.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
