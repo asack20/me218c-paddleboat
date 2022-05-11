@@ -34,8 +34,8 @@
 /*----------------------------- Module Defines ----------------------------*/
 #define DEBUG_PRINT // define to enable debug message printing
 
-#define LEFT_MIN_DUTY_CYCLE 0 // Duty cycle at which the left motor starts moving
-#define RIGHT_MIN_DUTY_CYCLE 0 // Duty cycle at which the right motor starts moving
+#define LEFT_MIN_DUTY_CYCLE 100 // Duty cycle at which the left motor starts moving
+#define RIGHT_MIN_DUTY_CYCLE 100 // Duty cycle at which the right motor starts moving
 #define MAX_DUTY_CYCLE 1000 // Max duty cycle input
 #define MAX_INPUT 127 // max val of x and yaw
 
@@ -164,10 +164,11 @@ ES_Event_t RunPropulsion(ES_Event_t ThisEvent)
     {
         case (FuelEmptyState):
         {
-            switch (ThisEvent.EventParam)
+            switch (ThisEvent.EventType)
             {
                 case (PROPULSION_REFUEL):
                 {
+                    printf("Propulsion: Fuel Empty PROPULSION_REFUEL\r\n");
                     FuelLevel = FULL_FUEL;
                     CurrentState = FuelFullState;
                     // Start fuel burning timer
@@ -175,6 +176,7 @@ ES_Event_t RunPropulsion(ES_Event_t ThisEvent)
                 } break;
                 case (PAIRING_COMPLETE):
                 {
+                    printf("Propulsion: Fuel Empty PAIRING_COMPLETE\r\n");
                     FuelLevel = FULL_FUEL;
                     CurrentState = FuelFullState;
                     // Start fuel burning timer
@@ -182,6 +184,7 @@ ES_Event_t RunPropulsion(ES_Event_t ThisEvent)
                 } break;
                 case (WAIT_TO_PAIR):
                 {
+                    printf("Propulsion: Fuel Empty WAIT_TO_PAIR\r\n");
                     // Disable Motors when pairing
                     MotorControl_StopMotors();
                     FuelBurnRate = 0;
@@ -193,18 +196,21 @@ ES_Event_t RunPropulsion(ES_Event_t ThisEvent)
         
         case (FuelFullState):
         {
-            switch (ThisEvent.EventParam)
+            switch (ThisEvent.EventType)
             {
                 case (PROPULSION_SET_THRUST):
                 {
+                    printf("Propulsion: FuelFull PROPULSION_SET_THRUST\r\n");
                     SetThrust((ArcadeControl_t) ThisEvent.EventParam);
                 } break;
                 case (ES_TIMEOUT):
                 {
+                    //printf("Propulsion: FuelFull ES_TIMEOUT\r\n");
                     // Make sure it is correct timer
                     if (ThisEvent.EventParam == FUEL_TIMER)
                     {
                         FuelLevel -= FuelBurnRate; // Decrement Fuel
+                        //printf("Burned Fuel. Level: %0.3f \t Rate: %0.5f \r\n", FuelLevel, FuelBurnRate );
                         
                         if (FuelLevel > 0)
                         {
@@ -222,6 +228,7 @@ ES_Event_t RunPropulsion(ES_Event_t ThisEvent)
                 } break;
                 case (WAIT_TO_PAIR):
                 {
+                    printf("Propulsion: FuelFull WAIT_TO_PAIR\r\n");
                     // Disable Motors when pairing
                     MotorControl_StopMotors();
                     FuelBurnRate = 0;
@@ -307,6 +314,7 @@ uint8_t Propulsion_GetFuelLevel(void)
 ****************************************************************************/
 void SetThrust(ArcadeControl_t input)
 {
+    printf("Propulsion: Setting thrust %x\r\n", input.Total);
     // Convert To floats betwen -1 and 1 for math
     float X_ratio = (float) input.X / MAX_INPUT;
     float Yaw_ratio = (float) input.Yaw / MAX_INPUT;
@@ -352,7 +360,7 @@ void SetThrust(ArcadeControl_t input)
     uint16_t RightDC = Propulsion_SetMotorDutyCycle(_Right_Motor, RightThrust);
     
     // Calculate FuelBurnRate per timer cycle based on average of 2 thrusts
-    FuelBurnRate = (LeftThrust + RightThrust) * FUEL_BURN_PER_SEC * FUEL_BURN_TIME / (2*ONE_SEC);
+    FuelBurnRate = (abs(LeftThrust) + abs(RightThrust)) * FUEL_BURN_PER_SEC * FUEL_BURN_TIME / (2*ONE_SEC);
     
 #ifdef DEBUG_PRINT
     printf("X: %d \t Yaw: %d \t Fuel: %0.3f \t Burn: %0.5f \r\nLeft Thrust: %0.3f \t Right Thrust %0.3f Left DC: %u \t Right DC: %u \r\n\r\n", 
@@ -367,6 +375,7 @@ void SetThrust(ArcadeControl_t input)
  */
 uint16_t Propulsion_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, float Thrust)
 {
+    
     MotorControl_Direction_t WhichDir;
     
     // Record thrust direction then take absolute value
@@ -381,7 +390,11 @@ uint16_t Propulsion_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, float Thr
     uint16_t DutyCycle;
 
     // Convert to Duty Cycle with Minimum DC offset
-    if (WhichMotor == _Left_Motor)
+    if (Thrust == 0) // turn motor all the way off to get rid of noise
+    {
+        DutyCycle = 0;
+    }
+    else if (WhichMotor == _Left_Motor)
     {
         DutyCycle = Thrust * (MAX_DUTY_CYCLE - LEFT_MIN_DUTY_CYCLE) 
                 + LEFT_MIN_DUTY_CYCLE;

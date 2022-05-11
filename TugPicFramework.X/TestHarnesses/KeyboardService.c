@@ -25,7 +25,7 @@
 
 
 /*----------------------------- Module Defines ----------------------------*/
-#define PROPULSION_INCREMENT 5
+#define PROPULSION_INCREMENT 1 // was 5
 #define FULL_THRUST 127
 #define HALF_THRUST 64
 
@@ -300,7 +300,7 @@ void PrintInstructions(void)
     printf( "Press '3' to post WAIT_TO_PAIR to Propulsion\n\r");
     
     printf( "\n\n------------PROPULSION_SET_THRUST--------------\r\n");
-    printf( "Press '4' to Set Thrust to 0 n\r");
+    printf( "Press '4' to Set Thrust to 0 \n\r");
     printf( "Press '5' to Set Thrust to Full Forward\n\r");
     printf( "Press '6' to Set Thrust to Half Forward\n\r");
     printf( "Press '7' to Set Thrust to Full Backward\n\r");
