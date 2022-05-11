@@ -29,6 +29,7 @@
 #include "SPIFollowerSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_SPI_HAL.h"
+#include "../ProjectHeaders/GasconService.h"
 #include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
@@ -168,7 +169,9 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         {
             if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
                 ReceiveData = ThisEvent.EventParam;
-                //POST TO GASCON SERVICE
+                PostEvent.EventType = GASCON_FUEL; //create event to start scroll
+                PostEvent.EventParam = ReceiveData;
+                PostGasconService(PostEvent);
             }
             else if (ThisEvent.EventType == GASCON_REFUELED){;
                 SendData = 0xAA; //Message back when refueled               
@@ -229,22 +232,16 @@ bool InitializeSPI(void)
     ReturnVal &= SPISetup_BasicConfig(SPI_SPI1);
     ReturnVal &= SPISetup_SetFollower(SPI_SPI1);
     ReturnVal &= SPISetup_SetBitTime(SPI_SPI1, 1000); //1,000 ns = 1 MHZ
-    
     SPI1CONbits.SSEN = 0;
     SPI1STATbits.SPIROV = 0;
-    
     //ReturnVal &= SPISetup_MapSSInput(SPI_SPI1, SPI_RPA0); // make A0 SS
     PortSetup_ConfigureDigitalInputs(_Port_A,_Pin_0);
     SS1R = 0b0000;
-    
     ReturnVal &= SPISetup_MapSDOutput(SPI_SPI1, SPI_RPB8); // make B8 SDO
-    
     //ReturnVal &= SPISetup_MapSDInput(SPI_SPI1, SPI_RPB5); // make B5 SDI 
     PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_5);
     SDI1R = 0b0001;
-    
     PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_14);
-    
     ReturnVal &= SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI); // clock is idle high
     ReturnVal &= SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE); // read on 2nd edge 
     ReturnVal &= SPISetup_SetXferWidth(SPI_SPI1, SPI_8BIT); //16 bit messages

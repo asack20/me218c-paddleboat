@@ -261,6 +261,8 @@ typedef enum
   /* User-defined events start here */
   ES_NEW_KEY,               /* signals a new key received from terminal */
   SPI_COMMAND_RECEIVED,
+  GASCON_UPDATE_DISPLAY,
+  GASCON_FUEL,
   GASCON_REFUELED
 }ES_EventType_t;
 
