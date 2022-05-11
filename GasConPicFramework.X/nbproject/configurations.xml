@@ -48,6 +48,8 @@
       <itemPath>HALs/PIC32_AD_Lib.h</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
       <itemPath>TestHarnesses/KeyboardResponses.h</itemPath>
+      <itemPath>SPI/SPIFollowerSM.h</itemPath>
+      <itemPath>HALs/DM_Display_2.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -63,6 +65,8 @@
       <itemPath>HALs/PIC32_AD_Lib.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
       <itemPath>TestHarnesses/KeyboardResponses.c</itemPath>
+      <itemPath>HALs/DM_Display_2.c</itemPath>
+      <itemPath>SPI/SPIFollowerSM.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -78,6 +82,7 @@
     <Elem>Sensors</Elem>
     <Elem>ProjectHeaders</Elem>
     <Elem>ProjectSource</Elem>
+    <Elem>HALs</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

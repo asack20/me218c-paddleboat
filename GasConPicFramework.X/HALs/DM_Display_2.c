@@ -227,7 +227,7 @@ void DM2_ScrollDisplayBuffer( uint8_t NumCols2Scroll)
   Copies the bitmap data for the specified character from the font file 
   into the rows of the frame buffer 
 ****************************************************************************/
-void DM2_AddChar2DisplayBuffer( unsigned char Char2Display)
+/*void DM2_AddChar2DisplayBuffer( unsigned char Char2Display)
 {
     uint8_t WhichRow;
     for (WhichRow = 0; WhichRow < NUM_ROWS; WhichRow++)
@@ -235,7 +235,7 @@ void DM2_AddChar2DisplayBuffer( unsigned char Char2Display)
         DM_Display[WhichRow].ByBytes[0]  |= getFontLine(Char2Display, WhichRow);
     }
     
-}
+}*/
 
 /****************************************************************************
  Function
