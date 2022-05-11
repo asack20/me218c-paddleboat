@@ -51,6 +51,8 @@
 #define BRAID2_IDX 1
 #define BRAID3_AN BIT5HI
 #define BRAID3_IDX 2
+#define LOW_THRESH 20000
+#define MID_THRESH 40000
 
 // Distance Sensor
 static uint32_t ConversionResults[3];
@@ -93,21 +95,48 @@ void InitBraidStatus(void)
 bool CheckBraid(void)
 {
     bool ReturnVal = false;
-    uint32_t Braid1Val;
-    uint32_t Braid2Val;
-    uint32_t Braid3Val;
+    uint32_t Braid1RawVal;
+    uint32_t Braid2RawVal;
+    uint32_t Braid3RawVal;
+    BraidState Braid1Val;
+    BraidState Braid2Val;
+    BraidState Braid3Val;
 
     ADC_MultiRead(ConversionResults);
-    Braid1Val = ConversionResults[BRAID1_IDX];
-    Braid2Val = ConversionResults[BRAID2_IDX];
-    Braid3Val = ConversionResults[BRAID3_IDX];
+    Braid1RawVal = ConversionResults[BRAID1_IDX];
+    Braid2RawVal = ConversionResults[BRAID2_IDX];
+    Braid3RawVal = ConversionResults[BRAID3_IDX];
+    
+    //Convert these into the Enums
+    if(Braid1RawVal <= LOW_THRESH){
+        Braid1Val = BraidLow;
+    } else if(Braid1RawVal <= MID_THRESH && Braid1RawVal > LOW_THRESH){
+        Braid1Val = BraidMid;
+    } else {
+        Braid1Val = BraidHigh;
+    }
+    if(Braid2RawVal <= LOW_THRESH){
+        Braid2Val = BraidLow;
+    } else if(Braid2RawVal <= MID_THRESH && Braid2RawVal > LOW_THRESH){
+        Braid2Val = BraidMid;
+    } else {
+        Braid2Val = BraidHigh;
+    }
+    if(Braid3RawVal <= LOW_THRESH){
+        Braid3Val = BraidLow;
+    } else if(Braid3RawVal <= MID_THRESH && Braid3RawVal > LOW_THRESH){
+        Braid3Val = BraidMid;
+    } else {
+        Braid3Val = BraidHigh;
+    }
+    
     CurrentBraidState.Braid1 = Braid1Val;
     CurrentBraidState.Braid2 = Braid2Val;
     CurrentBraidState.Braid3 = Braid3Val;
     ES_Event_t ThisEvent;
     ThisEvent.EventType = BRAID_UPDATE;
     ThisEvent.EventParam = CurrentBraidState.FullState;
-    //PostBraidService(ThisEvent);
+    PostBraidService(ThisEvent);
     
     return ReturnVal;
 }

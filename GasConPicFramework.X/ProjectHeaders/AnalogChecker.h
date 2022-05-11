@@ -22,27 +22,16 @@
 // prototypes for event checkers
 typedef enum
 {
-    Braid1Low, Braid1Mid, Braid1High
-}Braid1State;
-
-typedef enum
-{
-    Braid2Low, Braid2Mid, Braid2High
-}Braid2State;
-
-typedef enum
-{
-    Braid3Low, Braid3Mid, Braid3High
-}Braid3State;
-
+    BraidLow = 0, BraidMid = 1, BraidHigh = 2
+}BraidState;
 
 typedef union
 {
     struct {
         uint16_t Unused : 10;
-        Braid1State Braid1 : 2;
-        Braid2State Braid2 : 2;
-        Braid3State Braid3 : 2;
+        BraidState Braid1 : 2;
+        BraidState Braid2 : 2;
+        BraidState Braid3 : 2;
     };
     uint16_t FullState;
 }FullBraidState;

@@ -27,6 +27,7 @@
 #include "ES_Framework.h"
 #include "GasconService.h"
 #include "ES_DeferRecall.h"
+#include "../ProjectHeaders/BraidService.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_AD_Lib.h"
 #include "../FrameworkHeaders/bitdefs.h"
@@ -188,7 +189,9 @@ ES_Event_t RunGasconService(ES_Event_t ThisEvent)
         PostEvent.EventType = GASCON_UPDATE_DISPLAY; //create event to start scroll
         PostGasconService(PostEvent);
         if (RawFuelValue < 1){
-            //Post to Braid
+            ES_Event_t ThisEvent;
+            ThisEvent.EventType = BRAID_START;
+            PostBraidService(ThisEvent);
         }
       }
     }

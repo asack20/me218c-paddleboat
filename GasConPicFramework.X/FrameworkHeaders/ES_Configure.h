@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "../ProjectHeaders/TestHarnessService0.h"
+#define SERV_0_HEADER "../SPI/SPIFollowerSM.h"
 // the name of the Init function
-#define SERV_0_INIT InitTestHarnessService0
+#define SERV_0_INIT InitSPIFollowerSM
 // the name of the run function
-#define SERV_0_RUN RunTestHarnessService0
+#define SERV_0_RUN RunSPIFollowerSM
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,11 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "../HSM/RobotTopHSM.h"
+#define SERV_1_HEADER "../ProjectHeaders/GasconService.h"
 // the name of the Init function
-#define SERV_1_INIT InitRobotTopHSM
+#define SERV_1_INIT InitGasconService
 // the name of the run function
-#define SERV_1_RUN RunRobotTopHSM
+#define SERV_1_RUN RunGasconService
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 10
 #endif
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "../Sensors/Find_Beacon.h"
+#define SERV_2_HEADER "../ProjectHeaders/BraidService.h"
 // the name of the Init function
-#define SERV_2_INIT InitFind_Beacon
+#define SERV_2_INIT InitBraidService
 // the name of the run function
-#define SERV_2_RUN RunFind_Beacon
+#define SERV_2_RUN RunBraidService
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 5
 #endif
@@ -264,7 +264,8 @@ typedef enum
   GASCON_UPDATE_DISPLAY,
   GASCON_FUEL,
   GASCON_REFUELED,
-  BRAID_UPDATE
+  BRAID_UPDATE,
+  BRAID_START
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -308,7 +309,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostTestHarnessService0
+#define TIMER0_RESP_FUNC TIMER_UNUSED
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -332,6 +333,5 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define SERVICE0_TIMER 0
 
 #endif /* ES_CONFIGURE_H */
