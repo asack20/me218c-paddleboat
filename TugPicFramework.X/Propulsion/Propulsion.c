@@ -37,10 +37,9 @@
 #define LEFT_MIN_DUTY_CYCLE 0 // Duty cycle at which the left motor starts moving
 #define RIGHT_MIN_DUTY_CYCLE 0 // Duty cycle at which the right motor starts moving
 #define MAX_DUTY_CYCLE 1000 // Max duty cycle input
+#define MAX_INPUT 127 // max val of x and yaw
 
 #define FULL_FUEL 255 
-#define THRUST_SCALE 1000/127 // Duty cycle max/input max
-
 #define FUEL_BURN_TIME 200 // msec = 5 Hz
 #define ONE_SEC 1000
 #define FUEL_BURN_PER_SEC 25.5 // Fuel burn at 100% thrust per second
@@ -53,7 +52,7 @@
    relevant to the behavior of this state machine
 */
 void SetThrust(ArcadeControl_t input);
-uint16_t Signed_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, int16_t SignedDutyCycle);
+uint16_t Propulsion_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, float Thrust);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -308,69 +307,93 @@ uint8_t Propulsion_GetFuelLevel(void)
 ****************************************************************************/
 void SetThrust(ArcadeControl_t input)
 {
-    //variables to determine the quadrants 
-    int16_t maximum = max(abs(input.X), abs(input.Yaw));
-    int16_t total = input.X + input.Yaw;
-    int16_t difference = input.X - input.Yaw;
+    // Convert To floats betwen -1 and 1 for math
+    float X_ratio = (float) input.X / MAX_INPUT;
+    float Yaw_ratio = (float) input.Yaw / MAX_INPUT;
     
-    uint16_t LeftThrust;
-    uint16_t RightThrust;
+    //variables to determine the quadrants 
+    float maximum = max(abs(X_ratio), abs(Yaw_ratio));
+    float total = X_ratio + Yaw_ratio;
+    float difference = X_ratio - Yaw_ratio;
+    
+    float LeftThrust;
+    float RightThrust;
 
-    // set speed according to the quadrant that the values are in
-    if (input.X >= 0)
+    // set thrust according to the quadrant that the values are in
+    if (X_ratio >= 0)
     {
-        if (input.Yaw >= 0) // 1st quadrant
+        if (Yaw_ratio >= 0) // 1st quadrant
         {
-            // NOTE: Doesn't Currently account for Min duty cycle calibration
-            LeftThrust = Signed_SetMotorDutyCycle(_Left_Motor, maximum * THRUST_SCALE );
-            RightThrust = Signed_SetMotorDutyCycle(_Right_Motor, difference * THRUST_SCALE );
+            LeftThrust = maximum;
+            RightThrust = difference;
         }
         else // 2nd quadrant
         {
-            LeftThrust = Signed_SetMotorDutyCycle(_Left_Motor, total * THRUST_SCALE );
-            RightThrust = Signed_SetMotorDutyCycle(_Right_Motor, maximum * THRUST_SCALE );
+            LeftThrust = total;
+            RightThrust = maximum;
         }
     }
     else
     {
-        if (input.Yaw >= 0) // 4th quadrant
+        if (Yaw_ratio >= 0) // 4th quadrant
         {
-            LeftThrust = Signed_SetMotorDutyCycle(_Left_Motor, total * THRUST_SCALE );
-            RightThrust = Signed_SetMotorDutyCycle(_Right_Motor, -1 * maximum * THRUST_SCALE );
+            LeftThrust = total;
+            RightThrust = -1 * maximum;
         }
         else // 3rd quadrant
         {
-            LeftThrust = Signed_SetMotorDutyCycle(_Left_Motor, -1 * maximum * THRUST_SCALE );
-            RightThrust = Signed_SetMotorDutyCycle(_Right_Motor, difference * THRUST_SCALE );
+            LeftThrust = -1 * maximum;
+            RightThrust = difference;
         }
     }  
     
-    // Calculate FuelBurnRate per timer cycle 
-    float MaxThrust = 2*MAX_DUTY_CYCLE - LEFT_MIN_DUTY_CYCLE - RIGHT_MIN_DUTY_CYCLE;
-    float ThrustFraction = (float) ((LeftThrust-LEFT_MIN_DUTY_CYCLE) + (RightThrust-RIGHT_MIN_DUTY_CYCLE)) / MaxThrust;
-    FuelBurnRate = ThrustFraction * FUEL_BURN_PER_SEC * FUEL_BURN_TIME / ONE_SEC;
+    // Set motor duty cycles according to thrust
+    uint16_t LeftDC = Propulsion_SetMotorDutyCycle(_Left_Motor, LeftThrust);
+    uint16_t RightDC = Propulsion_SetMotorDutyCycle(_Right_Motor, RightThrust);
+    
+    // Calculate FuelBurnRate per timer cycle based on average of 2 thrusts
+    FuelBurnRate = (LeftThrust + RightThrust) * FUEL_BURN_PER_SEC * FUEL_BURN_TIME / (2*ONE_SEC);
     
 #ifdef DEBUG_PRINT
-    printf("X: %d, Yaw: %d, Left: %u, Right %u, Fuel: %0.3f, Burn: %0.5f\r\n", 
-            input.X, input.Yaw, LeftThrust, RightThrust, FuelLevel, FuelBurnRate);
+    printf("X: %d \t Yaw: %d \t Fuel: %0.3f \t Burn: %0.5f \r\nLeft Thrust: %0.3f \t Right Thrust %0.3f Left DC: %u \t Right DC: %u \r\n\r\n", 
+            input.X, input.Yaw, FuelLevel, FuelBurnRate, LeftThrust, RightThrust, LeftDC, RightDC );
 #endif
 }
 
-/* Signed_SetMotorDutyCycle
- * Helper to convert Signed to unsigned and Call MotorControl_SetMotorDutyCycle
+/* Propulsion_SetMotorDutyCycle
+ * Helper to scale thrust to PWM value and set motor duty cycle accordingly
  * 
- * Returns unsigned Duty cycle that was set
+ * Returns DutyCycle that was set
  */
-uint16_t Signed_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, int16_t SignedDutyCycle)
+uint16_t Propulsion_SetMotorDutyCycle(MotorControl_Motor_t WhichMotor, float Thrust)
 {
-    if (SignedDutyCycle >= 0)
-    {
-        MotorControl_SetMotorDutyCycle(WhichMotor, _Forward_Dir, SignedDutyCycle);
+    MotorControl_Direction_t WhichDir;
+    
+    // Record thrust direction then take absolute value
+    if (Thrust >= 0) {
+        WhichDir = _Forward_Dir;
     }
-    else
+    else{
+        WhichDir = _Backward_Dir;
+    }
+    Thrust = abs(Thrust);
+    
+    uint16_t DutyCycle;
+
+    // Convert to Duty Cycle with Minimum DC offset
+    if (WhichMotor == _Left_Motor)
     {
-        MotorControl_SetMotorDutyCycle(WhichMotor, _Backward_Dir, abs(SignedDutyCycle));
+        DutyCycle = Thrust * (MAX_DUTY_CYCLE - LEFT_MIN_DUTY_CYCLE) 
+                + LEFT_MIN_DUTY_CYCLE;
+    }
+    else // Right motor
+    {
+        DutyCycle = Thrust * (MAX_DUTY_CYCLE - RIGHT_MIN_DUTY_CYCLE) 
+                + RIGHT_MIN_DUTY_CYCLE;
     }
     
-    return abs(SignedDutyCycle);
+    // Set motor 
+    MotorControl_SetMotorDutyCycle(WhichMotor, WhichDir, DutyCycle);
+    
+    return DutyCycle;
 }
