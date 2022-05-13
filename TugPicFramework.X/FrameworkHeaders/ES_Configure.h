@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "../TestHarnesses/KeyboardService.h"
+#define SERV_2_HEADER "../Comms/TugComm.h"
 // the name of the Init function
-#define SERV_2_INIT InitKeyboardService
+#define SERV_2_INIT InitTugComm
 // the name of the run function
-#define SERV_2_RUN RunKeyboardService
+#define SERV_2_RUN RunTugComm
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -264,11 +264,11 @@ typedef enum
     PROPULSION_SET_THRUST,
     PROPULSION_REFUEL,
     WAIT_TO_PAIR,
+    PAIRING_COMPLETE,
+    /* TugComm */
     PAIRING_BUTTON_PRESSED,
-    PAIRING_COMPLETE
-    /**/
-
-
+    XBEE_MESSAGE_RECEIVED,
+    XBEE_TRANSMIT_MESSAGE
 
 }ES_EventType_t;
 
@@ -315,8 +315,8 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC PostPropulsion
-#define TIMER1_RESP_FUNC TIMER_UNUSED
-#define TIMER2_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC PostTugComm
+#define TIMER2_RESP_FUNC PostTugComm
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
 #define TIMER5_RESP_FUNC TIMER_UNUSED
@@ -339,6 +339,7 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define FUEL_TIMER 0
-
+#define TRANSMISSION_TIMER 1
+#define COMM_TIMEOUT_TIMER 2
 
 #endif /* ES_CONFIGURE_H */

@@ -46,10 +46,9 @@
       <itemPath>ProjectHeaders/TestHarnessService0.h</itemPath>
       <itemPath>TestHarnesses/KeyboardService.h</itemPath>
       <itemPath>HALs/PIC32PortHAL.h</itemPath>
-      <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
-      <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
       <itemPath>Propulsion/MotorControlDriver.h</itemPath>
       <itemPath>Propulsion/Propulsion.h</itemPath>
+      <itemPath>Comms/TugComm.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -63,10 +62,9 @@
       <itemPath>ProjectSource/main.c</itemPath>
       <itemPath>TestHarnesses/KeyboardService.c</itemPath>
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
-      <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
-      <itemPath>ProjectSource/PIC32_AD_Lib.c</itemPath>
       <itemPath>Propulsion/MotorControlDriver.c</itemPath>
       <itemPath>Propulsion/Propulsion.c</itemPath>
+      <itemPath>Comms/TugComm.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -88,6 +86,7 @@
     <Elem>SPI</Elem>
     <Elem>Sensors</Elem>
     <Elem>Propulsion</Elem>
+    <Elem>Comms</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

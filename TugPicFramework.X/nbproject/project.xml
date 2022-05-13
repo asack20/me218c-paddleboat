@@ -26,6 +26,7 @@
                 <sourceRootElem>SPI</sourceRootElem>
                 <sourceRootElem>Sensors</sourceRootElem>
                 <sourceRootElem>Propulsion</sourceRootElem>
+                <sourceRootElem>Comms</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
