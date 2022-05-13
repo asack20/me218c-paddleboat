@@ -28,6 +28,7 @@ bool InitTugComm(uint8_t Priority);
 bool PostTugComm(ES_Event_t ThisEvent);
 ES_Event_t RunTugComm(ES_Event_t ThisEvent);
 TugCommState_t QueryTugComm(void);
+bool CheckPairingButton(void);
 
 
 #endif /* TugComm_H */

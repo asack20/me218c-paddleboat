@@ -34,6 +34,8 @@
 #define TIMEOUT_TIME (5*ONE_SEC)
 #define TRANSMIT_TIME 200 // ms (5 Hz)
 
+#define BUTTON_PORT PORTAbits.RA0
+
 /*----------------------------- Module Types ------------------------------*/
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -48,6 +50,7 @@ static TugCommState_t CurrentState;
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 
+bool LastButtonState;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -77,6 +80,10 @@ bool InitTugComm(uint8_t Priority)
     // Initialize into waiting to Pair
     CurrentState = WaitingForPairRequestState;
 
+    // Configure Pairing Button as Digital Input with pull up RA0
+    PortSetup_ConfigureDigitalInputs(_Port_A, _Pin_0);
+    PortSetup_ConfigurePullUps(_Port_A, _Pin_0);
+    LastButtonState = BUTTON_PORT;
 
     puts("...Done Initializing TugComm\r\n");
  
@@ -285,6 +292,42 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
 TugCommState_t QueryTugComm(void)
 {
     return CurrentState;
+}
+
+/****************************************************************************
+ Function
+    CheckPairingButton
+
+ Parameters
+    None
+
+ Returns
+    True if event occurred
+
+ Description
+    Checks if Pairing Button went from unpressed to pressed
+ Notes
+
+ Author
+ Andrew Sack
+****************************************************************************/
+bool CheckPairingButton(void)
+{
+    bool CurrentButtonState = BUTTON_PORT;
+    bool ReturnVal = false;
+    
+    // went unpressed to pressed
+    if ((CurrentButtonState == 0) && (LastButtonState == 1))
+    {
+        ES_Event_t PostEvent;
+        PostEvent.EventType = PAIRING_BUTTON_PRESSED;
+        PostTugComm(PostEvent);
+        ReturnVal = true;
+    }
+    
+    // Update last state
+    LastButtonState = CurrentButtonState;
+    return ReturnVal;
 }
 
 
