@@ -30,6 +30,10 @@
 /*----------------------------- Module Defines ----------------------------*/
 #define DEBUG_PRINT // define to enable debug message printing
 
+#define ONE_SEC
+#define TIMEOUT_TIME (5*ONE_SEC)
+#define TRANSMIT_TIME 200 // ms (5 Hz)
+
 /*----------------------------- Module Types ------------------------------*/
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -136,51 +140,124 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
     
     switch (CurrentState)
     {
-        case (FuelEmptyState):
+        case (WaitingForPairRequestState):
         {
             switch (ThisEvent.EventType)
             {
-                case (PROPULSION_REFUEL):
+                case (ES_INIT):
                 {
-                    printf("TugComm: Fuel Empty PROPULSION_REFUEL\r\n");
+                    // Post WAIT_TO_PAIR TO PROPULSION
+                    PostEvent.EventType = WAIT_TO_PAIR;
+                    PostPropulsion(PostEvent);
                 } break;
-                case (PAIRING_COMPLETE):
+                case (XBEE_MESSAGE_RECEIVED):
                 {
-                    printf("TugComm: Fuel Empty PAIRING_COMPLETE\r\n");
-                } break;
-                case (WAIT_TO_PAIR):
-                {
-                    printf("TugComm: Fuel Empty WAIT_TO_PAIR\r\n");
+                    printf("TugComm: XBEE_MESSAGE_RECEIVED in PairRequestState\r\n");
+                    // TODO
+                    
                 } break;
                 default:
                     ;
             }
         } break;
         
-        case (FuelFullState):
+        case (WaitingForControlPacketState):
         {
             switch (ThisEvent.EventType)
             {
-                case (PROPULSION_SET_THRUST):
+                case (PAIRING_BUTTON_PRESSED):
                 {
-                    
+                    printf("TugComm: PAIRING_BUTTON_PRESSED in ControlPacketState\r\n");
+                    // Stop timers and return to Waiting for Pair Request
+                    ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
+                    ES_Timer_StopTimer(TRANSMISSION_TIMER);
+                    // Post WAIT_TO_PAIR TO PROPULSION
+                    PostEvent.EventType = WAIT_TO_PAIR;
+                    PostPropulsion(PostEvent);
+                    // Update State
+                    CurrentState = WaitingForPairRequestState;
                 } break;
                 case (ES_TIMEOUT):
                 {
-                    // Make sure it is correct timer
-                    if (ThisEvent.EventParam == FUEL_TIMER)
+                    // Check which timer it was
+                    if (ThisEvent.EventParam == COMM_TIMEOUT_TIMER)
                     {
+                        printf("TugComm: COMM_TIMEOUT in ControlPacketState\r\n");
+                        // Stop timers and return to Waiting for Pair Request
+                        ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
+                        ES_Timer_StopTimer(TRANSMISSION_TIMER);
+                        // Post WAIT_TO_PAIR TO PROPULSION
+                        PostEvent.EventType = WAIT_TO_PAIR;
+                        PostPropulsion(PostEvent);
+                        // Update State
+                        CurrentState = WaitingForPairRequestState;
+                    }
+                    else if (ThisEvent.EventParam == TRANSMISSION_TIMER)
+                    {
+                        // TODO: Transmit Pairing Acknowledged
+                        // Reinit timer
+                        ES_Timer_InitTimer(TRANSMISSION_TIMER, TRANSMIT_TIME);
                     }
                 } break;
-                case (WAIT_TO_PAIR):
+                case (XBEE_MESSAGE_RECEIVED):
                 {
-                    printf("TugComm: FuelFull WAIT_TO_PAIR\r\n");
+                    printf("TugComm: XBEE_MESSAGE_RECEIVED in ControlPacketState\r\n");
+                    // TODO
                 } break;
                 default:
                     ;
             }
         } break;
-        
+        case (PairedState):
+        {
+            switch (ThisEvent.EventType)
+            {
+                case (PAIRING_BUTTON_PRESSED):
+                {
+                    printf("TugComm: PAIRING_BUTTON_PRESSED in PairedState\r\n");
+                    // Stop timers and return to Waiting for Pair Request
+                    ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
+                    ES_Timer_StopTimer(TRANSMISSION_TIMER);
+                    // Post WAIT_TO_PAIR TO PROPULSION
+                    PostEvent.EventType = WAIT_TO_PAIR;
+                    PostPropulsion(PostEvent);
+                    // Update State
+                    CurrentState = WaitingForPairRequestState;
+                } break;
+                case (ES_TIMEOUT):
+                {
+                    // Check which timer it was
+                    if (ThisEvent.EventParam == COMM_TIMEOUT_TIMER)
+                    {
+                        printf("TugComm: COMM_TIMEOUT in PairedState\r\n");
+                        // Stop timers and return to Waiting for Pair Request
+                        ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
+                        ES_Timer_StopTimer(TRANSMISSION_TIMER);
+                        // Post WAIT_TO_PAIR TO PROPULSION
+                        PostEvent.EventType = WAIT_TO_PAIR;
+                        PostPropulsion(PostEvent);
+                        // Update State
+                        CurrentState = WaitingForPairRequestState;
+                    }
+                    else if (ThisEvent.EventParam == TRANSMISSION_TIMER)
+                    {
+                        // TODO: Transmit Status
+                        // Reinit timer
+                        ES_Timer_InitTimer(TRANSMISSION_TIMER, TRANSMIT_TIME);
+                    }
+                } break;
+                case (XBEE_MESSAGE_RECEIVED):
+                {
+                    printf("TugComm: XBEE_MESSAGE_RECEIVED in PairedState\r\n");
+                    // TODO
+                    // Validate Message
+                    // Post Propulsion Refuel and Set Thrust to Propulsion
+                    // Reinit COMM_Timeout_Timer
+                } break;
+                default:
+                    ;
+            }
+        } break;
         default:
           ;
     }                                   // end switch on Current State
