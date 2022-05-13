@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "../ProjectHeaders/TestHarnessService0.h"
+#define SERV_0_HEADER "PilotFSM.h"
 // the name of the Init function
-#define SERV_0_INIT InitTestHarnessService0
+#define SERV_0_INIT InitPilotFSM
 // the name of the run function
-#define SERV_0_RUN RunTestHarnessService0
+#define SERV_0_RUN RunPilotFSM
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,63 +57,63 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "../HSM/RobotTopHSM.h"
+#define SERV_1_HEADER "KeyboardResponses.h"
 // the name of the Init function
-#define SERV_1_INIT InitRobotTopHSM
+#define SERV_1_INIT InitKeyboardResponses
 // the name of the run function
-#define SERV_1_RUN RunRobotTopHSM
+#define SERV_1_RUN RunKeyboardResponses
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 10
+#define SERV_1_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "../Sensors/Find_Beacon.h"
+#define SERV_2_HEADER "TestHarnessService2.h"
 // the name of the Init function
-#define SERV_2_INIT InitFind_Beacon
+#define SERV_2_INIT InitTestHarnessService2
 // the name of the run function
-#define SERV_2_RUN RunFind_Beacon
+#define SERV_2_RUN RunTestHarnessService2
 // How big should this services Queue be?
-#define SERV_2_QUEUE_SIZE 5
+#define SERV_2_QUEUE_SIZE 3
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "../SPI/SPILeaderSM.h"
+#define SERV_3_HEADER "TestHarnessService3.h"
 // the name of the Init function
-#define SERV_3_INIT InitSPILeaderSM
+#define SERV_3_INIT InitTestHarnessService3
 // the name of the run function
-#define SERV_3_RUN RunSPILeaderSM
+#define SERV_3_RUN RunTestHarnessService3
 // How big should this services Queue be?
-#define SERV_3_QUEUE_SIZE 10
+#define SERV_3_QUEUE_SIZE 3
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "../Launch/LaunchService.h"
+#define SERV_4_HEADER "TestHarnessService4.h"
 // the name of the Init function
-#define SERV_4_INIT InitLaunchService
+#define SERV_4_INIT InitTestHarnessService4
 // the name of the run function
-#define SERV_4_RUN RunLaunchService
+#define SERV_4_RUN RunTestHarnessService4
 // How big should this services Queue be?
-#define SERV_4_QUEUE_SIZE 10
+#define SERV_4_QUEUE_SIZE 3
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 5
 #if NUM_SERVICES > 5
 // the header file with the public function prototypes
-#define SERV_5_HEADER "../Sensors/StartButton.h"
+#define SERV_5_HEADER "TestHarnessService5.h"
 // the name of the Init function
-#define SERV_5_INIT InitStartButton
+#define SERV_5_INIT InitTestHarnessService5
 // the name of the run function
-#define SERV_5_RUN RunStartButton
+#define SERV_5_RUN RunTestHarnessService5
 // How big should this services Queue be?
 #define SERV_5_QUEUE_SIZE 3
 #endif
@@ -122,11 +122,11 @@
 // These are the definitions for Service 6
 #if NUM_SERVICES > 6
 // the header file with the public function prototypes
-#define SERV_6_HEADER "../Sensors/ReloadButton.h"
+#define SERV_6_HEADER "TestHarnessService6.h"
 // the name of the Init function
-#define SERV_6_INIT InitReloadButton
+#define SERV_6_INIT InitTestHarnessService6
 // the name of the run function
-#define SERV_6_RUN RunReloadButton
+#define SERV_6_RUN RunTestHarnessService6
 // How big should this services Queue be?
 #define SERV_6_QUEUE_SIZE 3
 #endif
@@ -260,14 +260,10 @@ typedef enum
   ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
   /* User-defined events start here */
   ES_NEW_KEY,               /* signals a new key received from terminal */
-  ES_ENTRY,
-  ES_ENTRY_HISTORY,
-  ES_EXIT,
-  SEND_SPI_COMMAND,
-  SPI_RESPONSE_RECEIVED,
-  SPI_TASK_COMPLETE,
-  SPI_TASK_FAILED,
-  SPI_RESET
+  PAIR_BUTTON_PRESSED,
+  ACK_RECEIVED,
+  VALID_STATUS_RECEIVED,
+  MODE3_BUTTON_PRESSED
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -302,7 +298,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke
+#define EVENT_CHECK_LIST Check4Keystroke, PairButtonEventChecker, Mode3ButtonEventChecker 
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -311,12 +307,12 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostTestHarnessService0
+#define TIMER0_RESP_FUNC TIMER_UNUSED
 #define TIMER1_RESP_FUNC TIMER_UNUSED
-#define TIMER2_RESP_FUNC TIMER_UNUSED
+#define TIMER2_RESP_FUNC PostPilotFSM
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
-#define TIMER5_RESP_FUNC TIMER_UNUSED
+#define TIMER5_RESP_FUNC PostPilotFSM
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
 #define TIMER8_RESP_FUNC TIMER_UNUSED
@@ -325,8 +321,8 @@ typedef enum
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
-#define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC TIMER_UNUSED
+#define TIMER14_RESP_FUNC PostPilotFSM
+#define TIMER15_RESP_FUNC PostPilotFSM
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -335,6 +331,9 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define SERVICE0_TIMER 0
+#define COMMSTIMER 2
+#define INACTIVITYTIMER 5
+#define PAIRBUTTONDEBOUNCETIMER 15
+#define MODE3BUTTONDEBOUNCETIMER 14
 
 #endif /* ES_CONFIGURE_H */
