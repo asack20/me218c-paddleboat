@@ -35,6 +35,7 @@
 
 #define FIVE_SEC 5000
 #define ONE_SEC 1000
+#define MODE3DEBOUNCETIMERDURATION 2000
 #define ONE_TENTH_SEC 100
 #define ONE_FIFTH_SEC 200// For 5Hz communications
 #define PAIRBUTTONBIT PORTAbits.RA4
@@ -271,12 +272,6 @@ ES_Event_t RunPilotFSM(ES_Event_t ThisEvent)
                 UpdateThrustVals();
                 StartCommsTimer();
                 SendControl();
-                Mode3ToBeActiveOnNextTransmission = false; //NOT SURE IF THIS IS WHAT WE WANT TO DO
-                //in current state, this would only send 1 message with mode 3
-                //information for each time the button is pressed.  This is
-                //event driven.  Instead, we could forego the mode 3 button event
-                //checker entirely and just send the state of the mode 3 button
-                //in the message to the tug.
                 ToggleCommsLED();
             }
             if (ThisEvent.EventParam == INACTIVITYTIMER){
@@ -293,6 +288,12 @@ ES_Event_t RunPilotFSM(ES_Event_t ThisEvent)
             }
             if (ThisEvent.EventParam == MODE3BUTTONDEBOUNCETIMER) {
                   Mode3ButtonEventCheckerActive = true;
+                  Mode3ToBeActiveOnNextTransmission = false; //NOT SURE IF THIS IS WHAT WE WANT TO DO
+                //in current state, this would only send 1 message with mode 3
+                //information for each time the button is pressed.  This is
+                //event driven.  Instead, we could forego the mode 3 button event
+                //checker entirely and just send the state of the mode 3 button
+                //in the message to the tug.
             }
         }
         break;
@@ -390,7 +391,7 @@ bool Mode3ButtonEventChecker(void)
         puts("Mode 3 Button Pressed\r\n");
         returnVal = true;
         Mode3ButtonEventCheckerActive = false; // Wait for timeout to check again for software debouncing
-        ES_Timer_InitTimer(MODE3BUTTONDEBOUNCETIMER, ONE_TENTH_SEC);
+        ES_Timer_InitTimer(MODE3BUTTONDEBOUNCETIMER, MODE3DEBOUNCETIMERDURATION);
         
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = MODE3_BUTTON_PRESSED;
@@ -446,6 +447,12 @@ static void ConfigureUARTforXBee(void)
     U2STAbits.URXEN = 1;
     
     U2STAbits.UTXISEL = 0b10; //Generate interrupt when transmit buffer is empty
+    
+    //Make interrupt priority high for UART
+    IPC9bits.U2IP = 0b111;
+    
+    //Enable interrupts in general
+    __builtin_enable_interrupts();
     
     //for debugging
     //U2MODEbits.LPBACK = 1;

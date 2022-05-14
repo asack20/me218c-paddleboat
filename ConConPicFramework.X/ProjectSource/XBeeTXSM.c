@@ -30,6 +30,8 @@
 #include "dbprintf.h"
 #include "terminal.h"
 #include <string.h>
+#include <xc.h>
+#include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -66,10 +68,12 @@ static int8_t CalculateX(uint32_t, uint32_t);
 static int8_t CalculateY(uint32_t, uint32_t);
 static int8_t CalculateYaw(uint32_t, uint32_t);
 
+static void TurnOnTXInterrupts(void);
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static XBeeTXState_t CurrentState;
+static volatile XBeeTXState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -91,7 +95,7 @@ static PilotState_t PilotState;
 
 static XBeeTXMessage_t NewMessageID;
 
-static uint8_t ByteCount;
+static volatile uint8_t ByteCount;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -215,8 +219,9 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
             PostXBeeTXSM(NewEvent);
             
             ByteCount = 0;
+            TurnOnTXInterrupts();
             //WriteByteToTX(NewTXMessage[ByteCount]);
-            ByteCount++;
+            
         }
         break;
 
@@ -232,18 +237,7 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
       {
         case TRANSMIT_BYTE:
         { 
-            if (ByteCount<15) {
-                //WriteByteToTX(NewTXMessage[ByteCount]);
-                ByteCount++;
-                
-                ES_Event_t NewEvent;
-                NewEvent.EventType = TRANSMIT_BYTE;
-                PostXBeeTXSM(NewEvent);
-            }
-            else {
-                ByteCount = 0;
-                CurrentState = XBeeTXIdleState;
-            }
+            //puts("A new transmission is in progress\r\n");
         }
         break;
 
@@ -332,4 +326,28 @@ static int8_t CalculateY(uint32_t LTV, uint32_t RTV)
 static int8_t CalculateYaw(uint32_t LTV, uint32_t RTV)
 {
     return 0;
+}
+
+static void TurnOnTXInterrupts(void)
+{
+    IEC1bits.U2TXIE = 1; //Enable
+    return;
+}
+
+void __ISR(_UART_2_VECTOR, IPL7SOFT) TXBufferEmptyInterruptHandler(void)
+{
+    //Put something in the buffer
+    U2TXREG = NewTXMessage[ByteCount];
+    ByteCount++;
+    if (ByteCount < 15) {
+        //Do nothing
+    }
+    else {
+        //Disable interrupt and move back to the inactive state
+        IEC1bits.U2TXIE = 0; //Disable
+        CurrentState = XBeeTXIdleState;
+        ByteCount = 0;
+    }
+    //Clear interrupt flag
+    IFS1CLR = _IFS1_U2TXIF_MASK;
 }
