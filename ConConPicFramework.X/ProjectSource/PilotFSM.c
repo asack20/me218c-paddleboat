@@ -157,6 +157,11 @@ bool InitPilotFSM(uint8_t Priority)
   //Disable Mode3 upon init
   Mode3ToBeActiveOnNextTransmission = false;
   
+  //Initialize Selector Bits for TUG Address
+    LatchAddressMSB = 0;
+    LatchAddressMidBit = 1;
+    LatchAddressLSB = 1;
+  
   return true;
 }
 
@@ -176,7 +181,7 @@ bool InitPilotFSM(uint8_t Priority)
 
  Author
      J. Edward Carryer, 10/23/11, 19:25
-****************************************************************************/
+****    ************************************************************************/
 bool PostPilotFSM(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);

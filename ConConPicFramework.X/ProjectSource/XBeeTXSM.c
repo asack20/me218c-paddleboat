@@ -210,9 +210,9 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
             ConstructNewTXMessage(NewTXMessage);
             //Now we have a new message to send
             
-            //for (uint8_t i=0; i<15; i++) {
-            //    DB_printf("Byte = %x\r\n",NewTXMessage[i]);
-            //}
+            for (uint8_t i=0; i<15; i++) {
+                DB_printf("Byte = %x\r\n",NewTXMessage[i]);
+            }
             
             ES_Event_t NewEvent;
             NewEvent.EventType = TRANSMIT_BYTE;
@@ -283,17 +283,23 @@ static void ConstructNewTXMessage(uint8_t * TXMessage)
 {
     TXMessage[MSGFRAME_STARTDELIMITER-1]=0x7E;
     TXMessage[MSGFRAME_LENGTHMSB-1]=0x00;
-    TXMessage[MSGFRAME_LENGTHLSB-1]=0x0C;
+    TXMessage[MSGFRAME_LENGTHLSB-1]=0x0B;
     uint8_t CheckSum = 0;
     CheckSum += (TXMessage[MSGFRAME_APIIDENTIFIER-1]=0x01);
     CheckSum += (TXMessage[MSGFRAME_FRAMEID-1]=0x01);
+    //CheckSum += (TXMessage[MSGFRAME_FRAMEID-1]=0x00);
     CheckSum += (TXMessage[MSGFRAME_DESTINATIONADDRESSMSB-1]=(TUGAddresses[TUGAddress] & 0xFF00) >> 8);
+    //CheckSum += (TXMessage[MSGFRAME_DESTINATIONADDRESSMSB-1]=(0x2119 & 0xFF00) >> 8);
     CheckSum += (TXMessage[MSGFRAME_DESTINATIONADDRESSLSB-1]=(TUGAddresses[TUGAddress] & 0x00FF));
+    //CheckSum += (TXMessage[MSGFRAME_DESTINATIONADDRESSLSB-1]=(0x2119 & 0x00FF));
     CheckSum += (TXMessage[MSGFRAME_OPTIONS-1]=0x00);
+    //CheckSum += (TXMessage[MSGFRAME_OPTIONS-1]=0x01);
     CheckSum += (TXMessage[MSGFRAME_MESSAGEID-1]=NewMessageID);
     if (NewMessageID == XBee_RequestToPair) {
         CheckSum += (TXMessage[MSGFRAME_TUGADDRMSB-1]=(TUGAddresses[TUGAddress] & 0xFF00) >> 8);
+        //CheckSum += (TXMessage[MSGFRAME_TUGADDRMSB-1]=(0x2119 & 0xFF00) >> 8);
         CheckSum += (TXMessage[MSGFRAME_TUGADDRLSB-1]=(TUGAddresses[TUGAddress] & 0x00FF));
+        //CheckSum += (TXMessage[MSGFRAME_TUGADDRLSB-1]=(0x2119 & 0x00FF));
         CheckSum += (TXMessage[MSGFRAME_PILOTADDRMSB-1]=(ThisPILOTAddress & 0xFF00) >> 8);
         CheckSum += (TXMessage[MSGFRAME_PILOTADDRLSB-1]=(ThisPILOTAddress & 0x00FF));
         CheckSum += (TXMessage[MSGFRAME_ACK-1]=0xAA);
