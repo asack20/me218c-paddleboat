@@ -50,6 +50,8 @@
       <itemPath>SPI/SPILeaderSM.h</itemPath>
       <itemPath>ProjectHeaders/PilotFSM.h</itemPath>
       <itemPath>ProjectHeaders/KeyboardResponses.h</itemPath>
+      <itemPath>ProjectHeaders/XBeeTXSM.h</itemPath>
+      <itemPath>ProjectHeaders/FuelSM.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -67,6 +69,8 @@
       <itemPath>SPI/SPILeaderSM.c</itemPath>
       <itemPath>ProjectSource/PilotFSM.c</itemPath>
       <itemPath>ProjectSource/KeyboardResponses.c</itemPath>
+      <itemPath>ProjectSource/XBeeTXSM.c</itemPath>
+      <itemPath>ProjectSource/FuelSM.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

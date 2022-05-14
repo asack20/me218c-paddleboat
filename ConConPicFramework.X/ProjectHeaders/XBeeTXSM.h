@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef FSMPilot_H
-#define FSMPilot_H
+#ifndef XBeeTXSM_H
+#define XBeeTXSM_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -16,25 +16,19 @@
 // State definitions for use with the query function
 typedef enum
 {
-    AttemptingToPair, Paired
-}PilotState_t;
+    XBeeTXIdleState, XBeeTXActiveState
+}XBeeTXState_t;
 
+typedef enum
+{
+    XBee_Control=1, XBee_Status=2, XBee_RequestToPair=3, XBee_PairingAcknowledged=4
+}XBeeTXMessage_t;
 // Public Function Prototypes
 
-bool InitPilotFSM(uint8_t Priority);
-bool PostPilotFSM(ES_Event_t ThisEvent);
-ES_Event_t RunPilotFSM(ES_Event_t ThisEvent);
-PilotState_t QueryPilotFSM(void);
+bool InitXBeeTXSM(uint8_t Priority);
+bool PostXBeeTXSM(ES_Event_t ThisEvent);
+ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent);
+XBeeTXState_t QueryXBeeTXSM(void);
 
-//Event Checkers
-bool PairButtonEventChecker(void);
-bool Mode3ButtonEventChecker(void);
-
-//Query private variables
-uint8_t QueryPairingSelectorAddress(void);
-uint32_t QueryLeftThrustVal(void);
-uint32_t QueryRightThrustVal(void);
-bool QueryMode3State(void);
-
-#endif /* FSMPilot_H */
+#endif /* XBeeTXSM_H */
 

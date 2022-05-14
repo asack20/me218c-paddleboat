@@ -24,6 +24,7 @@
 #include "ES_Framework.h"
 #include "KeyboardResponses.h"
 #include "PilotFSM.h"
+#include "XBeeTXSM.h"
 #include "terminal.h"
 #include "dbprintf.h"
 #include <string.h>
@@ -154,7 +155,9 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                   puts("Simulate CommsTimer ES_TIMEOUT Event:              \'C\'\r");
                   puts("Simulate InactivityTimer ES_TIMEOUT Event:         \'I\'\r");
                   puts("Simulate VALID_STATUS_RECEIVED Event:              \'V\'\r");
+                  puts("Simulate XBEE_TRANSMIT_MESSAGE Event:              \'M\'\r");
                   puts("Query State of PilotFSM:                           \'Q\'\r");
+                  puts("Query State of XBeeTXSM:                           \'q\'\r");
                   puts("Query Address of Target TUG:                       \'T\'\r");
                   puts("Query Left Thrust Value:                           \'L\'\r");
                   puts("Query Right Thrust Value:                          \'R\'\r");
@@ -204,6 +207,13 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
               }
               break;
               
+              case 'M':
+              {
+                puts("Posting XBEE_TRANSMIT_MESSAGE Event to XBeeTXSM\r\n");
+                NewEvent.EventType = XBEE_TRANSMIT_MESSAGE;
+                PostXBeeTXSM(NewEvent);
+              }
+              break;
               
               case 'Q':
               {
@@ -233,6 +243,37 @@ ES_Event_t RunKeyboardResponses(ES_Event_t ThisEvent)
                 }
                 puts("Querying PilotFSM:\r");
                 DB_printf("PilotFSM is in state %s\r\n\n",StateChar);
+              }
+              break;
+              
+              case 'q':
+              {
+                XBeeTXState_t CurrentXBeeTXState;
+                CurrentXBeeTXState = QueryXBeeTXSM();
+                char StateChar[40];
+                
+                switch (CurrentXBeeTXState)
+                {
+                    case XBeeTXIdleState:
+                    {
+                        strcpy(StateChar,"XBeeTXIdleState");
+                    }
+                    break;
+                    
+                    case XBeeTXActiveState:
+                    {
+                        strcpy(StateChar,"XBeeTXActiveState");
+                    }
+                    break;
+                    
+                    default:
+                    {
+                        strcpy(StateChar,"Not in a valid state - ERROR");
+                    }
+                    break;
+                }
+                puts("Querying XBeeTXSM:\r");
+                DB_printf("XBeeTXSM is in state %s\r\n\n",StateChar);
               }
               break;
               

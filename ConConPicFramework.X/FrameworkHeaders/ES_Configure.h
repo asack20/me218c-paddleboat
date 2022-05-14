@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 4
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -70,26 +70,26 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "TestHarnessService2.h"
+#define SERV_2_HEADER "FuelSM.h"
 // the name of the Init function
-#define SERV_2_INIT InitTestHarnessService2
+#define SERV_2_INIT InitFuelSM
 // the name of the run function
-#define SERV_2_RUN RunTestHarnessService2
+#define SERV_2_RUN RunFuelSM
 // How big should this services Queue be?
-#define SERV_2_QUEUE_SIZE 3
+#define SERV_2_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "TestHarnessService3.h"
+#define SERV_3_HEADER "XBeeTXSM.h"
 // the name of the Init function
-#define SERV_3_INIT InitTestHarnessService3
+#define SERV_3_INIT InitXBeeTXSM
 // the name of the run function
-#define SERV_3_RUN RunTestHarnessService3
+#define SERV_3_RUN RunXBeeTXSM
 // How big should this services Queue be?
-#define SERV_3_QUEUE_SIZE 3
+#define SERV_3_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
@@ -263,7 +263,12 @@ typedef enum
   PAIR_BUTTON_PRESSED,
   ACK_RECEIVED,
   VALID_STATUS_RECEIVED,
-  MODE3_BUTTON_PRESSED
+  MODE3_BUTTON_PRESSED,
+  XBEE_TRANSMIT_MESSAGE,
+  TRANSMIT_BYTE,
+  ZERO_FUEL,
+  NONZERO_FUEL,
+  REFUEL_DONE
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -337,3 +342,7 @@ typedef enum
 #define MODE3BUTTONDEBOUNCETIMER 14
 
 #endif /* ES_CONFIGURE_H */
+
+// #define LENGTHMSB 2
+// uint8_t TX_MESSAGE[15];
+// TX_MESSAGE[LENGTHMSB-1]

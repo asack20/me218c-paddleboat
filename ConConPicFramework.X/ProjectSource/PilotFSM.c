@@ -27,6 +27,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "PilotFSM.h"
+#include "XBeeTXSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_AD_Lib.h"
 
@@ -46,24 +47,24 @@
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-void ConfigureUARTforXBee(void);
-void ConfigureSPI(void);
-void ConfigureIOPins(void);
-void LatchAddress(void);
-void RequestToPair(void);
-void SendControl(void);
-void StartCommsTimer(void);
-void StartInactivityTimer(void);
-void StopInactivityTimer(void);
-void ResetInactivityTimer(void);
-bool UpdatePairButtonState(void);
-bool UpdateMode3ButtonState(void);
-void TurnOnTryingToPairLED(void);
-void TurnOffTryingToPairLED(void);
-void TurnOnPairedLED(void);
-void TurnOffPairedLED(void);
-void ToggleCommsLED(void);
-void UpdateThrustVals(void);
+static void ConfigureUARTforXBee(void);
+static void ConfigureSPI(void);
+static void ConfigureIOPins(void);
+static void LatchAddress(void);
+static void RequestToPair(void);
+static void SendControl(void);
+static void StartCommsTimer(void);
+static void StartInactivityTimer(void);
+static void StopInactivityTimer(void);
+static void ResetInactivityTimer(void);
+static bool UpdatePairButtonState(void);
+static bool UpdateMode3ButtonState(void);
+static void TurnOnTryingToPairLED(void);
+static void TurnOffTryingToPairLED(void);
+static void TurnOnPairedLED(void);
+static void TurnOffPairedLED(void);
+static void ToggleCommsLED(void);
+static void UpdateThrustVals(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -415,21 +416,50 @@ uint32_t QueryRightThrustVal(void)
     return RightThrustVal;
 }
 
+bool QueryMode3State(void)
+{
+    return Mode3ToBeActiveOnNextTransmission;
+}
+
 /***************************************************************************
  private functions
  ***************************************************************************/
 
-void ConfigureUARTforXBee(void)
+static void ConfigureUARTforXBee(void)
+{
+        // Turn off UART2
+    U2MODE = 0;
+    U2STA = 0;
+            
+    U2MODEbits.ON = 0; 
+    // Configure for 9600 baud assuming 20 MHz PBCLK
+    U2MODEbits.PDSEL = 0;
+    U2MODEbits.STSEL = 0;
+    U2MODEbits.BRGH = 0;
+    U2BRG = 129;
+    
+    //Set up pin configurations for UART
+    U2RXR = 0b0000;
+    RPB10R = 0b0010;
+    
+    U2STAbits.UTXEN = 1;
+    U2STAbits.URXEN = 1;
+    
+    U2STAbits.UTXISEL = 0b10; //Generate interrupt when transmit buffer is empty
+    
+    //for debugging
+    //U2MODEbits.LPBACK = 1;
+    
+    U2MODEbits.ON = 1;
+    return;
+}
+
+static void ConfigureSPI(void)
 {
     return;
 }
 
-void ConfigureSPI(void)
-{
-    return;
-}
-
-void ConfigureIOPins(void)
+static void ConfigureIOPins(void)
 {
     //Configure Digital Inputs for Port A
     //Pin 1 is RX for UART2
@@ -464,7 +494,7 @@ void ConfigureIOPins(void)
     return;
 }
 
-void LatchAddress(void)
+static void LatchAddress(void)
 {
     LatchAddressMSB = PORTBbits.RB4;
     LatchAddressMidBit = PORTAbits.RA3;
@@ -472,75 +502,81 @@ void LatchAddress(void)
     return;
 }
 
-void RequestToPair(void)
+static void RequestToPair(void)
 {
+    ES_Event_t NewEvent;
+    NewEvent.EventType = XBEE_TRANSMIT_MESSAGE;
+    PostXBeeTXSM(NewEvent);
     return;
 }
 
-void SendControl(void)
+static void SendControl(void)
 {
+    ES_Event_t NewEvent;
+    NewEvent.EventType = XBEE_TRANSMIT_MESSAGE;
+    PostXBeeTXSM(NewEvent);
     return;
 }
 
-void StartCommsTimer(void)
+static void StartCommsTimer(void)
 {
     ES_Timer_InitTimer(COMMSTIMER, ONE_FIFTH_SEC);
     return;
 }
 
-void StartInactivityTimer(void)
+static void StartInactivityTimer(void)
 {
     ES_Timer_InitTimer(INACTIVITYTIMER, FIVE_SEC);
     return;
 }
 
-void StopInactivityTimer(void)
+static void StopInactivityTimer(void)
 {
     ES_Timer_StopTimer(INACTIVITYTIMER);
     return;
 }
 
-void ResetInactivityTimer(void)
+static void ResetInactivityTimer(void)
 {
     ES_Timer_InitTimer(INACTIVITYTIMER, FIVE_SEC);
     return;
 }
 
-bool UpdatePairButtonState(void)
+static bool UpdatePairButtonState(void)
 {
     return PAIRBUTTONBIT;
 }
 
-bool UpdateMode3ButtonState(void)
+static bool UpdateMode3ButtonState(void)
 {
     return MODE3BUTTONBIT;
 }
 
-void TurnOnTryingToPairLED(void)
+static void TurnOnTryingToPairLED(void)
 {
     LATBbits.LATB11 = true;
     return;
 }
 
-void TurnOffTryingToPairLED(void)
+static void TurnOffTryingToPairLED(void)
 {
     LATBbits.LATB11 = false;
     return;
 }
 
-void TurnOnPairedLED(void)
+static void TurnOnPairedLED(void)
 {
     LATBbits.LATB15 = true;
     return;
 }
 
-void TurnOffPairedLED(void)
+static void TurnOffPairedLED(void)
 {
     LATBbits.LATB15 = false;
     return;
 }
 
-void ToggleCommsLED(void)
+static void ToggleCommsLED(void)
 {
     bool NewState;
     NewState = !CommsLEDStatus;
@@ -549,7 +585,7 @@ void ToggleCommsLED(void)
     return;
 }
 
-void UpdateThrustVals(void)
+static void UpdateThrustVals(void)
 {
     ADC_MultiRead(ThrustADCValues);
     LeftThrustVal = ThrustADCValues[1];

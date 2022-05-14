@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef FSMPilot_H
-#define FSMPilot_H
+#ifndef FuelSM_H
+#define FuelSM_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -16,25 +16,18 @@
 // State definitions for use with the query function
 typedef enum
 {
-    AttemptingToPair, Paired
-}PilotState_t;
+    FuelRemaining, FuelEmpty
+}FuelState_t;
 
 // Public Function Prototypes
 
-bool InitPilotFSM(uint8_t Priority);
-bool PostPilotFSM(ES_Event_t ThisEvent);
-ES_Event_t RunPilotFSM(ES_Event_t ThisEvent);
-PilotState_t QueryPilotFSM(void);
+bool InitFuelSM(uint8_t Priority);
+bool PostFuelSM(ES_Event_t ThisEvent);
+ES_Event_t RunFuelSM(ES_Event_t ThisEvent);
+FuelState_t QueryFuelSM(void);
 
-//Event Checkers
-bool PairButtonEventChecker(void);
-bool Mode3ButtonEventChecker(void);
+//Query for the refuel bit
+bool QueryRefuelBitForComms(void);
 
-//Query private variables
-uint8_t QueryPairingSelectorAddress(void);
-uint32_t QueryLeftThrustVal(void);
-uint32_t QueryRightThrustVal(void);
-bool QueryMode3State(void);
-
-#endif /* FSMPilot_H */
+#endif /* FuelSM_H */
 
