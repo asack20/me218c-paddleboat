@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 3
+#define NUM_SERVICES 4
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -83,13 +83,13 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "../Sensors/BumperService.h"
+#define SERV_3_HEADER "../Comms/XBeeRXSM.h"
 // the name of the Init function
-#define SERV_3_INIT InitBumperService
+#define SERV_3_INIT InitXBeeRXSM
 // the name of the run function
-#define SERV_3_RUN RunBumperService
+#define SERV_3_RUN RunXBeeRXSM
 // How big should this services Queue be?
-#define SERV_3_QUEUE_SIZE 3
+#define SERV_3_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
@@ -268,7 +268,9 @@ typedef enum
     /* TugComm */
     PAIRING_BUTTON_PRESSED,
     XBEE_MESSAGE_RECEIVED,
-    XBEE_TRANSMIT_MESSAGE
+    XBEE_TRANSMIT_MESSAGE,
+    /* XBeeRXSM */
+    UART_BYTE_RECEIVED
 
 }ES_EventType_t;
 
@@ -306,7 +308,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, CheckPairingButton
+#define EVENT_CHECK_LIST Check4Keystroke, CheckPairingButton, IsRXBufferNonempty
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
 // corresponding timer expires. All 16 must be defined. If you are not using
