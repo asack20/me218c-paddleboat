@@ -307,7 +307,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
 
 /****************************************************************************
  Function
-     QueryTugComm
+    QueryTugComm
 
  Parameters
      None

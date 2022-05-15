@@ -19,17 +19,13 @@ typedef enum
     XBeeTXIdleState, XBeeTXActiveState
 }XBeeTXState_t;
 
-typedef enum
-{
-    XBee_Control=1, XBee_Status=2, XBee_RequestToPair=3, XBee_PairingAcknowledged=4
-}XBeeTXMessage_t;
+
 // Public Function Prototypes
 
 bool InitXBeeTXSM(uint8_t Priority);
 bool PostXBeeTXSM(ES_Event_t ThisEvent);
 ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent);
 XBeeTXState_t QueryXBeeTXSM(void);
-void SetPILOTAddress(uint16_t Address);
 
 #endif /* XBeeTXSM_H */
 

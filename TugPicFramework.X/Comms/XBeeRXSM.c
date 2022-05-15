@@ -26,8 +26,19 @@
 #include "ES_Framework.h"
 #include "XBeeRXSM.h"
 #include "../HALs/PIC32PortHAL.h"
+#include "TugComm.h"
+#include "../Propulsion/Propulsion.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+// MACRO to easily enable/disable print statements
+//#define DEBUG_PRINT // define to enable debug message printing
+#ifdef DEBUG_PRINT
+#define printdebug printf
+#else
+#define printdebug(fmt, ...) (0)
+#endif
+
+#define API_ID_RX16 0x81 // API Identifier for RX 16bit packet 
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -51,6 +62,7 @@ static uint8_t ByteIndex;
 static bool LastRXBufferState;
 
 static uint16_t messageLength;
+static uint16_t PILOTAddress;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -87,6 +99,8 @@ bool InitXBeeRXSM(uint8_t Priority)
   
   //Update last RX Buffer State
   LastRXBufferState = 0;
+  
+  PILOTAddress = 0x2183; // team 3 by default
   
   return true;
 }
@@ -325,9 +339,98 @@ static void SetupUART(void)
 
 static void ParseNewRXMessage(void)
 {
+    ES_Event_t PostEvent;
+    /*
     for (uint8_t i=0; i<15; i++) {
-        printf("Byte = %x\r\n",RXMessageArray[i]);
+        printdebug("Byte = %x\r\n",RXMessageArray[i]);
     }
-    puts("Message Complete\r\n");
+    printdebug("Message Complete\r\n");
+    */
+    
+    // Only Accept RX Packet 16bit API identifier (0x81)
+    if (RXMessageArray[MSGFRAME_APIIDENTIFIER] != API_ID_RX16)
+    {
+        //printdebug("ParseRX: wrong API ID");
+        return;
+    }
+    
+    TugCommState_t TugCommState = QueryTugComm();
+    
+    // Validate message ID based on TugCommState
+    if (TugCommState == WaitingForPairRequestState)
+    {
+        // Only accept Request to Pair Messages
+        if (RXMessageArray[MSGFRAME_MESSAGEID] != XBee_RequestToPair)
+        {
+            printdebug("ParseRX: Ignoring. MessageID should be RequesttoPair 0x03, but is: %x \r\n", RXMessageArray[MSGFRAME_MESSAGEID]);
+            return;
+        }
+        // Set Pilot Address
+        PILOTAddress = RXMessageArray[MSGFRAME_SOURCEADDRESSMSB] << 8 + MSGFRAME_SOURCEADDRESSLSB;
+        
+        printdebug("ParseRX: Acting on Request to Pair from %x\r\n", PILOTAddress);
+        
+        // Post message to TUG Comm
+        PostEvent.EventType = XBEE_MESSAGE_RECEIVED;
+        PostEvent.EventParam = XBee_RequestToPair;
+        PostTugComm(PostEvent);
+        return;
+        
+    }
+    else
+    {
+        // Only accept Control Messages
+        if (RXMessageArray[MSGFRAME_MESSAGEID] != XBee_Control)
+        {
+            printdebug("ParseRX: Ignoring. MessageID should be Control 0x01, but is: %x \r\n", RXMessageArray[MSGFRAME_MESSAGEID]);
+            return;
+        }
+        
+        // Ensure Source is Paired Pilot
+        uint16_t RxPilot = RXMessageArray[MSGFRAME_SOURCEADDRESSMSB] << 8 + MSGFRAME_SOURCEADDRESSLSB;
+        if (RxPilot != PILOTAddress)
+        {
+            printdebug("ParseRX: Ignoring Message from unpaired PILOT: %x\r\n", RxPilot);
+            return;
+        }
+        
+        printdebug("ParseRX: Acting on Control Message %x\r\n");
+        
+        // Control Message Validated. Now Act on it.
+        // Post message to TUG Comm
+        PostEvent.EventType = XBEE_MESSAGE_RECEIVED;
+        PostEvent.EventParam = XBee_Control;
+        PostTugComm(PostEvent);
+        
+        // Refuel (Important this is before set thrust)
+        // Refuel sent
+        if (RXMessageArray[MSGFRAME_REFUEL] != 0)
+        {
+            PostEvent.EventType = PROPULSION_REFUEL;
+            PostEvent.EventParam = 0;
+            PostPropulsion(PostEvent);
+        }
+        
+        // Set Thrust
+        ArcadeControl_t controls;
+        controls.X = (int8_t) RXMessageArray[MSGFRAME_X];
+        controls.Yaw = (int8_t) RXMessageArray[MSGFRAME_YAW];
+        PostEvent.EventType = PROPULSION_SET_THRUST;
+        PostEvent.EventParam = controls.Total;
+        PostPropulsion(PostEvent);
+        
+        // Mode 3
+        uint8_t Mode3 = RXMessageArray[MSGFRAME_MODE3];
+        // Do something
+                
+    }
+    
+    
     return;
 }
+
+uint16_t GetPILOTAddress(void)
+{
+    return PILOTAddress;
+}
+        

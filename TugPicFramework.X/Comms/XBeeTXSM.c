@@ -28,6 +28,7 @@
 #include "../HALs/PIC32PortHAL.h"
 #include "../Propulsion/Propulsion.h"
 #include "TugComm.h"
+#include "XBeeRXSM.h"
 #include <string.h>
 #include <xc.h>
 #include <sys/attribs.h>
@@ -35,28 +36,6 @@
 /*----------------------------- Module Defines ----------------------------*/
 
 #define THISXBEE 3
-
-#define MSGFRAME_STARTDELIMITER 1
-#define MSGFRAME_LENGTHMSB 2
-#define MSGFRAME_LENGTHLSB 3
-#define MSGFRAME_APIIDENTIFIER 4
-#define MSGFRAME_FRAMEID 5
-#define MSGFRAME_DESTINATIONADDRESSMSB 6
-#define MSGFRAME_DESTINATIONADDRESSLSB 7
-#define MSGFRAME_OPTIONS 8
-#define MSGFRAME_MESSAGEID 9
-#define MSGFRAME_TUGADDRMSB 10
-#define MSGFRAME_X 10
-#define MSGFRAME_FUELLEVEL 10
-#define MSGFRAME_TUGADDRLSB 11
-#define MSGFRAME_Y 11
-#define MSGFRAME_PILOTADDRMSB 12
-#define MSGFRAME_YAW 12
-#define MSGFRAME_PILOTADDRLSB 13
-#define MSGFRAME_REFUEL 13
-#define MSGFRAME_ACK 14
-#define MSGFRAME_MODE3 14
-#define MSGFRAME_CHECKSUM 15
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -79,7 +58,6 @@ static uint8_t FuelLevel;
 
 static const uint16_t TUGAddresses[8] = {0x2115, 0x2017, 0x2184, 0x2188, 0x2119, 0x2185, 0x2115, 0x2017}; // Last two are just repeating the first two
 
-static uint16_t PILOTAddress;
 static uint16_t ThisTUGAddress;
 
 
@@ -118,7 +96,6 @@ bool InitXBeeTXSM(uint8_t Priority)
   
   // Set default addresses
   ThisTUGAddress = TUGAddresses[THISXBEE];
-  PILOTAddress = 0x2183; // team 3 by default
   
   ByteCount = 0;
   
@@ -265,17 +242,15 @@ XBeeTXState_t QueryXBeeTXSM(void)
   return CurrentState;
 }
 
-void SetPILOTAddress(uint16_t Address)
-{
-    PILOTAddress = Address;
-}
-
 /***************************************************************************
  private functions
  ***************************************************************************/
 
 static void ConstructNewTXMessage(uint8_t * TXMessage)
 {
+    // Get Current PILOTAddress;
+    uint16_t PILOTAddress = GetPILOTAddress();
+    
     TXMessage[MSGFRAME_STARTDELIMITER-1]=0x7E;
     TXMessage[MSGFRAME_LENGTHMSB-1]=0x00;
     TXMessage[MSGFRAME_LENGTHLSB-1]=0x0B;
