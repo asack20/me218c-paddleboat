@@ -190,7 +190,7 @@ ES_Event_t RunConconSPI(ES_Event_t ThisEvent)
         {
             if (ThisEvent.EventType == SPI_RESPONSE_RECEIVED){
                 RefuelVal = ThisEvent.EventParam;
-                
+                //DB_printf("Refuel Status:  %x\r\n",RefuelVal);
                 //Afshan's SPI code
 //                if (ThisEvent.EventParam == 0x1111){
 //                    ES_Event_t NewEvent;

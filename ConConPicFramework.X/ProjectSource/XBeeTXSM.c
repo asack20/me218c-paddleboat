@@ -211,9 +211,9 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
             ConstructNewTXMessage(NewTXMessage);
             //Now we have a new message to send
             
-            for (uint8_t i=0; i<15; i++) {
-                DB_printf("Byte = %x\r\n",NewTXMessage[i]);
-            }
+            //for (uint8_t i=0; i<15; i++) {
+            //    DB_printf("Byte = %x\r\n",NewTXMessage[i]);
+            //}
             
             ES_Event_t NewEvent;
             NewEvent.EventType = TRANSMIT_BYTE;

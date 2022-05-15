@@ -553,6 +553,7 @@ static void StopInactivityTimer(void)
 
 static void ResetInactivityTimer(void)
 {
+    ES_Timer_StopTimer(INACTIVITYTIMER);
     ES_Timer_InitTimer(INACTIVITYTIMER, FIVE_SEC);
     return;
 }

@@ -373,6 +373,10 @@ static void ParseNewRXMessage(void)
             if (ChecksumTest == 0xFF) {
                 //In this case, we're good -- update fuel level
                 FuelLevel = RXMessageArray[RXMSGFRAME_FUELLEVEL-1];
+                ES_Event_t NewEvent;
+                NewEvent.EventType = VALID_STATUS_RECEIVED;
+                PostPilotFSM(NewEvent);
+                //DB_printf("Fuel Level = %d\r\n",FuelLevel);
             }
         }
     }
