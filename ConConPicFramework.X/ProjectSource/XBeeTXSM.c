@@ -26,7 +26,7 @@
 #include "ES_Framework.h"
 #include "XBeeTXSM.h"
 #include "PilotFSM.h"
-#include "FuelSM.h"
+#include "ConconSPI.h"
 #include "dbprintf.h"
 #include "terminal.h"
 #include <string.h>
@@ -84,8 +84,8 @@ static uint32_t RightThrustVal;
 static bool Mode3ToBeActiveOnNextTransmission;
 static bool RefuelBitForComms;
 
-static const uint16_t TUGAddresses[8] = {0x2115, 0x2017, 0x2184, 0x2188, 0x2119, 0x2185, 0x2115, 0x2017}; // Last two are just repeating the first two
-static const uint16_t PILOTAddresses[8] = {0x2117, 0x2118, 0x2186, 0x2183, 0x2080, 0x2087, 0x2117, 0x2118}; // Last two are just repeating the first two
+static const uint16_t TUGAddresses[8] = {0x2115, 0x2017, 0x2184, 0x2188, 0x2085, 0x2185, 0x2115, 0x2017}; // Last two are just repeating the first two
+static const uint16_t PILOTAddresses[8] = {0x2117, 0x2118, 0x2186, 0x2183, 0x2082, 0x2087, 0x2117, 0x2118}; // Last two are just repeating the first two
 
 static uint16_t ThisPILOTAddress;
 
@@ -197,6 +197,7 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
             Mode3ToBeActiveOnNextTransmission = QueryMode3State();
             //Refuel bit
             RefuelBitForComms = QueryRefuelBitForComms();
+            //RefuelBitForComms = 0;
             
             //MessageID
             PilotState = QueryPilotFSM();
@@ -210,9 +211,9 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
             ConstructNewTXMessage(NewTXMessage);
             //Now we have a new message to send
             
-            for (uint8_t i=0; i<15; i++) {
-                DB_printf("Byte = %x\r\n",NewTXMessage[i]);
-            }
+            //for (uint8_t i=0; i<15; i++) {
+            //    DB_printf("Byte = %x\r\n",NewTXMessage[i]);
+            //}
             
             ES_Event_t NewEvent;
             NewEvent.EventType = TRANSMIT_BYTE;

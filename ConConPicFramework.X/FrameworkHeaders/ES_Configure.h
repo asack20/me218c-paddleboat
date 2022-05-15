@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 4
+#define NUM_SERVICES 5
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "FuelSM.h"
+#define SERV_2_HEADER "ConconSPI.h"
 // the name of the Init function
-#define SERV_2_INIT InitFuelSM
+#define SERV_2_INIT InitConconSPI
 // the name of the run function
-#define SERV_2_RUN RunFuelSM
+#define SERV_2_RUN RunConconSPI
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 5
 #endif
@@ -96,13 +96,13 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "TestHarnessService4.h"
+#define SERV_4_HEADER "XBeeRXSM.h"
 // the name of the Init function
-#define SERV_4_INIT InitTestHarnessService4
+#define SERV_4_INIT InitXBeeRXSM
 // the name of the run function
-#define SERV_4_RUN RunTestHarnessService4
+#define SERV_4_RUN RunXBeeRXSM
 // How big should this services Queue be?
-#define SERV_4_QUEUE_SIZE 3
+#define SERV_4_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
@@ -266,9 +266,8 @@ typedef enum
   MODE3_BUTTON_PRESSED,
   XBEE_TRANSMIT_MESSAGE,
   TRANSMIT_BYTE,
-  ZERO_FUEL,
-  NONZERO_FUEL,
-  REFUEL_DONE
+  UART_BYTE_RECEIVED,
+  SPI_RESPONSE_RECEIVED
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -303,7 +302,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke, PairButtonEventChecker, Mode3ButtonEventChecker 
+#define EVENT_CHECK_LIST Check4Keystroke, PairButtonEventChecker, Mode3ButtonEventChecker, IsRXBufferNonempty, CheckSPIRBF 
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -325,7 +324,7 @@ typedef enum
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
-#define TIMER13_RESP_FUNC TIMER_UNUSED
+#define TIMER13_RESP_FUNC PostConconSPI
 #define TIMER14_RESP_FUNC PostPilotFSM
 #define TIMER15_RESP_FUNC PostPilotFSM
 
@@ -340,6 +339,7 @@ typedef enum
 #define INACTIVITYTIMER 5
 #define PAIRBUTTONDEBOUNCETIMER 15
 #define MODE3BUTTONDEBOUNCETIMER 14
+#define SPITimer 13
 
 #endif /* ES_CONFIGURE_H */
 
