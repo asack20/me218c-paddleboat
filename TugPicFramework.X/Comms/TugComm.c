@@ -167,9 +167,6 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 case (XBEE_MESSAGE_RECEIVED):
                 {
                     printdebug("TugComm: XBEE_MESSAGE_RECEIVED in PairRequestState\r\n");
-                    // TODO
-                    // TEMP STATE PROGRESSION
-                    printdebug("TugComm: TEMP ONLY Going to ControlPacketState\r\n");
                     CurrentState = WaitingForControlPacketState;
                     
                     //Init COMM_TIMEOUT_TIMER (5 s) 
@@ -227,9 +224,6 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 case (XBEE_MESSAGE_RECEIVED):
                 {
                     printdebug("TugComm: XBEE_MESSAGE_RECEIVED in ControlPacketState\r\n");
-                    // TODO
-                    // TEMP STATE PROGRESSION
-                    printdebug("TugComm: TEMP ONLY Going to PairedState\r\n");
                     CurrentState = PairedState;
                     
                     //Post  PAIRING_COMPLETE to Propulsion &
@@ -289,10 +283,8 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 case (XBEE_MESSAGE_RECEIVED):
                 {
                     printdebug("TugComm: XBEE_MESSAGE_RECEIVED in PairedState\r\n");
-                    // TODO
-                    // Validate Message
-                    // Post Propulsion Refuel and Set Thrust to Propulsion
                     // Reinit COMM_Timeout_Timer
+                    ES_Timer_InitTimer(COMM_TIMEOUT_TIMER, TIMEOUT_TIME);
                 } break;
                 default:
                     ;

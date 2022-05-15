@@ -279,14 +279,14 @@ bool IsRXBufferNonempty(void)
     returnVal = false;
     bool NewRXBufferState;
     NewRXBufferState = U2STAbits.URXDA;
-    //puts("Event Checker\r\n");
+    //printdebug("Event Checker\r\n");
     if (NewRXBufferState == 1) {
         //In this case new data is available; post an event
         ES_Event_t NewEvent;
         NewEvent.EventType = UART_BYTE_RECEIVED;
         PostXBeeRXSM(NewEvent);
         returnVal = true;
-        //puts("New Byte Present\r\n");
+        //printdebug("New Byte Present\r\n");
     }
     LastRXBufferState = NewRXBufferState;
     
@@ -340,6 +340,7 @@ static void SetupUART(void)
 static void ParseNewRXMessage(void)
 {
     ES_Event_t PostEvent;
+    
     /*
     for (uint8_t i=0; i<15; i++) {
         printdebug("Byte = %x\r\n",RXMessageArray[i]);
@@ -348,9 +349,9 @@ static void ParseNewRXMessage(void)
     */
     
     // Only Accept RX Packet 16bit API identifier (0x81)
-    if (RXMessageArray[MSGFRAME_APIIDENTIFIER] != API_ID_RX16)
+    if (RXMessageArray[MSGFRAME_APIIDENTIFIER-1] != API_ID_RX16)
     {
-        //printdebug("ParseRX: wrong API ID");
+        //printdebug("ParseRX: wrong API ID\r\n");
         return;
     }
     
@@ -360,13 +361,13 @@ static void ParseNewRXMessage(void)
     if (TugCommState == WaitingForPairRequestState)
     {
         // Only accept Request to Pair Messages
-        if (RXMessageArray[MSGFRAME_MESSAGEID] != XBee_RequestToPair)
+        if (RXMessageArray[MSGFRAME_MESSAGEID-1] != XBee_RequestToPair)
         {
-            printdebug("ParseRX: Ignoring. MessageID should be RequesttoPair 0x03, but is: %x \r\n", RXMessageArray[MSGFRAME_MESSAGEID]);
+            printdebug("ParseRX: Ignoring. MessageID should be RequesttoPair 0x03, but is: %x \r\n", RXMessageArray[MSGFRAME_MESSAGEID-1]);
             return;
         }
         // Set Pilot Address
-        PILOTAddress = RXMessageArray[MSGFRAME_SOURCEADDRESSMSB] << 8 + MSGFRAME_SOURCEADDRESSLSB;
+        PILOTAddress = (RXMessageArray[MSGFRAME_SOURCEADDRESSMSB-1] << 8) + RXMessageArray[MSGFRAME_SOURCEADDRESSLSB-1];
         
         printdebug("ParseRX: Acting on Request to Pair from %x\r\n", PILOTAddress);
         
@@ -380,14 +381,14 @@ static void ParseNewRXMessage(void)
     else
     {
         // Only accept Control Messages
-        if (RXMessageArray[MSGFRAME_MESSAGEID] != XBee_Control)
+        if (RXMessageArray[MSGFRAME_MESSAGEID-1] != XBee_Control)
         {
-            printdebug("ParseRX: Ignoring. MessageID should be Control 0x01, but is: %x \r\n", RXMessageArray[MSGFRAME_MESSAGEID]);
+            printdebug("ParseRX: Ignoring. MessageID should be Control 0x01, but is: %x \r\n", RXMessageArray[MSGFRAME_MESSAGEID-1]);
             return;
         }
         
         // Ensure Source is Paired Pilot
-        uint16_t RxPilot = RXMessageArray[MSGFRAME_SOURCEADDRESSMSB] << 8 + MSGFRAME_SOURCEADDRESSLSB;
+        uint16_t RxPilot = (RXMessageArray[MSGFRAME_SOURCEADDRESSMSB-1] << 8) + RXMessageArray[MSGFRAME_SOURCEADDRESSLSB-1];
         if (RxPilot != PILOTAddress)
         {
             printdebug("ParseRX: Ignoring Message from unpaired PILOT: %x\r\n", RxPilot);
@@ -404,7 +405,7 @@ static void ParseNewRXMessage(void)
         
         // Refuel (Important this is before set thrust)
         // Refuel sent
-        if (RXMessageArray[MSGFRAME_REFUEL] != 0)
+        if (RXMessageArray[MSGFRAME_REFUEL-1] != 0)
         {
             PostEvent.EventType = PROPULSION_REFUEL;
             PostEvent.EventParam = 0;
@@ -413,14 +414,14 @@ static void ParseNewRXMessage(void)
         
         // Set Thrust
         ArcadeControl_t controls;
-        controls.X = (int8_t) RXMessageArray[MSGFRAME_X];
-        controls.Yaw = (int8_t) RXMessageArray[MSGFRAME_YAW];
+        controls.X = (int8_t) RXMessageArray[MSGFRAME_X-1];
+        controls.Yaw = (int8_t) RXMessageArray[MSGFRAME_YAW-1];
         PostEvent.EventType = PROPULSION_SET_THRUST;
         PostEvent.EventParam = controls.Total;
         PostPropulsion(PostEvent);
         
         // Mode 3
-        uint8_t Mode3 = RXMessageArray[MSGFRAME_MODE3];
+        uint8_t Mode3 = RXMessageArray[MSGFRAME_MODE3-1];
         // Do something
                 
     }
