@@ -25,6 +25,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "XBeeRXSM.h"
+#include "../HALs/PIC32PortHAL.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -34,6 +35,7 @@
 */
 
 static void SetupUART(void);
+static void ParseNewRXMessage(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -47,6 +49,8 @@ static uint8_t RXMessageArray[15];
 static uint8_t ByteIndex;
 
 static bool LastRXBufferState;
+
+static uint16_t messageLength;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -82,10 +86,7 @@ bool InitXBeeRXSM(uint8_t Priority)
   SetupUART();
   
   //Update last RX Buffer State
-  LastRXBufferState = U2STAbits.URXDA;
-  
-  //Enable RX interrupts
-  IEC1bits.U2RXIE = 1; //Enable
+  LastRXBufferState = 0;
   
   return true;
 }
@@ -142,11 +143,26 @@ ES_Event_t RunXBeeRXSM(ES_Event_t ThisEvent)
       {
         case UART_BYTE_RECEIVED: 
         {  
+            //Reset the index to 0
+            ByteIndex = 0;
             
+            uint8_t tempVal;
+            
+            //Get the byte from the UART2 RX Buffer
+            tempVal = U2RXREG;
+            
+            //If the byte is valid as a Start Delimiter (0x7E) then proceed.  Otherwise ignore it.
+            if (tempVal == 0x7E) {
+                //Save in the array
+                RXMessageArray[ByteIndex]=tempVal;
+                //Increment the index
+                ByteIndex++;
+                //Move into the next state so we process the whole message
+                CurrentState = XBeeRXPrologueState;
+            }
         }
         break;
 
-        
         default:
           ;
       } 
@@ -159,7 +175,23 @@ ES_Event_t RunXBeeRXSM(ES_Event_t ThisEvent)
       {
         case UART_BYTE_RECEIVED: 
         {  
-          
+            uint8_t tempVal2;
+            tempVal2 = U2RXREG;
+            //Save in the array
+            RXMessageArray[ByteIndex]=tempVal2;
+            //Increment the index
+            ByteIndex++;
+            
+            //if the ByteIndex is now 3, then the last thing we received was the length of the message
+            if (ByteIndex == 3){
+                messageLength = (RXMessageArray[ByteIndex-2]<<8) + (RXMessageArray[ByteIndex-1]);
+                //printf("Message Length is %x",messageLength);
+                //We need to start counting through the message length now
+                ByteIndex = 0;
+                //Go to the next state
+                CurrentState = XBeeRXFrameDataState;
+            }
+                
         }
         break;
 
@@ -176,7 +208,19 @@ ES_Event_t RunXBeeRXSM(ES_Event_t ThisEvent)
       {
         case UART_BYTE_RECEIVED: 
         {  
-          
+            //Save in the array
+            RXMessageArray[ByteIndex+3]=U2RXREG;
+            //Increment the index
+            ByteIndex++;
+            
+            //If ByteIndex is one more than the message length (we want to count the checksum), move on
+            if (ByteIndex > messageLength) {
+                //Go back to being idle
+                CurrentState = XBeeRXIdleState;
+                
+                //Call function to handle new message
+                ParseNewRXMessage();
+            }
         }
         break;
 
@@ -221,13 +265,14 @@ bool IsRXBufferNonempty(void)
     returnVal = false;
     bool NewRXBufferState;
     NewRXBufferState = U2STAbits.URXDA;
-    
-    if ((LastRXBufferState == 0) && (NewRXBufferState == 1)) {
+    //puts("Event Checker\r\n");
+    if (NewRXBufferState == 1) {
         //In this case new data is available; post an event
         ES_Event_t NewEvent;
         NewEvent.EventType = UART_BYTE_RECEIVED;
         PostXBeeRXSM(NewEvent);
         returnVal = true;
+        //puts("New Byte Present\r\n");
     }
     LastRXBufferState = NewRXBufferState;
     
@@ -240,6 +285,10 @@ bool IsRXBufferNonempty(void)
 
 static void SetupUART(void)
 {
+    // Make TX digital output
+    PortSetup_ConfigureDigitalOutputs(_Port_B, _Pin_10);
+    // Make RX digital input
+    PortSetup_ConfigureDigitalInputs(_Port_A, _Pin_1);
     // Turn off UART2
     U2MODE = 0;
     U2STA = 0;
@@ -259,7 +308,6 @@ static void SetupUART(void)
     U2STAbits.URXEN = 1;
     
     U2STAbits.UTXISEL = 0b10; //Generate interrupt when transmit buffer is empty
-    U2STAbits.URXISEL = 0b00; //Generate interrupt when receive buffer is nonzero
     
     //Make interrupt priority high for UART
     IPC9bits.U2IP = 0b111;
@@ -272,5 +320,14 @@ static void SetupUART(void)
     
     U2MODEbits.ON = 1;
 
+    return;
+}
+
+static void ParseNewRXMessage(void)
+{
+    for (uint8_t i=0; i<15; i++) {
+        printf("Byte = %x\r\n",RXMessageArray[i]);
+    }
+    puts("Message Complete\r\n");
     return;
 }
