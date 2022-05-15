@@ -29,7 +29,13 @@
 #include <sys/attribs.h>
 
 /*----------------------------- Module Defines ----------------------------*/
+// MACRO to easily enable/disable print statements
 #define DEBUG_PRINT // define to enable debug message printing
+#ifdef DEBUG_PRINT
+#define printdebug printf
+#else
+#define printdebug(fmt, ...) (0)
+#endif
 
 #define ONE_SEC
 #define TIMEOUT_TIME 5000 // 5 sec
@@ -160,10 +166,10 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 } break;
                 case (XBEE_MESSAGE_RECEIVED):
                 {
-                    printf("TugComm: XBEE_MESSAGE_RECEIVED in PairRequestState\r\n");
+                    printdebug("TugComm: XBEE_MESSAGE_RECEIVED in PairRequestState\r\n");
                     // TODO
                     // TEMP STATE PROGRESSION
-                    printf("TugComm: TEMP ONLY Going to ControlPacketState\r\n");
+                    printdebug("TugComm: TEMP ONLY Going to ControlPacketState\r\n");
                     CurrentState = WaitingForControlPacketState;
                     
                     //Init COMM_TIMEOUT_TIMER (5 s) 
@@ -183,7 +189,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
             {
                 case (PAIRING_BUTTON_PRESSED):
                 {
-                    printf("TugComm: PAIRING_BUTTON_PRESSED in ControlPacketState\r\n");
+                    printdebug("TugComm: PAIRING_BUTTON_PRESSED in ControlPacketState\r\n");
                     // Stop timers and return to Waiting for Pair Request
                     ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
                     ES_Timer_StopTimer(TRANSMISSION_TIMER);
@@ -198,7 +204,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     // Check which timer it was
                     if (ThisEvent.EventParam == COMM_TIMEOUT_TIMER)
                     {
-                        printf("TugComm: COMM_TIMEOUT in ControlPacketState\r\n");
+                        printdebug("TugComm: COMM_TIMEOUT in ControlPacketState\r\n");
                         // Stop timers and return to Waiting for Pair Request
                         ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
                         ES_Timer_StopTimer(TRANSMISSION_TIMER);
@@ -211,7 +217,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     else if (ThisEvent.EventParam == TRANSMISSION_TIMER)
                     {
                         // Transmit Pairing Acknowledged
-                        printf("TugComm: XBEE_TRANSMIT Pairing Acknowledged\r\n");
+                        printdebug("TugComm: XBEE_TRANSMIT Pairing Acknowledged\r\n");
                         PostEvent.EventType = XBEE_TRANSMIT_MESSAGE;
                         PostXBeeTXSM(PostEvent);
                         // Reinit timer
@@ -220,10 +226,10 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 } break;
                 case (XBEE_MESSAGE_RECEIVED):
                 {
-                    printf("TugComm: XBEE_MESSAGE_RECEIVED in ControlPacketState\r\n");
+                    printdebug("TugComm: XBEE_MESSAGE_RECEIVED in ControlPacketState\r\n");
                     // TODO
                     // TEMP STATE PROGRESSION
-                    printf("TugComm: TEMP ONLY Going to PairedState\r\n");
+                    printdebug("TugComm: TEMP ONLY Going to PairedState\r\n");
                     CurrentState = PairedState;
                     
                     //Post  PAIRING_COMPLETE to Propulsion &
@@ -245,7 +251,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
             {
                 case (PAIRING_BUTTON_PRESSED):
                 {
-                    printf("TugComm: PAIRING_BUTTON_PRESSED in PairedState\r\n");
+                    printdebug("TugComm: PAIRING_BUTTON_PRESSED in PairedState\r\n");
                     // Stop timers and return to Waiting for Pair Request
                     ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
                     ES_Timer_StopTimer(TRANSMISSION_TIMER);
@@ -260,7 +266,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     // Check which timer it was
                     if (ThisEvent.EventParam == COMM_TIMEOUT_TIMER)
                     {
-                        printf("TugComm: COMM_TIMEOUT in PairedState\r\n");
+                        printdebug("TugComm: COMM_TIMEOUT in PairedState\r\n");
                         // Stop timers and return to Waiting for Pair Request
                         ES_Timer_StopTimer(COMM_TIMEOUT_TIMER);
                         ES_Timer_StopTimer(TRANSMISSION_TIMER);
@@ -273,7 +279,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     else if (ThisEvent.EventParam == TRANSMISSION_TIMER)
                     {
                         // Transmit Status
-                        printf("TugComm: XBEE_TRANSMIT Status\r\n");
+                        printdebug("TugComm: XBEE_TRANSMIT Status\r\n");
                         PostEvent.EventType = XBEE_TRANSMIT_MESSAGE;
                         PostXBeeTXSM(PostEvent);
                         // Reinit timer
@@ -282,7 +288,7 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 } break;
                 case (XBEE_MESSAGE_RECEIVED):
                 {
-                    printf("TugComm: XBEE_MESSAGE_RECEIVED in PairedState\r\n");
+                    printdebug("TugComm: XBEE_MESSAGE_RECEIVED in PairedState\r\n");
                     // TODO
                     // Validate Message
                     // Post Propulsion Refuel and Set Thrust to Propulsion
