@@ -64,9 +64,9 @@
    relevant to the behavior of this state machine
 */
 static void ConstructNewTXMessage(uint8_t * TXMessage);
-static int8_t CalculateX(uint32_t, uint32_t);
-static int8_t CalculateY(uint32_t, uint32_t);
-static int8_t CalculateYaw(uint32_t, uint32_t);
+static int8_t CalculateX(int32_t, int32_t);
+static int8_t CalculateY(int32_t, int32_t);
+static int8_t CalculateYaw(int32_t, int32_t);
 
 static void TurnOnTXInterrupts(void);
 
@@ -79,8 +79,8 @@ static volatile XBeeTXState_t CurrentState;
 static uint8_t MyPriority;
 
 static uint8_t TUGAddress;
-static uint32_t LeftThrustVal;
-static uint32_t RightThrustVal;
+static int32_t LeftThrustVal;
+static int32_t RightThrustVal;
 static bool Mode3ToBeActiveOnNextTransmission;
 static bool RefuelBitForComms;
 
@@ -211,9 +211,9 @@ ES_Event_t RunXBeeTXSM(ES_Event_t ThisEvent)
             ConstructNewTXMessage(NewTXMessage);
             //Now we have a new message to send
             
-            //for (uint8_t i=0; i<15; i++) {
-            //    DB_printf("Byte = %x\r\n",NewTXMessage[i]);
-            //}
+            for (uint8_t i=0; i<15; i++) {
+                DB_printf("Byte = %x\r\n",NewTXMessage[i]);
+            }
             
             ES_Event_t NewEvent;
             NewEvent.EventType = TRANSMIT_BYTE;
@@ -320,19 +320,19 @@ static void ConstructNewTXMessage(uint8_t * TXMessage)
     return;
 }
 
-static int8_t CalculateX(uint32_t LTV, uint32_t RTV)
+static int8_t CalculateX(int32_t LTV, int32_t RTV)
+{
+    return (LTV+RTV)/6;
+}
+
+static int8_t CalculateY(int32_t LTV, int32_t RTV)
 {
     return 0;
 }
 
-static int8_t CalculateY(uint32_t LTV, uint32_t RTV)
+static int8_t CalculateYaw(int32_t LTV, int32_t RTV)
 {
-    return 0;
-}
-
-static int8_t CalculateYaw(uint32_t LTV, uint32_t RTV)
-{
-    return 0;
+    return (LTV-RTV)/6;
 }
 
 static void TurnOnTXInterrupts(void)

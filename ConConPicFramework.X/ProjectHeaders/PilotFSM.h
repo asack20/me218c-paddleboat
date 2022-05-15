@@ -32,8 +32,8 @@ bool Mode3ButtonEventChecker(void);
 
 //Query private variables
 uint8_t QueryPairingSelectorAddress(void);
-uint32_t QueryLeftThrustVal(void);
-uint32_t QueryRightThrustVal(void);
+int32_t QueryLeftThrustVal(void);
+int32_t QueryRightThrustVal(void);
 bool QueryMode3State(void);
 
 #endif /* FSMPilot_H */

@@ -67,6 +67,8 @@ static void TurnOffPairedLED(void);
 static void ToggleCommsLED(void);
 static void UpdateThrustVals(void);
 
+static int32_t Calibrate(uint32_t);
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -412,14 +414,15 @@ uint8_t QueryPairingSelectorAddress(void)
     return (LatchAddressMSB << 2) + (LatchAddressMidBit << 1) + (LatchAddressLSB << 0);
 }
 
-uint32_t QueryLeftThrustVal(void)
+int32_t QueryLeftThrustVal(void)
 {
-    return LeftThrustVal;
+    
+    return Calibrate(LeftThrustVal);
 }
 
-uint32_t QueryRightThrustVal(void)
+int32_t QueryRightThrustVal(void)
 {
-    return RightThrustVal;
+    return Calibrate(RightThrustVal);
 }
 
 bool QueryMode3State(void)
@@ -603,4 +606,24 @@ static void UpdateThrustVals(void)
     LeftThrustVal = ThrustADCValues[1];
     RightThrustVal = ThrustADCValues[0];
     return;
+}
+
+static int32_t Calibrate(uint32_t RawInput)
+{
+    int32_t CalibratedValue;
+    if (RawInput<381) {
+        CalibratedValue = RawInput - 381;
+    }
+    else if (RawInput<642) {
+        CalibratedValue = 0;
+    }
+    else if (RawInput<1024) {
+        CalibratedValue = RawInput - 642;
+    }
+    else {
+        puts("Erroneous value inputted into calibration function\r\n");
+        CalibratedValue = 0;
+    }
+    
+    return CalibratedValue;
 }
