@@ -270,7 +270,7 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                 } break;
                 case 'x':
                 {
-                    printf("KeyboardService: Posting XBEE_MESSAGE_RECEIVEDto TugComm\n\r");
+                    printf("KeyboardService: Posting XBEE_MESSAGE_RECEIVED to TugComm\n\r");
                     PostEvent.EventType = XBEE_MESSAGE_RECEIVED;
                     PostTugComm(PostEvent);
                 } break;

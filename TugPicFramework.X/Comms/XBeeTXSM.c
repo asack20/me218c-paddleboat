@@ -278,7 +278,7 @@ static void ConstructNewTXMessage(uint8_t * TXMessage)
 {
     TXMessage[MSGFRAME_STARTDELIMITER-1]=0x7E;
     TXMessage[MSGFRAME_LENGTHMSB-1]=0x00;
-    TXMessage[MSGFRAME_LENGTHLSB-1]=0x0C;
+    TXMessage[MSGFRAME_LENGTHLSB-1]=0x0B;
     uint8_t CheckSum = 0;
     CheckSum += (TXMessage[MSGFRAME_APIIDENTIFIER-1]=0x01);
     CheckSum += (TXMessage[MSGFRAME_FRAMEID-1]=0x01);

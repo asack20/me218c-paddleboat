@@ -32,7 +32,7 @@
 #define DEBUG_PRINT // define to enable debug message printing
 
 #define ONE_SEC
-#define TIMEOUT_TIME (5*ONE_SEC)
+#define TIMEOUT_TIME 5000 // 5 sec
 #define TRANSMIT_TIME 200 // ms (5 Hz)
 
 #define BUTTON_PORT PORTAbits.RA0
@@ -166,6 +166,11 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     printf("TugComm: TEMP ONLY Going to ControlPacketState\r\n");
                     CurrentState = WaitingForControlPacketState;
                     
+                    //Init COMM_TIMEOUT_TIMER (5 s) 
+                    ES_Timer_InitTimer(COMM_TIMEOUT_TIMER, TIMEOUT_TIME);
+                    //Init TRANSMISSION_TIMER (0.2 s)
+                    ES_Timer_InitTimer(TRANSMISSION_TIMER, TRANSMIT_TIME);
+                    
                 } break;
                 default:
                     ;
@@ -220,6 +225,15 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     // TEMP STATE PROGRESSION
                     printf("TugComm: TEMP ONLY Going to PairedState\r\n");
                     CurrentState = PairedState;
+                    
+                    //Post  PAIRING_COMPLETE to Propulsion &
+                    PostEvent.EventType = PAIRING_COMPLETE;
+                    PostPropulsion(PostEvent);
+                    //Init COMM_TIMEOUT_TIMER (5 s) 
+                    ES_Timer_InitTimer(COMM_TIMEOUT_TIMER, TIMEOUT_TIME);
+                    //Init TRANSMISSION_TIMER (0.2 s)
+                    ES_Timer_InitTimer(TRANSMISSION_TIMER, TRANSMIT_TIME);
+                    
                 } break;
                 default:
                     ;
