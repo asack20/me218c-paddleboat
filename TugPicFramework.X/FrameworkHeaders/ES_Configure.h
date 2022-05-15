@@ -270,7 +270,7 @@ typedef enum
     XBEE_MESSAGE_RECEIVED,
     XBEE_TRANSMIT_MESSAGE,
     /* XBee */
-    TRANSMIT_BYTE
+    TRANSMIT_BYTE,
     UART_BYTE_RECEIVED
 
 }ES_EventType_t;
