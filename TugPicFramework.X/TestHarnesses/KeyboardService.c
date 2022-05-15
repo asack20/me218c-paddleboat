@@ -21,6 +21,7 @@
 #include "KeyboardService.h"
 #include "../Propulsion/Propulsion.h"
 #include "../Propulsion/MotorControlDriver.h"
+#include "../Comms/TugComm.h"
 #include "../FrameworkHeaders/ES_Timers.h"
 
 
@@ -260,8 +261,20 @@ ES_Event_t RunKeyboardService(ES_Event_t ThisEvent)
                     PostEvent.EventParam = input.Total;
                     PostPropulsion(PostEvent);
                 } break;
-
                 
+                case 'z':
+                {
+                    printf("KeyboardService: Posting PAIRING_BUTTON_PRESSED to TugComm\n\r");
+                    PostEvent.EventType = PAIRING_BUTTON_PRESSED;
+                    PostTugComm(PostEvent);
+                } break;
+                case 'x':
+                {
+                    printf("KeyboardService: Posting XBEE_MESSAGE_RECEIVEDto TugComm\n\r");
+                    PostEvent.EventType = XBEE_MESSAGE_RECEIVED;
+                    PostTugComm(PostEvent);
+                } break;
+
                 default:
                 {
                     printf("KeyboardService: No Event bound to %c. Press '?' to see list of valid keys.\r\n", (char) ThisEvent.EventParam);
@@ -315,6 +328,9 @@ void PrintInstructions(void)
     printf( "Press 'w' to Increase Yaw by %d\n\r", PROPULSION_INCREMENT);
     printf( "Press 's' to Decrease Yaw by %d\n\r", PROPULSION_INCREMENT);
     
+    printf( "\n\n------------ TugComm --------------\r\n");
+    printf( "Press 'z' to post PAIRING_BUTTON_PRESSED to TugComm\n\r");
+    printf( "Press 'x' to post XBEE_MESSAGE_RECEIVED to TugComm\n\r");
 }
 
 

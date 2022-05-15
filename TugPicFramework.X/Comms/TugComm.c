@@ -23,6 +23,7 @@
 #include "ES_Framework.h"
 #include "TugComm.h"
 #include "../Propulsion/Propulsion.h"
+#include "XBeeTXSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include <xc.h>
 #include <sys/attribs.h>
@@ -161,6 +162,9 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 {
                     printf("TugComm: XBEE_MESSAGE_RECEIVED in PairRequestState\r\n");
                     // TODO
+                    // TEMP STATE PROGRESSION
+                    printf("TugComm: TEMP ONLY Going to ControlPacketState\r\n");
+                    CurrentState = WaitingForControlPacketState;
                     
                 } break;
                 default:
@@ -201,7 +205,10 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     }
                     else if (ThisEvent.EventParam == TRANSMISSION_TIMER)
                     {
-                        // TODO: Transmit Pairing Acknowledged
+                        // Transmit Pairing Acknowledged
+                        printf("TugComm: XBEE_TRANSMIT Pairing Acknowledged\r\n");
+                        PostEvent.EventType = XBEE_TRANSMIT_MESSAGE;
+                        PostXBeeTXSM(PostEvent);
                         // Reinit timer
                         ES_Timer_InitTimer(TRANSMISSION_TIMER, TRANSMIT_TIME);
                     }
@@ -210,6 +217,9 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                 {
                     printf("TugComm: XBEE_MESSAGE_RECEIVED in ControlPacketState\r\n");
                     // TODO
+                    // TEMP STATE PROGRESSION
+                    printf("TugComm: TEMP ONLY Going to PairedState\r\n");
+                    CurrentState = PairedState;
                 } break;
                 default:
                     ;
@@ -248,7 +258,10 @@ ES_Event_t RunTugComm(ES_Event_t ThisEvent)
                     }
                     else if (ThisEvent.EventParam == TRANSMISSION_TIMER)
                     {
-                        // TODO: Transmit Status
+                        // Transmit Status
+                        printf("TugComm: XBEE_TRANSMIT Status\r\n");
+                        PostEvent.EventType = XBEE_TRANSMIT_MESSAGE;
+                        PostXBeeTXSM(PostEvent);
                         // Reinit timer
                         ES_Timer_InitTimer(TRANSMISSION_TIMER, TRANSMIT_TIME);
                     }
