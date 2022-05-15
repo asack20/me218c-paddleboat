@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 3
+#define NUM_SERVICES 4
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -83,11 +83,11 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "../Sensors/BumperService.h"
+#define SERV_3_HEADER "../Comms/XBeeTXSM.h"
 // the name of the Init function
-#define SERV_3_INIT InitBumperService
+#define SERV_3_INIT InitXBeeTXSM
 // the name of the run function
-#define SERV_3_RUN RunBumperService
+#define SERV_3_RUN RunXBeeTXSM
 // How big should this services Queue be?
 #define SERV_3_QUEUE_SIZE 3
 #endif
@@ -268,7 +268,9 @@ typedef enum
     /* TugComm */
     PAIRING_BUTTON_PRESSED,
     XBEE_MESSAGE_RECEIVED,
-    XBEE_TRANSMIT_MESSAGE
+    XBEE_TRANSMIT_MESSAGE,
+    /* XBee */
+    TRANSMIT_BYTE
 
 }ES_EventType_t;
 
