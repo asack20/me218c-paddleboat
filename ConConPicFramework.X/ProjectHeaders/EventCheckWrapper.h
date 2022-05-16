@@ -17,6 +17,9 @@
 
 // This is the header for the event checkers for the template project
 #include "EventCheckers.h"
+#include "PilotFSM.h"
+#include "XBeeRXSM.h"
+#include "ConconSPI.h"
 
 // Here you would #include the header files for any other modules that
 // contained event checking functions

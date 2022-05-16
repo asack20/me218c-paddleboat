@@ -47,8 +47,13 @@
       <itemPath>HALs/PIC32PortHAL.h</itemPath>
       <itemPath>HALs/PIC32_AD_Lib.h</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.h</itemPath>
-      <itemPath>TestHarnesses/KeyboardResponses.h</itemPath>
       <itemPath>SPI/SPILeaderSM.h</itemPath>
+      <itemPath>ProjectHeaders/PilotFSM.h</itemPath>
+      <itemPath>ProjectHeaders/KeyboardResponses.h</itemPath>
+      <itemPath>ProjectHeaders/XBeeTXSM.h</itemPath>
+      <itemPath>ProjectHeaders/FuelSM.h</itemPath>
+      <itemPath>ProjectHeaders/XBeeRXSM.h</itemPath>
+      <itemPath>ProjectHeaders/ConconSPI.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -63,8 +68,13 @@
       <itemPath>HALs/PIC32PortHAL.c</itemPath>
       <itemPath>HALs/PIC32_AD_Lib.c</itemPath>
       <itemPath>HALs/PIC32_SPI_HAL.c</itemPath>
-      <itemPath>TestHarnesses/KeyboardResponses.c</itemPath>
       <itemPath>SPI/SPILeaderSM.c</itemPath>
+      <itemPath>ProjectSource/PilotFSM.c</itemPath>
+      <itemPath>ProjectSource/KeyboardResponses.c</itemPath>
+      <itemPath>ProjectSource/XBeeTXSM.c</itemPath>
+      <itemPath>ProjectSource/FuelSM.c</itemPath>
+      <itemPath>ProjectSource/XBeeRXSM.c</itemPath>
+      <itemPath>ProjectSource/ConconSPI.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -261,7 +271,9 @@
         <property key="stack-smashing" value=""/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
-      <item path="ProjectHeaders/TestHarnessService0.h" ex="false" overriding="false">
+      <item path="ProjectHeaders/FuelSM.h" ex="true" overriding="false">
+      </item>
+      <item path="ProjectHeaders/TestHarnessService0.h" ex="true" overriding="false">
         <C32>
         </C32>
         <C32-AR>
@@ -277,7 +289,9 @@
         <C32Global>
         </C32Global>
       </item>
-      <item path="ProjectSource/TestHarnessService0.c" ex="false" overriding="false">
+      <item path="ProjectSource/FuelSM.c" ex="true" overriding="false">
+      </item>
+      <item path="ProjectSource/TestHarnessService0.c" ex="true" overriding="false">
         <C32>
         </C32>
         <C32-AR>
@@ -806,6 +820,7 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+<<<<<<< HEAD
       <item path="TestHarnesses/KeyboardResponses.c" ex="true" overriding="false">
         <C32>
         </C32>
@@ -838,6 +853,8 @@
         <C32Global>
         </C32Global>
       </item>
+=======
+>>>>>>> Concon_Adding_RX
       <Tool>
         <property key="ADC 1" value="true"/>
         <property key="AutoSelectMemRanges" value="auto"/>
