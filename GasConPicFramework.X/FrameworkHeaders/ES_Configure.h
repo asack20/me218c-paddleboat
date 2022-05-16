@@ -265,7 +265,8 @@ typedef enum
   GASCON_FUEL,
   GASCON_REFUELED,
   BRAID_UPDATE,
-  BRAID_START
+  BRAID_START,
+  RESET_BRAID
 }ES_EventType_t;
 
 /****************************************************************************/

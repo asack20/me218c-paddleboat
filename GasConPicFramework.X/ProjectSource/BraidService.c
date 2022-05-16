@@ -190,6 +190,12 @@ ES_Event_t RunBraidService(ES_Event_t ThisEvent)
               BLUELED = 0;
           }
       }
+      if (ThisEvent.EventType == RESET_BRAID){
+            CurrentState = WaitState;
+            REDLED = 0;
+            GREENLED = 0;
+            BLUELED = 0;
+      }
     }
     break;
     // repeat state pattern as required for other states

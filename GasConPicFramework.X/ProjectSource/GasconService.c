@@ -202,6 +202,9 @@ ES_Event_t RunGasconService(ES_Event_t ThisEvent)
         //else if ((RawFuelValue >= 1) && QueryRefuelDone()) {
         else if ((RawFuelValue >= 1)) {
             ClearRefuelInProgress();
+            ES_Event_t NewEvent;
+            NewEvent.EventType = RESET_BRAID;
+            PostBraidService(NewEvent);
         }
       }
     }
