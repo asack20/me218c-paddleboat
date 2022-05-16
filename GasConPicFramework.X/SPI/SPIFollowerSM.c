@@ -29,8 +29,7 @@
 #include "SPIFollowerSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_SPI_HAL.h"
-#include "../DriveTrain/DriveTrain.h"
-#include "../Sensors/BumperService.h"
+#include "../ProjectHeaders/GasconService.h"
 #include "ES_Events.h" 
 #include <xc.h>
 #include <sys/attribs.h>
@@ -38,6 +37,8 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 #define SPI_DEBUG
+#define DEFAULTMESSAGE 0x00 //Was originally 0xFF
+#define REFUELDONEMESSAGE 0xFF //Was originally 0xAA
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -48,17 +49,20 @@
 */
 
 bool InitializeSPI(void);
-void DecodeSPICommand(SPI_MOSI_Command_t SPICommand);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static SPIFollowerSMState_t CurrentState;
 
-static uint16_t SendData;
+static uint8_t ReceiveData;
+static uint8_t SendData;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+
+static bool RefuelInProgress;
+static bool RefuelDone;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -87,7 +91,7 @@ bool InitSPIFollowerSM(uint8_t Priority)
     MyPriority = Priority;
     // put us into the Initial PseudoState
     CurrentState = SPIFollowerInitState;
-    SendData = 0xFFFF;
+    SendData = DEFAULTMESSAGE;
     puts("...Done Initializing SPIFollowerSM\r\n");
  
     // post the initial transition event
@@ -147,8 +151,6 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
     ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
     ES_Event_t PostEvent;
     
-    SPI_MISO_Command_t SPICommand;
-    
     switch (CurrentState)
     {
         case SPIFollowerInitState:        // If current state is initial  State
@@ -171,47 +173,15 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         case SPIFollowerReceiveState:
         {
             if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
-                // Decode and post event to framework
-                DecodeSPICommand((SPI_MOSI_Command_t) ThisEvent.EventParam);
-#ifdef SPI_DEBUG
-                printf("Command Received: %x\r\n", ThisEvent.EventParam);
-#endif
+                ReceiveData = ThisEvent.EventParam;
+                printf("Fuel Level:  %x\r\n",ReceiveData);
+                PostEvent.EventType = GASCON_FUEL; //create event to start scroll
+                PostEvent.EventParam = ReceiveData;
+                PostGasconService(PostEvent);
             }
-            else if (ThisEvent.EventType == STOP_ACKNOWLEDGED){
-                SPICommand.CommandBits.Name = SPI_STOP_ACKNOWLEDGED;
-                SendData = SPICommand.FullCommand;
-#ifdef SPI_DEBUG
-                printf("SPI Follower: Stop Acknowledged\r\n");
-#endif
-                
-            }
-            else if (ThisEvent.EventType == DRIVE_GOAL_REACHED){
-                SPICommand.CommandBits.Name = SPI_DRIVE_GOAL_REACHED;
-                SendData = SPICommand.FullCommand;
-#ifdef SPI_DEBUG
-                printf("SPI Follower: Drive Goal Reached (%u)\r\n", SPICommand.FullCommand);
-#endif                
-            }
-            else if (ThisEvent.EventType == BUMP_FOUND){
-                SPICommand.CommandBits.Name = SPI_BUMP_SUCCESS;
-                SendData = SPICommand.FullCommand;
-#ifdef SPI_DEBUG
-                printf("SPI Follower: BUMP Success\r\n");
-#endif                
-            }
-            else if (ThisEvent.EventType == TAPE_FOUND){
-                SPICommand.CommandBits.Name = SPI_TAPE_SUCCESS;
-                SendData = SPICommand.FullCommand;
-#ifdef SPI_DEBUG
-                printf("SPI Follower: TAPE Success\r\n");
-#endif                
-            }
-            else if (ThisEvent.EventType == BEACON_ACKNOWLEDGED){
-                SPICommand.CommandBits.Name = SPI_BEACON_ACKNOWLEDGED;
-                SendData = SPICommand.FullCommand;
-#ifdef SPI_DEBUG
-                printf("SPI Follower: Beacon Acknowledged\r\n");
-#endif                
+            else if (ThisEvent.EventType == GASCON_REFUELED){
+                SendData = REFUELDONEMESSAGE; //Message back when refueled
+                RefuelDone = true;
             }
         }break;
         default:
@@ -269,25 +239,19 @@ bool InitializeSPI(void)
     ReturnVal &= SPISetup_BasicConfig(SPI_SPI1);
     ReturnVal &= SPISetup_SetFollower(SPI_SPI1);
     ReturnVal &= SPISetup_SetBitTime(SPI_SPI1, 1000); //1,000 ns = 1 MHZ
-    
     SPI1CONbits.SSEN = 0;
     SPI1STATbits.SPIROV = 0;
-    
     //ReturnVal &= SPISetup_MapSSInput(SPI_SPI1, SPI_RPA0); // make A0 SS
     PortSetup_ConfigureDigitalInputs(_Port_A,_Pin_0);
     SS1R = 0b0000;
-    
-    ReturnVal &= SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1); // make A1 SDO
-    
+    ReturnVal &= SPISetup_MapSDOutput(SPI_SPI1, SPI_RPB8); // make B8 SDO
     //ReturnVal &= SPISetup_MapSDInput(SPI_SPI1, SPI_RPB5); // make B5 SDI 
     PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_5);
     SDI1R = 0b0001;
-    
     PortSetup_ConfigureDigitalInputs(_Port_B,_Pin_14);
-    
     ReturnVal &= SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI); // clock is idle high
     ReturnVal &= SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE); // read on 2nd edge 
-    ReturnVal &= SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT); //16 bit messages
+    ReturnVal &= SPISetup_SetXferWidth(SPI_SPI1, SPI_8BIT); //16 bit messages
     ReturnVal &= SPISetEnhancedBuffer(SPI_SPI1, false); //disable ENHBUF
     //After everything set up, enable spi
     ReturnVal &= SPISetup_EnableSPI(SPI_SPI1);
@@ -316,10 +280,8 @@ bool CheckSPIRBF(void)
 {
     if (SPI1STATbits.SPIRBF) {
         //printf("%x\r\n",SendData);
-        SPIOperate_SPI1_Send16(SendData);
-        SPI_MISO_Command_t SPICommand;
-        SPICommand.CommandBits.Name = SPI_STILL_WORKING;
-        SendData = SPICommand.FullCommand;
+        SPIOperate_SPI1_Send8(SendData);
+        //SendData = DEFAULTMESSAGE; //Standard message back
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_COMMAND_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
@@ -328,88 +290,32 @@ bool CheckSPIRBF(void)
     }
 }
 
-/****************************************************************************
- * Function
- *      DecodeSPICommand
- *      
- * Parameters
- *      SPI_MOSI_Command_t SPICommand - Command struct to be decoded
- * Return
- *      void
- * Description
- *      Takes 16bit val cast to a struct, decodes it and posts correct event to
- *      Framework
-****************************************************************************/
-void DecodeSPICommand(SPI_MOSI_Command_t SPICommand)
+bool QueryRefuelInProgress(void)
 {
-    ES_Event_t PostEvent;
-    
-    switch (SPICommand.Name)
-    {
-        case SPI_POLL:
-        {
-            // Do nothing
-        } break;
+    return RefuelInProgress;
+}
         
-        case SPI_STOP:
-        {
-            // post to drive train
-            PostEvent.EventType = DRIVE_STOP;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-            PostBumperService(PostEvent);
-            // TODO: Post to all services
-        } break;
+void ClearRefuelInProgress(void)
+{
+    RefuelInProgress = false;
+    SendData = DEFAULTMESSAGE;
+    RefuelDone = false;
+    return;
+}
+
+void SetRefuelInProgress(void)
+{
+    RefuelInProgress = true;
+    return;
+}
+
+bool QueryRefuelDone(void)
+{
+    return RefuelDone;
+}
         
-        case SPI_DRIVE_DISTANCE:
-        {
-            // post to drive train
-            PostEvent.EventType = DRIVE_DISTANCE;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-        } break;
-        
-        case SPI_DRIVE_UNTIL_BUMP:
-        {
-            // post to drive train
-            PostEvent.EventType = DRIVE_UNTIL_BUMP;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-            PostBumperService(PostEvent);
-        } break;
-        
-        case SPI_DO_TAPE_ALIGN:
-        {
-            // post to drive train
-            PostEvent.EventType = DRIVE_TAPE_ALIGN;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-            // TODO: Post to Tape Service
-        } break;
-        
-        case SPI_DO_BEACON_SWEEP:
-        {
-            // post to drive train
-            PostEvent.EventType = DRIVE_BEACON_SWEEP;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-        } break;
-        
-        case SPI_BEACON_FOUND:
-        {
-            // post to drive train
-            PostEvent.EventType = BEACON_FOUND;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-        } break;
-        
-        case SPI_UNDO_ROTATE:
-        {
-            // post to drive train
-            PostEvent.EventType = DRIVE_UNDO_ROTATE;
-            PostEvent.EventParam = SPICommand.FullCommand;
-            PostDriveTrain(PostEvent);
-        } break;
-                
-    }
+void ClearRefuelDone(void)
+{
+    RefuelDone = false;
+    return;
 }

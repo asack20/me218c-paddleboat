@@ -20,6 +20,7 @@
                 <sourceRootElem>Sensors</sourceRootElem>
                 <sourceRootElem>ProjectHeaders</sourceRootElem>
                 <sourceRootElem>ProjectSource</sourceRootElem>
+                <sourceRootElem>HALs</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
