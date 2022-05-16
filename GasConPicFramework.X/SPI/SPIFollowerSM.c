@@ -37,6 +37,8 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 #define SPI_DEBUG
+#define DEFAULTMESSAGE 0x00 //Was originally 0xFF
+#define REFUELDONEMESSAGE 0xFF //Was originally 0xAA
 /*----------------------------- Module Types ------------------------------*/
 // typedefs for the states
 // State definitions for use with the query function
@@ -58,6 +60,9 @@ static uint8_t SendData;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+
+static bool RefuelInProgress;
+static bool RefuelDone;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -86,7 +91,7 @@ bool InitSPIFollowerSM(uint8_t Priority)
     MyPriority = Priority;
     // put us into the Initial PseudoState
     CurrentState = SPIFollowerInitState;
-    SendData = 0xFF;
+    SendData = DEFAULTMESSAGE;
     puts("...Done Initializing SPIFollowerSM\r\n");
  
     // post the initial transition event
@@ -169,12 +174,14 @@ ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent)
         {
             if (ThisEvent.EventType == SPI_COMMAND_RECEIVED){
                 ReceiveData = ThisEvent.EventParam;
+                printf("Fuel Level:  %x\r\n",ReceiveData);
                 PostEvent.EventType = GASCON_FUEL; //create event to start scroll
                 PostEvent.EventParam = ReceiveData;
                 PostGasconService(PostEvent);
             }
-            else if (ThisEvent.EventType == GASCON_REFUELED){;
-                SendData = 0xAA; //Message back when refueled               
+            else if (ThisEvent.EventType == GASCON_REFUELED){
+                SendData = REFUELDONEMESSAGE; //Message back when refueled
+                RefuelDone = true;
             }
         }break;
         default:
@@ -274,11 +281,41 @@ bool CheckSPIRBF(void)
     if (SPI1STATbits.SPIRBF) {
         //printf("%x\r\n",SendData);
         SPIOperate_SPI1_Send8(SendData);
-        SendData = 0xFF; //Standard message back
+        //SendData = DEFAULTMESSAGE; //Standard message back
         ES_Event_t ThisEvent;
         ThisEvent.EventType   = SPI_COMMAND_RECEIVED;
         ThisEvent.EventParam = SPI1BUF;
         PostSPIFollowerSM(ThisEvent);
         return true;
     }
+}
+
+bool QueryRefuelInProgress(void)
+{
+    return RefuelInProgress;
+}
+        
+void ClearRefuelInProgress(void)
+{
+    RefuelInProgress = false;
+    SendData = DEFAULTMESSAGE;
+    RefuelDone = false;
+    return;
+}
+
+void SetRefuelInProgress(void)
+{
+    RefuelInProgress = true;
+    return;
+}
+
+bool QueryRefuelDone(void)
+{
+    return RefuelDone;
+}
+        
+void ClearRefuelDone(void)
+{
+    RefuelDone = false;
+    return;
 }

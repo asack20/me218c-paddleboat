@@ -28,6 +28,12 @@ bool PostSPIFollowerSM(ES_Event_t ThisEvent);
 ES_Event_t RunSPIFollowerSM(ES_Event_t ThisEvent);
 SPIFollowerSMState_t QuerySPIFollowerSM(void);
 
+bool QueryRefuelInProgress(void);
+void ClearRefuelInProgress(void);
+void SetRefuelInProgress(void);
+bool QueryRefuelDone(void);
+void ClearRefuelDone(void);
+
 bool CheckSPIRBF(void);
 #endif /* SPIFollowerSM_H */
 

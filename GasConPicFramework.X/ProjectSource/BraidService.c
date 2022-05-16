@@ -34,9 +34,9 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 
-#define LOWLED                LATAbits.LATA2
-#define MIDLED                LATAbits.LATA3
-#define HIGHLED                LATBAbits.LATA4
+#define BLUELED                LATAbits.LATA2
+#define GREENLED               LATAbits.LATA3
+#define REDLED                 LATAbits.LATA4
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -147,12 +147,32 @@ ES_Event_t RunBraidService(ES_Event_t ThisEvent)
       if (ThisEvent.EventType == BRAID_START)    // only respond to ES_Init
       {
           //Pick Config
-          uint8_t RandNum = rand() % 3 + 1; //Make this random
+          uint8_t RandNum = rand() % 4; //Make this random
           BraidState Random = RandNum;
           Config.Braid1 = Random;
           Config.Braid2 = Random;
           Config.Braid3 = Random;
           CurrentState = RefuelState;
+          if (Random == BraidWhite) {
+              REDLED = 1;
+              GREENLED = 1;
+              BLUELED = 1;
+          }
+          else if (Random == BraidGreen) {
+              REDLED = 0;
+              GREENLED = 1;
+              BLUELED = 0;
+          }
+          else if (Random == BraidBlue) {
+              REDLED = 0;
+              GREENLED = 0;
+              BLUELED = 1;
+          }
+          else if (Random == BraidRed) {
+              REDLED = 1;
+              GREENLED = 0;
+              BLUELED = 0;
+          }
       }
     }
     break;
@@ -165,6 +185,9 @@ ES_Event_t RunBraidService(ES_Event_t ThisEvent)
               PostEvent.EventType = GASCON_REFUELED;
               PostSPIFollowerSM(PostEvent);
               CurrentState = WaitState;
+              REDLED = 0;
+              GREENLED = 0;
+              BLUELED = 0;
           }
       }
     }

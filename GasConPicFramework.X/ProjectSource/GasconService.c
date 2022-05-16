@@ -31,6 +31,7 @@
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_AD_Lib.h"
 #include "../FrameworkHeaders/bitdefs.h"
+#include "../SPI/SPIFollowerSM.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define DEBUG_PRINT 0 // T/F to enable debug prints
@@ -183,15 +184,23 @@ ES_Event_t RunGasconService(ES_Event_t ThisEvent)
       if (ThisEvent.EventType == GASCON_FUEL) // There is new data to scroll
       {
         uint16_t RawFuelValue = ThisEvent.EventParam;
-        uint16_t ScaledFuelValue = RawFuelValue*RawFuelValue; //Fix this scaling at some point
+        //uint16_t ScaledFuelValue = RawFuelValue*RawFuelValue; //Fix this scaling at some point
+        uint16_t ScaledFuelValue = (RawFuelValue>>3); //Fix this scaling at some point
         DM2_AddRow2DisplayBuffer(ScaledFuelValue); // add row to buffer
         CurrentState = GasconScrollingState; // move to scrolling state
         PostEvent.EventType = GASCON_UPDATE_DISPLAY; //create event to start scroll
         PostGasconService(PostEvent);
-        if (RawFuelValue < 1){
+        printf("Refuel In Progress:  %d\r\n", QueryRefuelInProgress());
+        printf("Refuel Done:  %d\r\n", QueryRefuelDone());
+        if ((RawFuelValue < 1) && (!QueryRefuelInProgress())){
+            SetRefuelInProgress();
+            ClearRefuelDone();
             ES_Event_t ThisEvent;
             ThisEvent.EventType = BRAID_START;
             PostBraidService(ThisEvent);
+        }
+        else if ((RawFuelValue >= 1) && QueryRefuelDone()) {
+            ClearRefuelInProgress();
         }
       }
     }

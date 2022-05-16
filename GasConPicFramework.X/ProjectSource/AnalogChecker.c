@@ -51,8 +51,10 @@
 #define BRAID2_IDX 1
 #define BRAID3_AN BIT5HI
 #define BRAID3_IDX 2
-#define LOW_THRESH 20000
-#define MID_THRESH 40000
+#define LOW_THRESH 211
+#define MID_THRESH 420
+#define HI_THRESH 630
+#define OPEN_THRESH 885
 
 // Distance Sensor
 static uint32_t ConversionResults[3];
@@ -78,7 +80,8 @@ static FullBraidState CurrentBraidState;
 ****************************************************************************/
 void InitADC(void)
 {
-    ADC_ConfigAutoScan((BRAID1_AN | BRAID2_AN | BRAID3_AN), 2);
+    //ADC_ConfigAutoScan((BRAID1_AN | BRAID2_AN | BRAID3_AN), 2);
+    ADC_ConfigAutoScan((BRAID1_AN | BRAID2_AN | BRAID3_AN), 3);
 }
 
 void InitBraidStatus(void)
@@ -109,26 +112,42 @@ bool CheckBraid(void)
     
     //Convert these into the Enums
     if(Braid1RawVal <= LOW_THRESH){
-        Braid1Val = BraidLow;
-    } else if(Braid1RawVal <= MID_THRESH && Braid1RawVal > LOW_THRESH){
-        Braid1Val = BraidMid;
+        Braid1Val = BraidWhite;
+    } else if((Braid1RawVal <= MID_THRESH) && (Braid1RawVal > LOW_THRESH)){
+        Braid1Val = BraidGreen;
+    } else if((Braid1RawVal <= HI_THRESH) && (Braid1RawVal > MID_THRESH)){
+        Braid1Val = BraidBlue;
+    } else if((Braid1RawVal <= OPEN_THRESH) && (Braid1RawVal > HI_THRESH)){
+        Braid1Val = BraidRed;
     } else {
-        Braid1Val = BraidHigh;
+        Braid1Val = BraidOpen;
     }
     if(Braid2RawVal <= LOW_THRESH){
-        Braid2Val = BraidLow;
-    } else if(Braid2RawVal <= MID_THRESH && Braid2RawVal > LOW_THRESH){
-        Braid2Val = BraidMid;
+        Braid2Val = BraidWhite;
+    } else if((Braid2RawVal <= MID_THRESH) && (Braid2RawVal > LOW_THRESH)){
+        Braid2Val = BraidGreen;
+    } else if((Braid2RawVal <= HI_THRESH) && (Braid2RawVal > MID_THRESH)){
+        Braid2Val = BraidBlue;
+    } else if((Braid2RawVal <= OPEN_THRESH) && (Braid2RawVal > HI_THRESH)){
+        Braid2Val = BraidRed;
     } else {
-        Braid2Val = BraidHigh;
+        Braid2Val = BraidOpen;
     }
     if(Braid3RawVal <= LOW_THRESH){
-        Braid3Val = BraidLow;
-    } else if(Braid3RawVal <= MID_THRESH && Braid3RawVal > LOW_THRESH){
-        Braid3Val = BraidMid;
+        Braid3Val = BraidWhite;
+    } else if((Braid3RawVal <= MID_THRESH) && (Braid3RawVal > LOW_THRESH)){
+        Braid3Val = BraidGreen;
+    } else if((Braid3RawVal <= HI_THRESH) && (Braid3RawVal > MID_THRESH)){
+        Braid3Val = BraidBlue;
+    } else if((Braid3RawVal <= OPEN_THRESH) && (Braid3RawVal > HI_THRESH)){
+        Braid3Val = BraidRed;
     } else {
-        Braid3Val = BraidHigh;
+        Braid3Val = BraidOpen;
     }
+    
+    //printf("%d", Braid3Val);
+    //printf("Braid Input 2:  %d\r\n", Braid2Val);
+    //printf("Braid Input 3:  %d\r\n", Braid3Val);
     
     CurrentBraidState.Braid1 = Braid1Val;
     CurrentBraidState.Braid2 = Braid2Val;
