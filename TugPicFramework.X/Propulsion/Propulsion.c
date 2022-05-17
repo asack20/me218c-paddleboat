@@ -322,6 +322,11 @@ uint8_t Propulsion_GetFuelLevel(void)
 void SetThrust(ArcadeControl_t input)
 {
     printdebug("Propulsion: Setting thrust %x\r\n", input.Total);
+    
+    // Set -128 to -127 to make pos and neg symmetric
+    if (input.X == -128) input.X = -127;
+    if (input.Yaw == -128) input.Yaw = -127;
+    
     // Convert To floats betwen -1 and 1 for math
     float X_ratio = (float) input.X / MAX_INPUT;
     float Yaw_ratio = (float) input.Yaw / MAX_INPUT;
