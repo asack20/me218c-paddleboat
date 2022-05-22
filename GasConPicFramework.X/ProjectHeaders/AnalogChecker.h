@@ -28,10 +28,10 @@ typedef enum
 typedef union
 {
     struct {
-        uint16_t Unused : 7;
+        uint16_t Unused : 10;
         BraidState Braid1 : 3;
         BraidState Braid2 : 3;
-        BraidState Braid3 : 3;
+        //BraidState Braid3 : 3;
     };
     uint16_t FullState;
 }FullBraidState;

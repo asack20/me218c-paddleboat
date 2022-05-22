@@ -151,7 +151,7 @@ bool CheckBraid(void)
     
     CurrentBraidState.Braid1 = Braid1Val;
     CurrentBraidState.Braid2 = Braid2Val;
-    CurrentBraidState.Braid3 = Braid3Val;
+    //CurrentBraidState.Braid3 = Braid3Val;  //Don't include braid 3 anymore
     ES_Event_t ThisEvent;
     ThisEvent.EventType = BRAID_UPDATE;
     ThisEvent.EventParam = CurrentBraidState.FullState;
