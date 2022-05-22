@@ -147,7 +147,7 @@ ES_Event_t RunBraidService(ES_Event_t ThisEvent)
       if (ThisEvent.EventType == BRAID_START)    // only respond to ES_Init
       {
           //Pick Config
-          uint8_t RandNum = rand() % 3; //Make this random
+          uint8_t RandNum = (rand() % 3) + 1; //Make this random
           BraidState Random = RandNum;
           Config.Braid1 = Random;
           Config.Braid2 = Random;
