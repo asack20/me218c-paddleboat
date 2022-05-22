@@ -30,9 +30,11 @@
 #include "XBeeTXSM.h"
 #include "../HALs/PIC32PortHAL.h"
 #include "../HALs/PIC32_AD_Lib.h"
+#include <stdbool.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 
+#define COMMS_TIMEOUT 3000 //Three Seconds
 #define FIVE_SEC 5000
 #define ONE_SEC 1000
 #define MODE3DEBOUNCETIMERDURATION 2000
@@ -506,6 +508,10 @@ static void ConfigureIOPins(void)
     //Pin 13 is analog input for right thrust
     PortSetup_ConfigureAnalogInputs(_Port_B, _Pin_12 | _Pin_13);
     
+    //Add weak pull ups to the button pins
+    PortSetup_ConfigurePullUps(_Port_A, _Pin_4);
+    PortSetup_ConfigurePullUps(_Port_B, _Pin_9);
+    
     return;
 }
 
@@ -541,7 +547,7 @@ static void StartCommsTimer(void)
 
 static void StartInactivityTimer(void)
 {
-    ES_Timer_InitTimer(INACTIVITYTIMER, FIVE_SEC);
+    ES_Timer_InitTimer(INACTIVITYTIMER, COMMS_TIMEOUT);
     return;
 }
 
@@ -554,7 +560,7 @@ static void StopInactivityTimer(void)
 static void ResetInactivityTimer(void)
 {
     ES_Timer_StopTimer(INACTIVITYTIMER);
-    ES_Timer_InitTimer(INACTIVITYTIMER, FIVE_SEC);
+    ES_Timer_InitTimer(INACTIVITYTIMER, COMMS_TIMEOUT);
     return;
 }
 
