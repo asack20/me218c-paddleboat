@@ -38,7 +38,7 @@
 #endif
 
 #define ONE_SEC
-#define TIMEOUT_TIME 5000 // 5 sec
+#define TIMEOUT_TIME 3000 // 3 sec
 #define TRANSMIT_TIME 200 // ms (5 Hz)
 
 #define BUTTON_PORT PORTAbits.RA0
