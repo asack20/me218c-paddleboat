@@ -41,8 +41,8 @@
 #endif
 
 
-#define LEFT_MIN_DUTY_CYCLE 120 // Duty cycle at which the left motor starts moving
-#define RIGHT_MIN_DUTY_CYCLE 120 // Duty cycle at which the right motor starts moving
+#define LEFT_MIN_DUTY_CYCLE 300 // Duty cycle at which the left motor starts moving
+#define RIGHT_MIN_DUTY_CYCLE 300 // Duty cycle at which the right motor starts moving
 #define MAX_DUTY_CYCLE 1000 // Max duty cycle input
 #define MAX_INPUT 127 // max val of x and yaw
 
