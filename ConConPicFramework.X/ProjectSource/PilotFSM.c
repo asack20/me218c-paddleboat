@@ -69,7 +69,8 @@ static void TurnOffPairedLED(void);
 static void ToggleCommsLED(void);
 static void UpdateThrustVals(void);
 
-static int32_t Calibrate(uint32_t);
+static int32_t CalibrateLeft(uint32_t);
+static int32_t CalibrateRight(uint32_t);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -419,12 +420,12 @@ uint8_t QueryPairingSelectorAddress(void)
 int32_t QueryLeftThrustVal(void)
 {
     
-    return Calibrate(LeftThrustVal);
+    return CalibrateLeft(LeftThrustVal);
 }
 
 int32_t QueryRightThrustVal(void)
 {
-    return Calibrate(RightThrustVal);
+    return CalibrateRight(RightThrustVal);
 }
 
 bool QueryMode3State(void)
@@ -615,7 +616,7 @@ static void UpdateThrustVals(void)
     return;
 }
 
-static int32_t Calibrate(uint32_t RawInput)
+static int32_t CalibrateLeft(uint32_t RawInput)
 {
     int32_t CalibratedValue;
     if (RawInput<381) {
@@ -626,6 +627,26 @@ static int32_t Calibrate(uint32_t RawInput)
     }
     else if (RawInput<1024) {
         CalibratedValue = RawInput - 642;
+    }
+    else {
+        puts("Erroneous value inputted into calibration function\r\n");
+        CalibratedValue = 0;
+    }
+    
+    return CalibratedValue;
+}
+
+static int32_t CalibrateRight(uint32_t RawInput)
+{
+    int32_t CalibratedValue;
+    if (RawInput<233) {
+        CalibratedValue = ((163*RawInput)/100) - 381;
+    }
+    else if (RawInput<465) {
+        CalibratedValue = 0;
+    }
+    else if (RawInput<1024) {
+        CalibratedValue = (68*(RawInput - 465))/100;
     }
     else {
         puts("Erroneous value inputted into calibration function\r\n");
