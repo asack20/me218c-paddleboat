@@ -84,8 +84,8 @@ static int32_t RightThrustVal;
 static bool Mode3ToBeActiveOnNextTransmission;
 static bool RefuelBitForComms;
 
-static const uint16_t TUGAddresses[8] = {0x2115, 0x2017, 0x2184, 0x2188, 0x2085, 0x2185, 0x2115, 0x2017}; // Last two are just repeating the first two
-static const uint16_t PILOTAddresses[8] = {0x2117, 0x2118, 0x2186, 0x2183, 0x2082, 0x2087, 0x2117, 0x2118}; // Last two are just repeating the first two
+static const uint16_t TUGAddresses[8] = {0x2187, 0x2086, 0x2184, 0x2188, 0x2085, 0x2185, 0x0000, 0x0000}; // Last two are just repeating the first two
+static const uint16_t PILOTAddresses[8] = {0x218A, 0x2084, 0x2186, 0x2183, 0x2082, 0x2087, 0x0000, 0x0000}; // Last two are just repeating the first two
 
 static uint16_t ThisPILOTAddress;
 
