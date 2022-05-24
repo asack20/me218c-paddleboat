@@ -73,8 +73,8 @@ static uint16_t Mode3State;
 static bool AutoRefuelInMode3;
 static uint8_t Mode3Index;
 
-static const uint8_t RedLEDStateList[4] = {0,1,0,1}; //None, Red, Blue, Purple
-static const uint8_t BlueLEDStateList[4] = {0,0,1,1}; //None, Red, Blue, Purple
+static const uint8_t RedLEDStateList[4] = {0,0,1,1}; //None, Red, Blue, Purple
+static const uint8_t BlueLEDStateList[4] = {0,1,0,1}; //None, Red, Blue, Purple
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -458,7 +458,7 @@ static void ParseNewRXMessage(void)
         }
         
         //Decide what to do based on Mode3Index
-        if (Mode3Index>0) {
+        if (Mode3Index>1) {
             //If we got here, Mode3 is active, so give infinite fuel
             AutoRefuelInMode3 = true;
         }
