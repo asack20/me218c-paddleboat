@@ -430,7 +430,8 @@ int32_t QueryRightThrustVal(void)
 
 bool QueryMode3State(void)
 {
-    return Mode3ToBeActiveOnNextTransmission;
+    return Mode3ButtonState;
+    //return Mode3ToBeActiveOnNextTransmission;
 }
 
 /***************************************************************************
@@ -567,12 +568,12 @@ static void ResetInactivityTimer(void)
 
 static bool UpdatePairButtonState(void)
 {
-    return PAIRBUTTONBIT;
+    return !PAIRBUTTONBIT;
 }
 
 static bool UpdateMode3ButtonState(void)
 {
-    return MODE3BUTTONBIT;
+    return !MODE3BUTTONBIT;
 }
 
 static void TurnOnTryingToPairLED(void)

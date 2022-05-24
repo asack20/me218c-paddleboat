@@ -28,6 +28,8 @@
 #include "../HALs/PIC32PortHAL.h"
 #include "TugComm.h"
 #include "../Propulsion/Propulsion.h"
+#include <stdbool.h>
+#include <proc/p32mx170f256b.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 // MACRO to easily enable/disable print statements
@@ -48,6 +50,9 @@
 static void SetupUART(void);
 static void ParseNewRXMessage(void);
 
+static void InitializeMode3LEDPins(void);
+static void UpdateLEDStatus(uint8_t CurrentIndex);
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -63,6 +68,13 @@ static bool LastRXBufferState;
 
 static uint16_t messageLength;
 static uint16_t PILOTAddress;
+
+static uint16_t Mode3State;
+static bool AutoRefuelInMode3;
+static uint8_t Mode3Index;
+
+static const uint8_t RedLEDStateList[4] = {0,1,0,1}; //None, Red, Blue, Purple
+static const uint8_t BlueLEDStateList[4] = {0,0,1,1}; //None, Red, Blue, Purple
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -101,6 +113,14 @@ bool InitXBeeRXSM(uint8_t Priority)
   LastRXBufferState = 0;
   
   PILOTAddress = 0x2183; // team 3 by default
+  
+  //Initialize the I/O pins used for controlling Mode3 LEDs
+  InitializeMode3LEDPins();
+  
+  //Initialize Mode3 State as 0 (inactive)
+  Mode3State = true;
+  AutoRefuelInMode3 = false;
+  Mode3Index = 0;
   
   return true;
 }
@@ -405,7 +425,7 @@ static void ParseNewRXMessage(void)
         
         // Refuel (Important this is before set thrust)
         // Refuel sent
-        if (RXMessageArray[MSGFRAME_REFUEL-1] != 0)
+        if ((RXMessageArray[MSGFRAME_REFUEL-1] != 0) || (AutoRefuelInMode3))
         {
             PostEvent.EventType = PROPULSION_REFUEL;
             PostEvent.EventParam = 0;
@@ -422,7 +442,31 @@ static void ParseNewRXMessage(void)
         
         // Mode 3
         uint8_t Mode3 = RXMessageArray[MSGFRAME_MODE3-1];
-        // Do something
+        if (Mode3>0) {
+            if (Mode3State == false) {
+                //In this case we have that the button was pressed and is now released
+                //Toggle lights
+                Mode3Index = (Mode3Index+1) % 4; //Cycle back to 0 after 3
+                UpdateLEDStatus(Mode3Index); //Update LEDs
+            }
+            // In this case at least one Mode3 bit is high; Mode3State should be true
+            Mode3State = true;
+        }
+        else {
+            //Else Mode3 == 0 so Mode3State should be false
+            Mode3State = false;
+        }
+        
+        //Decide what to do based on Mode3Index
+        if (Mode3Index>0) {
+            //If we got here, Mode3 is active, so give infinite fuel
+            AutoRefuelInMode3 = true;
+        }
+        else {
+            //Otherwise, don't autorefuel
+            AutoRefuelInMode3 = false;
+        }
+        
                 
     }
     
@@ -434,4 +478,16 @@ uint16_t GetPILOTAddress(void)
 {
     return PILOTAddress;
 }
-        
+    
+static void InitializeMode3LEDPins(void){
+    LATBbits.LATB13 = false;
+    LATBbits.LATB14 = false;
+    PortSetup_ConfigureDigitalOutputs(_Port_B, _Pin_13 | _Pin_14); //RB13 is Red and RB14 is Blue
+    return;
+}
+
+static void UpdateLEDStatus(uint8_t CurrentIndex){
+    LATBbits.LATB13 = RedLEDStateList[CurrentIndex];
+    LATBbits.LATB14 = BlueLEDStateList[CurrentIndex];
+    return;
+}

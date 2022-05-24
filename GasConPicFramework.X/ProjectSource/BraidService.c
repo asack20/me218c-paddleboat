@@ -31,6 +31,8 @@
 #include "../HALs/PIC32PortHAL.h"
 #include "../FrameworkHeaders/bitdefs.h"
 #include <stdlib.h>
+#include <proc/p32mx170f256b.h>
+#include <stdbool.h>
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -77,6 +79,9 @@ bool InitBraidService(uint8_t Priority)
   MyPriority = Priority;
   // put us into the Initial PseudoState
   CurrentState = WaitState;
+  BLUELED = false;
+  REDLED = false;
+  GREENLED = false;
   PortSetup_ConfigureDigitalOutputs(_Port_A, _Pin_2);//Low LED
   PortSetup_ConfigureDigitalOutputs(_Port_A, _Pin_3);//Mid LED
   PortSetup_ConfigureDigitalOutputs(_Port_A, _Pin_4);//High LED
